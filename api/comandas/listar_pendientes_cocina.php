@@ -10,65 +10,59 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 $db = new Database();
 $conn = $db->getConnection();
 
-// Opcional: filtrar por estación específica si la cocina tiene pantallas separadas
-$estacion_id = isset($_GET['estacion_id']) ? (int)$_GET['estacion_id'] : null;
-
 try {
-    // 1. Obtener órdenes activas
-    $sqlOrdenes = "
-        SELECT o.id AS orden_id, o.folio, o.tipo_pedido, o.estado, o.notas, o.creado_en,
-               m.numero AS mesa, u.nombre AS mesero
-        FROM ordenes o
-        LEFT JOIN mesas m ON o.mesa_id = m.id
-        JOIN usuarios u ON o.mesero_id = u.id
-        WHERE o.estado IN ('abierta', 'cuenta_pedida')
-        ORDER BY o.creado_en ASC
-    ";
-    $stmtOrdenes = $conn->query($sqlOrdenes);
-    $ordenes = $stmtOrdenes->fetchAll();
-
-    $resultado = [];
-
-    // 2. Obtener los renglones pendientes por cada orden
-    $sqlDetalle = "
-        SELECT od.id AS detalle_id, od.cantidad, od.notas_cocina, od.estado_kds, od.hora_envio,
-               p.nombre AS producto, k.nombre AS estacion, k.id AS estacion_id
+    // Consulta con tiempo estimado y minutos transcurridos desde que se envió la comanda
+    $sql = "
+        SELECT 
+            od.id AS detalle_id,
+            o.id AS orden_id,
+            o.folio,
+            m.numero AS mesa_numero,
+            p.nombre AS platillo,
+            od.cantidad,
+            od.notas_cocina,
+            od.estado_kds,
+            p.tiempo_preparacion_min,
+            od.creado_en AS hora_pedido,
+            TIMESTAMPDIFF(MINUTE, od.creado_en, NOW()) AS minutos_transcurridos,
+            ke.nombre AS estacion
         FROM orden_detalles od
-        JOIN productos p ON od.producto_id = p.id
-        JOIN kds_estaciones k ON od.estacion_kds_id = k.id
-        WHERE od.orden_id = :orden_id
-          AND od.estado_kds IN ('pendiente', 'en_preparacion')
+        INNER JOIN ordenes o ON od.orden_id = o.id
+        INNER JOIN productos p ON od.producto_id = p.id
+        LEFT JOIN mesas m ON o.mesa_id = m.id
+        LEFT JOIN kds_estaciones ke ON p.estacion_kds_id = ke.id
+        WHERE od.estado_kds IN ('pendiente', 'en_preparacion')
+        ORDER BY od.creado_en ASC
     ";
-    if ($estacion_id) {
-        $sqlDetalle .= " AND od.estacion_kds_id = :estacion_id";
-    }
 
-    $stmtDetalle = $conn->prepare($sqlDetalle);
+    $stmt = $conn->query($sql);
+    $pendientes = $stmt->fetchAll();
 
-    foreach ($ordenes as $orden) {
-        $params = [':orden_id' => $orden['orden_id']];
-        if ($estacion_id) {
-            $params[':estacion_id'] = $estacion_id;
+    // Marcado semafórico para el KDS
+    $resultados = array_map(function($item) {
+        $transcurrido = (int)$item['minutos_transcurridos'];
+        $estimado = (int)$item['tiempo_preparacion_min'];
+
+        if ($transcurrido >= $estimado) {
+            $alerta = 'retrasado'; // Rojo
+        } elseif ($transcurrido >= ($estimado * 0.7)) {
+            $alerta = 'alerta';    // Amarillo
+        } else {
+            $alerta = 'a_tiempo';  // Verde
         }
 
-        $stmtDetalle->execute($params);
-        $platillos = $stmtDetalle->fetchAll();
-
-        // Solo incluir comandas que tengan platillos pendientes de preparar
-        if (!empty($platillos)) {
-            $orden['platillos'] = $platillos;
-            $resultado[] = $orden;
-        }
-    }
+        $item['alerta_tiempo'] = $alerta;
+        return $item;
+    }, $pendientes);
 
     http_response_code(200);
     echo json_encode([
         "status" => "success",
-        "total_ordenes" => count($resultado),
-        "data" => $resultado
+        "total" => count($resultados),
+        "data" => $resultados
     ]);
 
 } catch (PDOException $e) {
     http_response_code(500);
-    echo json_encode(["status" => "error", "message" => "Error al obtener comandas de cocina: " . $e->getMessage()]);
+    echo json_encode(["status" => "error", "message" => "Error al listar cocina: " . $e->getMessage()]);
 }
