@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SazónTrack POS - Mapa de Mesas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Italianno&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-offwhite: #FDFCF8;
+            --bg-ivory: #F3F0E9;
+            --color-nude: #E3DBCC;
+            --text-dark: #2A2621;
+            --text-muted: #736B60;
+            --color-disponible: #10B981;
+            --color-ocupada: #EF4444;
+            --color-reservada: #F59E0B;
+            --color-limpiar: #3B82F6;
+        }
+
+        body {
+            background-color: var(--bg-ivory);
+            color: var(--text-dark);
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .sidebar {
+            width: 260px;
+            background: var(--bg-offwhite);
+            border-right: 1px solid var(--color-nude);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            padding: 1.5rem 1rem;
+            z-index: 100;
+        }
+
+        .brand-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 1.2rem;
+            border-bottom: 1px solid var(--color-nude);
+            margin-bottom: 1rem;
+        }
+
+        .brand-avatar {
+            width: 44px;
+            height: 44px;
+            background: var(--text-dark);
+            color: var(--bg-offwhite);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .brand-title {
+            font-family: 'Italianno', cursive, serif;
+            font-size: 2.2rem;
+            color: var(--text-dark);
+            margin: 0;
+            line-height: 0.8;
+        }
+
+        .sidebar-nav .nav-link {
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 10px 14px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 4px;
+            text-decoration: none;
+        }
+
+        .sidebar-nav .nav-link:hover, .sidebar-nav .nav-link.active {
+            background: var(--text-dark);
+            color: var(--bg-offwhite);
+        }
+
+        .main-wrapper {
+            margin-left: 260px;
+            padding: 2rem;
+        }
+
+        .badge-status {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: white;
+            border: 1px solid var(--color-nude);
+        }
+
+        .mesa-card {
+            background: var(--bg-offwhite);
+            border: 2px solid var(--color-nude);
+            border-radius: 20px;
+            padding: 1.2rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .mesa-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(42, 38, 33, 0.1);
+        }
+
+        .mesa-card.disponible { border-top: 6px solid var(--color-disponible); }
+        .mesa-card.ocupada { border-top: 6px solid var(--color-ocupada); }
+        .mesa-card.reservada { border-top: 6px solid var(--color-reservada); }
+        .mesa-card.por_limpiar { border-top: 6px solid var(--color-limpiar); }
+
+        .mesa-number {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--text-dark);
+        }
+
+        .area-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin: 1.5rem 0 1rem;
+            padding-bottom: 0.4rem;
+            border-bottom: 2px dashed var(--color-nude);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-action-dark {
+            background: var(--text-dark);
+            color: var(--bg-offwhite);
+            border-radius: 12px;
+            font-weight: 600;
+            border: none;
+            padding: 8px 16px;
+        }
+    </style>
+</head>
+<body>
+
+<aside class="sidebar">
+    <div class="brand-header">
+        <div class="brand-avatar"><i class="fa-solid fa-concierge-bell"></i></div>
+        <div>
+            <h2 class="brand-title">SazónTrack</h2>
+            <span class="text-muted small fw-bold">Mapa de Mesas</span>
+        </div>
+    </div>
+    <nav class="sidebar-nav">
+        <a href="index.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+        <a href="mesas.html" class="nav-link active"><i class="fa-solid fa-utensils"></i> Mapa Mesas</a>
+    </nav>
+</aside>
+
+<main class="main-wrapper">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h3 class="fw-bold m-0">Mapa de Mesas</h3>
+            <p class="text-muted small m-0">Control operativo y gestión utilizando tus endpoints API</p>
+        </div>
+        <button class="btn btn-action-dark" onclick="abrirModalCrearMesa()">
+            <i class="fa-solid fa-plus me-1"></i> Nueva Mesa
+        </button>
+    </div>
+
+    <!-- Leyenda -->
+    <div class="d-flex gap-2 mb-4">
+        <span class="badge-status"><i class="fa-solid fa-circle text-success me-1"></i> Disponible</span>
+        <span class="badge-status"><i class="fa-solid fa-circle text-danger me-1"></i> Ocupada</span>
+        <span class="badge-status"><i class="fa-solid fa-circle text-warning me-1"></i> Reservada</span>
+        <span class="badge-status"><i class="fa-solid fa-circle text-primary me-1"></i> Por Limpiar</span>
+    </div>
+
+    <!-- Contenedor del Mapa -->
+    <div id="mapaContenedor">
+        <div class="text-center py-5 text-muted">
+            <i class="fa-solid fa-spinner fa-spin fa-2x mb-2"></i>
+            <p>Cargando mapa con obtener_mapa.php...</p>
+        </div>
+    </div>
+</main>
+
+<!-- Modal: Opciones y Estados de la Mesa -->
+<div class="modal fade" id="modalMesa" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 20px; background: var(--bg-offwhite);">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="modalMesaTitulo">Mesa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small">Cambia de estado con `actualizar_estado.php` o elimina con `eliminar.php`:</p>
+                <div class="d-grid gap-2 mb-3">
+                    <button class="btn btn-outline-success text-start py-2 fw-bold" onclick="cambiarEstado('disponible')">
+                        <i class="fa-solid fa-check-circle me-2"></i> Marcar Disponible
+                    </button>
+                    <button class="btn btn-outline-danger text-start py-2 fw-bold" onclick="cambiarEstado('ocupada')">
+                        <i class="fa-solid fa-user-group me-2"></i> Marcar Ocupada
+                    </button>
+                    <button class="btn btn-outline-primary text-start py-2 fw-bold" onclick="cambiarEstado('por_limpiar')">
+                        <i class="fa-solid fa-broom me-2"></i> Marcar Por Limpiar
+                    </button>
+                </div>
+                <hr>
+                <button class="btn btn-sm btn-outline-danger w-100" onclick="ejecutarEliminarMesa()">
+                    <i class="fa-solid fa-trash me-1"></i> Eliminar Mesa
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Crear Mesa (llama a crear.php) -->
+<div class="modal fade" id="modalCrearMesa" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 20px; background: var(--bg-offwhite);">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold">Nueva Mesa (crear.php)</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-2">
+                    <label class="form-label small text-muted">Número de Mesa</label>
+                    <input type="text" id="crearNumMesa" class="form-control" placeholder="Ej. M5" required>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small text-muted">Capacidad</label>
+                    <input type="number" id="crearCapMesa" class="form-control" value="4" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small text-muted">ID de Área</label>
+                    <select id="crearAreaMesa" class="form-select"></select>
+                </div>
+                <button class="btn btn-action-dark w-100" onclick="ejecutarCrearMesa()">Guardar Mesa</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    let mapaGlobal = [];
+    let mesaSeleccionadaId = null;
+
+    document.addEventListener("DOMContentLoaded", cargarMapa);
+
+    // 1. Conecta con api/mesas/obtener_mapa.php
+    async function cargarMapa() {
+        try {
+            const resp = await fetch('api/mesas/obtener_mapa.php');
+            const data = await resp.json();
+
+            if (resp.ok && data.status === 'success') {
+                mapaGlobal = data.mapa;
+                renderizarMapa(mapaGlobal);
+            } else {
+                document.getElementById("mapaContenedor").innerHTML = `<div class="alert alert-danger">${data.message || 'Error al obtener mapa'}</div>`;
+            }
+        } catch (err) {
+            document.getElementById("mapaContenedor").innerHTML = `<div class="alert alert-danger">Error conectando a obtener_mapa.php</div>`;
+        }
+    }
+
+    function renderizarMapa(areas) {
+        const contenedor = document.getElementById("mapaContenedor");
+        contenedor.innerHTML = "";
+
+        if (!areas || areas.length === 0) {
+            contenedor.innerHTML = `<div class="text-center py-4 text-muted">No hay áreas configuradas.</div>`;
+            return;
+        }
+
+        areas.forEach(area => {
+            let htmlArea = `
+                <div class="area-title">
+                    <span><i class="fa-solid fa-layer-group me-2"></i>${area.nombre}</span>
+                    <span class="badge bg-secondary">${area.mesas ? area.mesas.length : 0} mesas</span>
+                </div>
+                <div class="row g-3">
+            `;
+
+            if (!area.mesas || area.mesas.length === 0) {
+                htmlArea += `<div class="col-12 text-muted small italic">Sin mesas en esta área.</div>`;
+            } else {
+                area.mesas.forEach(m => {
+                    let badgeColor = m.estado === 'disponible' ? 'success' : (m.estado === 'ocupada' ? 'danger' : 'primary');
+                    htmlArea += `
+                        <div class="col-md-3">
+                            <div class="mesa-card ${m.estado}" onclick="abrirModalMesa(${m.id_mesa}, '${m.numero_mesa}')">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="mesa-number">${m.numero_mesa}</span>
+                                    <span class="badge bg-${badgeColor} text-capitalize">${m.estado ? m.estado.replace('_', ' ') : 'disponible'}</span>
+                                </div>
+                                <div class="text-muted small">
+                                    <i class="fa-solid fa-users me-1"></i> Capacidad: ${m.capacidad} pers.
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            htmlArea += `</div>`;
+            contenedor.innerHTML += htmlArea;
+        });
+    }
+
+    function abrirModalMesa(id, numero) {
+        mesaSeleccionadaId = id;
+        document.getElementById("modalMesaTitulo").innerText = `Gestionar Mesa ${numero}`;
+        new bootstrap.Modal(document.getElementById('modalMesa')).show();
+    }
+
+    // 2. Conecta con api/mesas/actualizar_estado.php
+    async function cambiarEstado(nuevoEstado) {
+        if (!mesaSeleccionadaId) return;
+        await fetch('api/mesas/actualizar_estado.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id_mesa: mesaSeleccionadaId, estado: nuevoEstado })
+        });
+        bootstrap.Modal.getInstance(document.getElementById('modalMesa')).hide();
+        cargarMapa();
+    }
+
+    // 3. Conecta con api/mesas/eliminar.php
+    async function ejecutarEliminarMesa() {
+        if (!confirm("¿Deseas eliminar esta mesa?")) return;
+        await fetch('api/mesas/eliminar.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id_mesa: mesaSeleccionadaId })
+        });
+        bootstrap.Modal.getInstance(document.getElementById('modalMesa')).hide();
+        cargarMapa();
+    }
+
+    function abrirModalCrearMesa() {
+        const select = document.getElementById("crearAreaMesa");
+        select.innerHTML = "";
+        mapaGlobal.forEach(a => {
+            select.innerHTML += `<option value="${a.id_area}">${a.nombre}</option>`;
+        });
+        new bootstrap.Modal(document.getElementById('modalCrearMesa')).show();
+    }
+
+    // 4. Conecta con api/mesas/crear.php
+    async function ejecutarCrearMesa() {
+        const numero_mesa = document.getElementById("crearNumMesa").value;
+        const capacidad = document.getElementById("crearCapMesa").value;
+        const id_area = document.getElementById("crearAreaMesa").value;
+
+        await fetch('api/mesas/crear.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ numero_mesa, capacidad, id_area })
+        });
+        bootstrap.Modal.getInstance(document.getElementById('modalCrearMesa')).hide();
+        cargarMapa();
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SazónTrack POS - Panel de Control</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Italianno&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --bg-offwhite: #FDFCF8;
+            --bg-ivory: #F3F0E9;
+            --color-nude: #E3DBCC;
+            --color-nude-hover: #D5C7B3;
+            --text-dark: #2A2621;
+            --text-muted: #736B60;
+            --card-shadow: rgba(42, 38, 33, 0.05);
+            --accent-green: #10B981;
+            --accent-orange: #F97316;
+            --accent-blue: #3B82F6;
+        }
+
+        body {
+            background-color: var(--bg-ivory);
+            color: var(--text-dark);
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: 260px;
+            background: var(--bg-offwhite);
+            border-right: 1px solid var(--color-nude);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 1.5rem 1rem;
+            z-index: 100;
+        }
+
+        .brand-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 1.2rem;
+            border-bottom: 1px solid var(--color-nude);
+            margin-bottom: 1rem;
+        }
+
+        .brand-avatar {
+            width: 44px;
+            height: 44px;
+            background: var(--text-dark);
+            color: var(--bg-offwhite);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .brand-title {
+            font-family: 'Italianno', cursive, serif;
+            font-size: 2.2rem;
+            color: var(--text-dark);
+            line-height: 0.8;
+            margin: 0;
+        }
+
+        .brand-sub {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .nav-category {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin: 1.2rem 0 0.4rem 0.8rem;
+        }
+
+        .sidebar-nav .nav-link {
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 10px 14px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 4px;
+            transition: all 0.15s ease;
+        }
+
+        .sidebar-nav .nav-link:hover {
+            background: var(--bg-ivory);
+            color: var(--text-dark);
+        }
+
+        .sidebar-nav .nav-link.active {
+            background: var(--text-dark);
+            color: var(--bg-offwhite);
+            box-shadow: 0 4px 12px rgba(42, 38, 33, 0.12);
+        }
+
+        /* Main Content Layout */
+        .main-wrapper {
+            margin-left: 260px;
+            padding: 2rem;
+        }
+
+        /* Metric Cards */
+        .metric-card {
+            background: var(--bg-offwhite);
+            border: 1px solid var(--color-nude);
+            border-radius: 18px;
+            padding: 1.4rem;
+            box-shadow: 0 4px 15px var(--card-shadow);
+        }
+
+        .metric-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        .metric-val {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin: 0.2rem 0;
+        }
+
+        .metric-trend {
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        /* Dashboard Chart Cards */
+        .chart-card {
+            background: var(--bg-offwhite);
+            border: 1px solid var(--color-nude);
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 15px var(--card-shadow);
+            margin-top: 1.5rem;
+        }
+
+        .user-pill {
+            background: var(--bg-offwhite);
+            border: 1px solid var(--color-nude);
+            border-radius: 30px;
+            padding: 6px 16px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Sidebar de Navegación -->
+<aside class="sidebar">
+    <div>
+        <div class="brand-header">
+            <div class="brand-avatar">
+                <i class="fa-solid fa-concierge-bell"></i>
+            </div>
+            <div>
+                <h2 class="brand-title">SazónTrack</h2>
+                <span class="brand-sub">Panel de Control</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-category">Principal</div>
+            <a href="#" class="nav-link active"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+            <a href="#" class="nav-link"><i class="fa-solid fa-cash-register"></i> Caja POS</a>
+            <a href="mesas.html" class="nav-link"><i class="fa-solid fa-utensils"></i> Mapa Mesas</a>
+            <a href="#" class="nav-link"><i class="fa-solid fa-fire-burner"></i> Cocina KDS</a>
+
+            <div class="nav-category">Administración (CRUDs)</div>
+            <a href="#" class="nav-link"><i class="fa-solid fa-users"></i> Empleados y Usuarios</a>
+            <a href="#" class="nav-link"><i class="fa-solid fa-burger"></i> Productos y Menú</a>
+            <a href="#" class="nav-link"><i class="fa-solid fa-boxes-stacked"></i> Insumos e Inventario</a>
+            <a href="#" class="nav-link"><i class="fa-solid fa-chair"></i> Config. Mesas y Áreas</a>
+            <a href="#" class="nav-link"><i class="fa-solid fa-receipt"></i> Histórico Comandas</a>
+            <a href="#" class="nav-link"><i class="fa-solid fa-vault"></i> Turnos y Cortes</a>
+        </nav>
+    </div>
+
+    <!-- Usuario Activo & Logout -->
+    <div class="pt-3 border-top border-secondary-subtle">
+        <div class="d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-2">
+                <i class="fa-solid fa-user-circle fa-2x text-secondary"></i>
+                <div class="lh-1">
+                    <div id="sessionUserName" class="fw-bold small">Cargando...</div>
+                    <small id="sessionUserRole" class="text-muted" style="font-size: 0.75rem;"></small>
+                </div>
+            </div>
+            <button onclick="cerrarSesion()" class="btn btn-sm text-danger" title="Cerrar Sesión">
+                <i class="fa-solid fa-right-from-bracket"></i>
+            </button>
+        </div>
+    </div>
+</aside>
+
+<!-- Área Principal de Trabajo -->
+<main class="main-wrapper">
+    <!-- Header Superior -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h3 class="fw-bold m-0">Reportes Financieros</h3>
+            <p class="text-muted small m-0">Análisis de ventas y desempeño operativo del restaurante</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="user-pill"><i class="fa-regular fa-calendar me-1"></i> Turno Activo: <strong id="lblTurnoId">N/A</strong></span>
+        </div>
+    </div>
+
+    <!-- Métricas del Negocio -->
+    <div class="row g-3">
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-muted small fw-bold">VENTAS TOTALES</span>
+                    <div class="metric-icon bg-light text-dark"><i class="fa-solid fa-dollar-sign"></i></div>
+                </div>
+                <div class="metric-val">$12,450.00</div>
+                <div class="metric-trend text-success"><i class="fa-solid fa-arrow-up"></i> +18% vs período anterior</div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-muted small fw-bold">ÓRDENES</span>
+                    <div class="metric-icon bg-light text-primary"><i class="fa-solid fa-bag-shopping"></i></div>
+                </div>
+                <div class="metric-val">48</div>
+                <div class="metric-trend text-success"><i class="fa-solid fa-arrow-up"></i> +12% vs período anterior</div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-muted small fw-bold">TICKET PROMEDIO</span>
+                    <div class="metric-icon bg-light text-success"><i class="fa-solid fa-chart-line"></i></div>
+                </div>
+                <div class="metric-val">$259.37</div>
+                <div class="metric-trend text-danger"><i class="fa-solid fa-arrow-down"></i> -3% vs período anterior</div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-muted small fw-bold">MEJOR DÍA</span>
+                    <div class="metric-icon bg-light text-warning"><i class="fa-solid fa-trophy"></i></div>
+                </div>
+                <div class="metric-val">$3,890.00</div>
+                <div class="metric-trend text-muted">Sábado (Turno Noche)</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficas de Desempeño -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="chart-card">
+                <h6 class="fw-bold mb-3">Ingresos por Día</h6>
+                <canvas id="chartVentas" height="120"></canvas>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="chart-card">
+                <h6 class="fw-bold mb-3">Órdenes por Estado</h6>
+                <canvas id="chartEstados" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    // Validar sesión al cargar
+    document.addEventListener("DOMContentLoaded", () => {
+        const sessionData = localStorage.getItem("sazontrack_session");
+        if (!sessionData) {
+            window.location.href = "login.html";
+            return;
+        }
+
+        const session = JSON.parse(sessionData);
+        document.getElementById("sessionUserName").innerText = session.nombre_empleado || session.username;
+        document.getElementById("sessionUserRole").innerText = session.puesto || session.rol;
+        document.getElementById("lblTurnoId").innerText = session.turno_activo_id ? `#${session.turno_activo_id}` : "Sin Abrir";
+
+        inicializarGraficas();
+    });
+
+    function cerrarSesion() {
+        localStorage.removeItem("sazontrack_session");
+        window.location.href = "login.html";
+    }
+
+    function inicializarGraficas() {
+        // Gráfica de Líneas (Ingresos)
+        const ctxVentas = document.getElementById('chartVentas').getContext('2d');
+        new Chart(ctxVentas, {
+            type: 'line',
+            data: {
+                labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+                datasets: [{
+                    label: 'Ventas ($)',
+                    data: [1200, 1900, 1500, 2100, 3400, 3890, 2900],
+                    borderColor: '#2A2621',
+                    backgroundColor: 'rgba(227, 219, 204, 0.4)',
+                    fill: true,
+                    tension: 0.35,
+                    borderWidth: 2
+                }]
+            },
+            options: { responsive: true, plugins: { legend: { display: false } } }
+        });
+
+        // Gráfica Dona (Estados de Órdenes)
+        const ctxEstados = document.getElementById('chartEstados').getContext('2d');
+        new Chart(ctxEstados, {
+            type: 'doughnut',
+            data: {
+                labels: ['Listas', 'En Preparación', 'Pendientes', 'Canceladas'],
+                datasets: [{
+                    data: [32, 10, 4, 2],
+                    backgroundColor: ['#10B981', '#F97316', '#3B82F6', '#EF4444'],
+                    borderWidth: 0
+                }]
+            },
+            options: { responsive: true, cutout: '70%' }
+        });
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SazónTrack POS - Acceso al Sistema</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Fuentes Elegantes Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Italianno&family=Playfair+Display:ital,wght@1,600;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-offwhite: #FDFCF8;
+            --bg-ivory: #F3F0E9;
+            --color-nude: #E3DBCC;
+            --color-nude-hover: #d5c7b3;
+            --text-dark: #2a2621;
+            --text-muted: #736b60;
+            --card-shadow: rgba(42, 38, 33, 0.08);
+        }
+
+        body {
+            background-color: var(--bg-ivory);
+            background-image: radial-gradient(circle at center, var(--bg-offwhite) 0%, var(--bg-ivory) 100%);
+            color: var(--text-dark);
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 1.5rem;
+        }
+
+        .login-card {
+            background: var(--bg-offwhite);
+            border: 1px solid var(--color-nude);
+            border-radius: 28px;
+            box-shadow: 0 20px 45px var(--card-shadow);
+            width: 100%;
+            max-width: 450px;
+            padding: 2.5rem;
+        }
+
+        .bell-icon-container {
+            width: 80px;
+            height: 80px;
+            background: var(--bg-ivory);
+            color: var(--text-dark);
+            border: 1px solid var(--color-nude);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.04);
+        }
+
+        /* Tipografía Cursiva Elegante para el Título */
+        .brand-title {
+            font-family: 'Italianno', 'Playfair Display', cursive, serif;
+            font-size: 3.2rem;
+            color: var(--text-dark);
+            font-weight: 400;
+            line-height: 1;
+            margin: 0;
+        }
+
+        .brand-subtitle {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        /* Navegación por pestañas */
+        .nav-pills {
+            background: var(--bg-ivory);
+            padding: 5px;
+            border-radius: 16px;
+            border: 1px solid var(--color-nude);
+        }
+
+        .nav-pills .nav-link {
+            color: var(--text-muted);
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+
+        .nav-pills .nav-link.active {
+            background-color: var(--text-dark);
+            color: var(--bg-offwhite);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        }
+
+        .form-control, .form-select {
+            background: var(--bg-offwhite);
+            border: 1px solid var(--color-nude);
+            color: var(--text-dark);
+            border-radius: 12px;
+            padding: 12px 16px;
+        }
+
+        .form-control:focus, .form-select:focus {
+            background: #fff;
+            border-color: var(--text-dark);
+            box-shadow: 0 0 0 4px rgba(42, 38, 33, 0.08);
+        }
+
+        /* Contenedor del PIN con opción de ver/ocultar números */
+        .pin-container {
+            position: relative;
+            margin-bottom: 1.2rem;
+        }
+
+        .pin-display {
+            font-size: 1.8rem;
+            letter-spacing: 8px;
+            text-align: center;
+            background: var(--bg-ivory);
+            border: 1.5px solid var(--color-nude);
+            color: var(--text-dark);
+            border-radius: 16px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            padding-right: 45px;
+            padding-left: 45px;
+        }
+
+        .btn-toggle-visible {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .btn-toggle-visible:hover {
+            color: var(--text-dark);
+        }
+
+        /* Teclado Numérico (Numpad) */
+        .numpad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .btn-numpad {
+            background: var(--bg-ivory);
+            border: 1px solid var(--color-nude);
+            color: var(--text-dark);
+            font-size: 1.3rem;
+            font-weight: 600;
+            border-radius: 14px;
+            height: 52px;
+            transition: all 0.15s ease;
+        }
+
+        .btn-numpad:hover, .btn-numpad:active {
+            background: var(--color-nude);
+            color: var(--text-dark);
+        }
+
+        .btn-action-primary {
+            background: var(--text-dark);
+            color: var(--bg-offwhite);
+            font-weight: 600;
+            border: none;
+            border-radius: 14px;
+            padding: 14px;
+            width: 100%;
+            box-shadow: 0 6px 16px rgba(42, 38, 33, 0.15);
+            transition: all 0.2s ease;
+        }
+
+        .btn-action-primary:hover {
+            background: #423c34;
+            color: #fff;
+            box-shadow: 0 8px 20px rgba(42, 38, 33, 0.22);
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-card">
+    <!-- Icono Campana Gastronómica -->
+    <div class="bell-icon-container">
+        <i class="fa-solid fa-concierge-bell fa-2x"></i>
+    </div>
+
+    <div class="text-center mb-4">
+        <h1 class="brand-title">SazónTrack</h1>
+        <p class="brand-subtitle m-0">Control & Punto de Venta</p>
+    </div>
+
+    <!-- Navegación de Pestañas -->
+    <ul class="nav nav-pills nav-justified mb-4" id="loginTabs" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link active" id="pin-tab" data-bs-toggle="pill" data-bs-target="#pin-panel" type="button">
+                <i class="fa-solid fa-keypad me-1"></i> PIN
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" id="user-tab" data-bs-toggle="pill" data-bs-target="#user-panel" type="button">
+                <i class="fa-solid fa-user-lock me-1"></i> Acceso
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" id="register-tab" data-bs-toggle="pill" data-bs-target="#register-panel" type="button">
+                <i class="fa-solid fa-user-plus me-1"></i> Registro
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <!-- Panel 1: PIN Rápido con Visibilidad Alternable -->
+        <div class="tab-pane fade show active" id="pin-panel">
+            <div class="pin-container">
+                <div id="pinDisplay" class="pin-display">----</div>
+                <button type="button" class="btn-toggle-visible" onclick="togglePinVisibility()" title="Mostrar/Ocultar números">
+                    <i id="eyeIcon" class="fa-solid fa-eye-slash"></i>
+                </button>
+            </div>
+
+            <div class="numpad mb-3">
+                <button class="btn btn-numpad" onclick="addPin('1')">1</button>
+                <button class="btn btn-numpad" onclick="addPin('2')">2</button>
+                <button class="btn btn-numpad" onclick="addPin('3')">3</button>
+                <button class="btn btn-numpad" onclick="addPin('4')">4</button>
+                <button class="btn btn-numpad" onclick="addPin('5')">5</button>
+                <button class="btn btn-numpad" onclick="addPin('6')">6</button>
+                <button class="btn btn-numpad" onclick="addPin('7')">7</button>
+                <button class="btn btn-numpad" onclick="addPin('8')">8</button>
+                <button class="btn btn-numpad" onclick="addPin('9')">9</button>
+                <button class="btn btn-numpad text-danger" onclick="clearPin()"><i class="fa-solid fa-trash-can"></i></button>
+                <button class="btn btn-numpad" onclick="addPin('0')">0</button>
+                <button class="btn btn-numpad text-secondary" onclick="backspacePin()"><i class="fa-solid fa-backspace"></i></button>
+            </div>
+            <button class="btn btn-action-primary" onclick="loginPorPin()">
+                <i class="fa-solid fa-right-to-bracket me-2"></i> Entrar
+            </button>
+        </div>
+
+        <!-- Panel 2: Credenciales de Usuario -->
+        <div class="tab-pane fade" id="user-panel">
+            <form id="formCredenciales" onsubmit="loginPorCredenciales(event)">
+                <div class="mb-3">
+                    <label class="form-label small text-muted font-weight-bold">Nombre de Usuario</label>
+                    <input type="text" id="usernameInput" class="form-control" placeholder="" required>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label small text-muted font-weight-bold">Contraseña</label>
+                    <input type="password" id="passwordInput" class="form-control" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-action-primary">
+                    <i class="fa-solid fa-shield-halved me-2"></i> Iniciar Sesión
+                </button>
+            </form>
+        </div>
+
+        <!-- Panel 3: Registro de Nuevo Usuario -->
+        <div class="tab-pane fade" id="register-panel">
+            <form id="formRegistro" onsubmit="registrarNuevoUsuario(event)">
+                <div class="row g-2 mb-2">
+                    <div class="col-6">
+                        <label class="form-label small text-muted">Nombre</label>
+                        <input type="text" id="regNombre" class="form-control" placeholder="Nombre" required>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small text-muted">Apellido</label>
+                        <input type="text" id="regApellido" class="form-control" placeholder="Apellido" required>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small text-muted">Usuario de Acceso</label>
+                    <input type="text" id="regUsername" class="form-control" placeholder="" required>
+                </div>
+                <div class="row g-2 mb-2">
+                    <div class="col-6">
+                        <label class="form-label small text-muted">PIN (Números)</label>
+                        <input type="password" id="regPin" maxlength="6" class="form-control" placeholder="" required>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small text-muted">Puesto</label>
+                        <select id="regPuesto" class="form-select" required>
+                            <option value="Cajero">Cajero</option>
+                            <option value="Mesero">Mesero</option>
+                            <option value="Chef">Chef / Cocina</option>
+                            <option value="Administrador">Administrador</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small text-muted">Contraseña</label>
+                    <input type="password" id="regPassword" class="form-control" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-action-primary">
+                    <i class="fa-solid fa-user-plus me-2"></i> Crear Cuenta
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Alertas de Estado -->
+    <div id="alertMsg" class="alert alert-danger mt-3 text-center d-none py-2 small" role="alert"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    let currentPin = "";
+    let isPinVisible = false;
+
+    function updatePinDisplay() {
+        const display = document.getElementById("pinDisplay");
+        if (currentPin.length === 0) {
+            display.innerText = "----";
+        } else {
+            display.innerText = isPinVisible ? currentPin : "•".repeat(currentPin.length);
+        }
+    }
+
+    function togglePinVisibility() {
+        isPinVisible = !isPinVisible;
+        const icon = document.getElementById("eyeIcon");
+        icon.className = isPinVisible ? "fa-solid fa-eye" : "fa-solid fa-eye-slash";
+        updatePinDisplay();
+    }
+
+    function addPin(num) {
+        if (currentPin.length < 6) {
+            currentPin += num;
+            updatePinDisplay();
+        }
+    }
+
+    function clearPin() {
+        currentPin = "";
+        updatePinDisplay();
+    }
+
+    function backspacePin() {
+        currentPin = currentPin.slice(0, -1);
+        updatePinDisplay();
+    }
+
+    function showAlert(msg, isSuccess = false) {
+        const alertBox = document.getElementById("alertMsg");
+        alertBox.innerText = msg;
+        alertBox.className = `alert ${isSuccess ? 'alert-success' : 'alert-danger'} mt-3 text-center py-2 small`;
+        alertBox.classList.remove("d-none");
+        setTimeout(() => alertBox.classList.add("d-none"), 4000);
+    }
+
+    // Login mediante PIN
+    async function loginPorPin() {
+        if (!currentPin) {
+            showAlert("Ingrese su PIN de acceso");
+            return;
+        }
+        await enviarPeticionLogin({ 
+            tipo_login: "pin", 
+            pin: currentPin 
+        });
+    }
+
+    // Login mediante Usuario y Contraseña
+    async function loginPorCredenciales(e) {
+        e.preventDefault();
+        const username = document.getElementById("usernameInput").value;
+        const password = document.getElementById("passwordInput").value;
+        
+        await enviarPeticionLogin({ 
+            tipo_login: "credenciales", 
+            username: username, 
+            password: password 
+        });
+    }
+
+    async function enviarPeticionLogin(bodyData) {
+        try {
+            const resp = await fetch('api/auth/login.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(bodyData)
+            });
+
+            const data = await resp.json();
+
+            if (resp.ok && data.status === 'success') {
+                localStorage.setItem('sazontrack_session', JSON.stringify(data.session));
+                showAlert("Acceso concedido. Redirigiendo...", true);
+                setTimeout(() => window.location.href = 'index.html', 800);
+            } else {
+                showAlert(data.message || "Credenciales inválidas");
+                clearPin();
+            }
+        } catch (err) {
+            showAlert("Error al conectar con el servidor API");
+        }
+    }
+
+    async function registrarNuevoUsuario(e) {
+        e.preventDefault();
+        const payload = {
+            nombre: document.getElementById("regNombre").value,
+            apellido: document.getElementById("regApellido").value,
+            username: document.getElementById("regUsername").value,
+            pin: document.getElementById("regPin").value,
+            puesto: document.getElementById("regPuesto").value,
+            password: document.getElementById("regPassword").value
+        };
+
+        try {
+            const resp = await fetch('api/auth/registrar.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await resp.json();
+
+            if (resp.ok && data.status === 'success') {
+                showAlert("¡Usuario registrado con éxito! Ya puedes iniciar sesión.", true);
+                document.getElementById("formRegistro").reset();
+            } else {
+                showAlert(data.message || "Error al registrar usuario");
+            }
+        } catch (err) {
+            showAlert("No se pudo conectar con el servicio de registro");
+        }
+    }
+</script>
+</body>
+</html>

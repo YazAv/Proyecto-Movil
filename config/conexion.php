@@ -4,7 +4,6 @@ header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
 header("Content-Type: application/json; charset=UTF-8");
 
-// Manejo preflight para navegadores/clientes HTTP
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit();
@@ -12,16 +11,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 class Database {
     private $host = "127.0.0.1"; 
-    private $port = "3307";      
+    private $port = "5432"; 
     private $db_name = "sazontrack_db";
-    private $username = "root";
-    private $password = "";
+    private $username = "postgres";
+    private $password = "123456"; 
     public $conn;
 
     public function getConnection() {
         $this->conn = null;
         try {
-            $dsn = "mysql:host=" . $this->host . ";port=" . $this->port . ";dbname=" . $this->db_name . ";charset=utf8mb4";
+            $dsn = "pgsql:host=" . $this->host . ";port=" . $this->port . ";dbname=" . $this->db_name;
             $this->conn = new PDO(
                 $dsn,
                 $this->username,
@@ -36,7 +35,7 @@ class Database {
             http_response_code(500);
             echo json_encode([
                 "status" => "error",
-                "message" => "Error de conexión: " . $e->getMessage()
+                "message" => "Error de conexión PostgreSQL: " . $e->getMessage()
             ]);
             exit();
         }

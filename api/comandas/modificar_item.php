@@ -1,7 +1,7 @@
 <?php
 require_once '../../config/conexion.php';
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST' && $_SERVER['REQUEST_METHOD'] !== 'PUT') {
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     echo json_encode(["status" => "error", "message" => "Método no permitido"]);
     exit();
@@ -9,15 +9,21 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST' && $_SERVER['REQUEST_METHOD'] !== 'PUT
 
 $input = json_decode(file_get_contents("php://input"), true);
 
-if (empty($input['orden_detalle_id'])) {
+if (empty($input['detalle_id']) || (!isset($input['nueva_cantidad']) && !isset($input['nuevas_notas']))) {
     http_response_code(400);
-    echo json_encode(["status" => "error", "message" => "El campo 'orden_detalle_id' es obligatorio"]);
+    echo json_encode(["status" => "error", "message" => "Se requiere 'detalle_id' y al menos 'nueva_cantidad' o 'nuevas_notas'"]);
     exit();
 }
 
-$detalle_id = (int)$input['orden_detalle_id'];
-$nuevas_notas = array_key_exists('notas_cocina', $input) ? trim($input['notas_cocina']) : null;
-$nueva_cantidad = isset($input['cantidad']) ? (int)$input['cantidad'] : null;
+$detalle_id = (int)$input['detalle_id'];
+$nueva_cantidad = isset($input['nueva_cantidad']) ? (int)$input['nueva_cantidad'] : null;
+$nuevas_notas = isset($input['nuevas_notas']) ? trim($input['nuevas_notas']) : null;
+
+if ($nueva_cantidad !== null && $nueva_cantidad <= 0) {
+    http_response_code(422);
+    echo json_encode(["status" => "error", "message" => "La cantidad debe ser mayor a 0 (para eliminar use cancelar_item)"]);
+    exit();
+}
 
 $db = new Database();
 $conn = $db->getConnection();
@@ -25,71 +31,88 @@ $conn = $db->getConnection();
 try {
     $conn->beginTransaction();
 
-    $stmt = $conn->prepare("SELECT * FROM orden_detalles WHERE id = ? FOR UPDATE");
-    $stmt->execute([$detalle_id]);
-    $item = $stmt->fetch();
+    // 1. Obtener y bloquear el ítem para actualización
+    $stmtItem = $conn->prepare("
+        SELECT id, orden_id, precio_unitario, subtotal, estado_kds, notas_cocina 
+        FROM orden_detalles 
+        WHERE id = ? 
+        FOR UPDATE
+    ");
+    $stmtItem->execute([$detalle_id]);
+    $item = $stmtItem->fetch(PDO::FETCH_ASSOC);
 
     if (!$item) {
         $conn->rollBack();
         http_response_code(404);
-        echo json_encode(["status" => "error", "message" => "El ítem de comanda no existe."]);
+        echo json_encode(["status" => "error", "message" => "Artículo no encontrado"]);
         exit();
     }
 
-    if ($item['estado_kds'] !== 'pendiente') {
+    if ($item['estado_kds'] === 'cancelado') {
         $conn->rollBack();
         http_response_code(409);
-        echo json_encode([
-            "status" => "error", 
-            "message" => "No se puede editar directamente: el platillo ya está '{$item['estado_kds']}'. Use el flujo de cancelación administrativa."
-        ]);
+        echo json_encode(["status" => "error", "message" => "No se puede modificar un artículo cancelado"]);
         exit();
     }
 
-    $notas_final = $nuevas_notas !== null ? $nuevas_notas : $item['notas_cocina'];
-    $cantidad_final = $nueva_cantidad !== null ? $nueva_cantidad : (int)$item['cantidad'];
+    // 2. Verificar que la orden principal siga abierta
+    $stmtOrden = $conn->prepare("SELECT id, estado FROM ordenes WHERE id = ? FOR UPDATE");
+    $stmtOrden->execute([$item['orden_id']]);
+    $orden = $stmtOrden->fetch(PDO::FETCH_ASSOC);
 
-    if ($cantidad_final <= 0) {
+    if (!$orden || $orden['estado'] !== 'abierta') {
         $conn->rollBack();
-        http_response_code(422);
-        echo json_encode(["status" => "error", "message" => "La cantidad debe ser mayor a 0. Para anular use cancelar_item.php."]);
+        http_response_code(409);
+        echo json_encode(["status" => "error", "message" => "La orden no se encuentra abierta"]);
         exit();
     }
 
-    $nuevo_subtotal = round($cantidad_final * (float)$item['precio_unitario'], 2);
+    // 3. Recalcular subtotal e integrar notas
+    $precio_unitario = (float)$item['precio_unitario'];
+    $nuevo_subtotal = $nueva_cantidad !== null ? round($precio_unitario * $nueva_cantidad, 2) : (float)$item['subtotal'];
+    $notas_finales = $nuevas_notas !== null ? $nuevas_notas : $item['notas_cocina'];
 
-    $stmtUpdate = $conn->prepare("
+    $stmtUpdateItem = $conn->prepare("
         UPDATE orden_detalles 
-        SET notas_cocina = ?, cantidad = ?, subtotal = ? 
+        SET cantidad = COALESCE(?, cantidad),
+            subtotal = ?,
+            notas_cocina = ?
         WHERE id = ?
     ");
-    $stmtUpdate->execute([$notas_final, $cantidad_final, $nuevo_subtotal, $detalle_id]);
+    $stmtUpdateItem->execute([$nueva_cantidad, $nuevo_subtotal, $notas_finales, $detalle_id]);
 
-    // Recalcular el total general de la orden
-    $stmtRecalc = $conn->prepare("
-        UPDATE ordenes 
-        SET total = (SELECT COALESCE(SUM(subtotal), 0) FROM orden_detalles WHERE orden_id = ? AND estado_kds != 'cancelado')
-        WHERE id = ?
+    // 4. Recalcular de forma atómica el total de la orden excluyendo ítems cancelados
+    $stmtRecalcular = $conn->prepare("
+        SELECT COALESCE(SUM(subtotal), 0) AS total_calculado 
+        FROM orden_detalles 
+        WHERE orden_id = ? AND estado_kds != 'cancelado'
     ");
-    $stmtRecalc->execute([$item['orden_id'], $item['orden_id']]);
+    $stmtRecalcular->execute([$item['orden_id']]);
+    $total_orden = (float)$stmtRecalcular->fetchColumn();
+
+    $stmtUpdateTotal = $conn->prepare("UPDATE ordenes SET total = ? WHERE id = ?");
+    $stmtUpdateTotal->execute([$total_orden, $item['orden_id']]);
 
     $conn->commit();
 
     http_response_code(200);
     echo json_encode([
         "status" => "success",
-        "message" => "Ítem modificado correctamente",
+        "message" => "Artículo actualizado exitosamente",
         "data" => [
-            "orden_detalle_id" => $detalle_id,
-            "cantidad" => $cantidad_final,
-            "subtotal" => $nuevo_subtotal,
-            "notas_cocina" => $notas_final
+            "detalle_id" => $detalle_id,
+            "orden_id" => (int)$item['orden_id'],
+            "nueva_cantidad" => $nueva_cantidad,
+            "nuevo_subtotal" => $nuevo_subtotal,
+            "nuevo_total_orden" => $total_orden,
+            "notas_cocina" => $notas_finales
         ]
     ]);
+
 } catch (PDOException $e) {
     if ($conn->inTransaction()) {
         $conn->rollBack();
     }
     http_response_code(500);
-    echo json_encode(["status" => "error", "message" => "Error al actualizar ítem: " . $e->getMessage()]);
+    echo json_encode(["status" => "error", "message" => "Error al modificar artículo: " . $e->getMessage()]);
 }
