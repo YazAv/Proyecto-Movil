@@ -6,6 +6,8 @@
     <title>SazónTrack POS - Mapa de Mesas</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Italianno&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
@@ -29,6 +31,7 @@
             margin: 0;
         }
 
+        /* Sidebar Styling */
         .sidebar {
             width: 260px;
             background: var(--bg-offwhite);
@@ -37,6 +40,9 @@
             position: fixed;
             top: 0;
             left: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
             padding: 1.5rem 1rem;
             z-index: 100;
         }
@@ -81,6 +87,7 @@
             gap: 12px;
             margin-bottom: 4px;
             text-decoration: none;
+            transition: all 0.15s ease;
         }
 
         .sidebar-nav .nav-link:hover, .sidebar-nav .nav-link.active {
@@ -88,6 +95,7 @@
             color: var(--bg-offwhite);
         }
 
+        /* Layout Principal */
         .main-wrapper {
             margin-left: 260px;
             padding: 2rem;
@@ -102,6 +110,7 @@
             border: 1px solid var(--color-nude);
         }
 
+        /* Tarjetas de Mesas */
         .mesa-card {
             background: var(--bg-offwhite);
             border: 2px solid var(--color-nude);
@@ -148,36 +157,62 @@
             border: none;
             padding: 8px 16px;
         }
+
+        .btn-action-dark:hover {
+            background: #423c34;
+            color: #fff;
+        }
     </style>
 </head>
 <body>
 
+<!-- Sidebar -->
 <aside class="sidebar">
-    <div class="brand-header">
-        <div class="brand-avatar"><i class="fa-solid fa-concierge-bell"></i></div>
-        <div>
-            <h2 class="brand-title">SazónTrack</h2>
-            <span class="text-muted small fw-bold">Mapa de Mesas</span>
+    <div>
+        <div class="brand-header">
+            <div class="brand-avatar"><i class="fa-solid fa-concierge-bell"></i></div>
+            <div>
+                <h2 class="brand-title">SazónTrack</h2>
+                <span class="text-muted small fw-bold">Mapa de Mesas</span>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="index.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+            <a href="mesas.html" class="nav-link active"><i class="fa-solid fa-utensils"></i> Mapa Mesas</a>
+            <a href="#" class="nav-link"><i class="fa-solid fa-fire-burner"></i> KDS Cocina/Barra</a>
+        </nav>
+    </div>
+
+    <!-- Usuario Activo -->
+    <div class="pt-3 border-top border-secondary-subtle">
+        <div class="d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-2">
+                <i class="fa-solid fa-user-circle fa-2x text-secondary"></i>
+                <div class="lh-1">
+                    <div id="sessionUserName" class="fw-bold small">Cargando...</div>
+                    <small id="sessionUserRole" class="text-muted" style="font-size: 0.75rem;"></small>
+                </div>
+            </div>
+            <button onclick="cerrarSesion()" class="btn btn-sm text-danger" title="Cerrar Sesión">
+                <i class="fa-solid fa-right-from-bracket"></i>
+            </button>
         </div>
     </div>
-    <nav class="sidebar-nav">
-        <a href="index.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
-        <a href="mesas.html" class="nav-link active"><i class="fa-solid fa-utensils"></i> Mapa Mesas</a>
-    </nav>
 </aside>
 
+<!-- Contenido Principal -->
 <main class="main-wrapper">
     <div class="d-flex align-items-center justify-content-between mb-4">
         <div>
             <h3 class="fw-bold m-0">Mapa de Mesas</h3>
-            <p class="text-muted small m-0">Control operativo y gestión utilizando tus endpoints API</p>
+            <p class="text-muted small m-0">Estado operativo, apertura y reasignación de ordenes</p>
         </div>
         <button class="btn btn-action-dark" onclick="abrirModalCrearMesa()">
             <i class="fa-solid fa-plus me-1"></i> Nueva Mesa
         </button>
     </div>
 
-    <!-- Leyenda -->
+    <!-- Leyenda de Estados -->
     <div class="d-flex gap-2 mb-4">
         <span class="badge-status"><i class="fa-solid fa-circle text-success me-1"></i> Disponible</span>
         <span class="badge-status"><i class="fa-solid fa-circle text-danger me-1"></i> Ocupada</span>
@@ -189,12 +224,12 @@
     <div id="mapaContenedor">
         <div class="text-center py-5 text-muted">
             <i class="fa-solid fa-spinner fa-spin fa-2x mb-2"></i>
-            <p>Cargando mapa con obtener_mapa.php...</p>
+            <p>Cargando mapa de mesas...</p>
         </div>
     </div>
 </main>
 
-<!-- Modal: Opciones y Estados de la Mesa -->
+<!-- Modal: Opciones y Gestión de Mesa -->
 <div class="modal fade" id="modalMesa" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="border-radius: 20px; background: var(--bg-offwhite);">
@@ -203,16 +238,19 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p class="text-muted small">Cambia de estado con `actualizar_estado.php` o elimina con `eliminar.php`:</p>
+                <p class="text-muted small">Selecciona una acción operativa para la mesa:</p>
                 <div class="d-grid gap-2 mb-3">
                     <button class="btn btn-outline-success text-start py-2 fw-bold" onclick="cambiarEstado('disponible')">
                         <i class="fa-solid fa-check-circle me-2"></i> Marcar Disponible
                     </button>
                     <button class="btn btn-outline-danger text-start py-2 fw-bold" onclick="cambiarEstado('ocupada')">
-                        <i class="fa-solid fa-user-group me-2"></i> Marcar Ocupada
+                        <i class="fa-solid fa-user-group me-2"></i> Abrir Comanda / Ocupar
                     </button>
                     <button class="btn btn-outline-primary text-start py-2 fw-bold" onclick="cambiarEstado('por_limpiar')">
                         <i class="fa-solid fa-broom me-2"></i> Marcar Por Limpiar
+                    </button>
+                    <button class="btn btn-outline-warning text-dark text-start py-2 fw-bold" onclick="abrirModalCambiarMesa()">
+                        <i class="fa-solid fa-arrow-right-arrow-left me-2"></i> Transferir / Cambiar de Mesa
                     </button>
                 </div>
                 <hr>
@@ -224,25 +262,45 @@
     </div>
 </div>
 
-<!-- Modal: Crear Mesa (llama a crear.php) -->
+<!-- Modal: Transferir/Cambiar Mesa (Conecta a cambiar_mesa.php) -->
+<div class="modal fade" id="modalCambiarMesa" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 20px; background: var(--bg-offwhite);">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold">Reasignar Mesa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small mb-3">Selecciona la mesa libre a donde se moverá la orden activa:</p>
+                <div class="mb-3">
+                    <label class="form-label small text-muted fw-bold">Mesa Destino Disponible</label>
+                    <select id="selectMesaDestino" class="form-select"></select>
+                </div>
+                <button class="btn btn-action-dark w-100" onclick="ejecutarCambioMesa()">Confirmar Cambio de Mesa</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Crear Mesa (Conecta a crear.php) -->
 <div class="modal fade" id="modalCrearMesa" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="border-radius: 20px; background: var(--bg-offwhite);">
             <div class="modal-header border-0">
-                <h5 class="modal-title fw-bold">Nueva Mesa (crear.php)</h5>
+                <h5 class="modal-title fw-bold">Crear Nueva Mesa</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <div class="mb-2">
-                    <label class="form-label small text-muted">Número de Mesa</label>
-                    <input type="text" id="crearNumMesa" class="form-control" placeholder="Ej. M5" required>
+                    <label class="form-label small text-muted">Número o Identificador</label>
+                    <input type="text" id="crearNumMesa" class="form-control" placeholder="Ej. M12" required>
                 </div>
                 <div class="mb-2">
                     <label class="form-label small text-muted">Capacidad</label>
                     <input type="number" id="crearCapMesa" class="form-control" value="4" required>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label small text-muted">ID de Área</label>
+                    <label class="form-label small text-muted">Área</label>
                     <select id="crearAreaMesa" class="form-select"></select>
                 </div>
                 <button class="btn btn-action-dark w-100" onclick="ejecutarCrearMesa()">Guardar Mesa</button>
@@ -255,10 +313,29 @@
 <script>
     let mapaGlobal = [];
     let mesaSeleccionadaId = null;
+    let ordenActivaId = null;
 
-    document.addEventListener("DOMContentLoaded", cargarMapa);
+    document.addEventListener("DOMContentLoaded", () => {
+        // Validar sesión
+        const sessionData = localStorage.getItem("sazontrack_session");
+        if (!sessionData) {
+            window.location.href = "login.html";
+            return;
+        }
 
-    // 1. Conecta con api/mesas/obtener_mapa.php
+        const session = JSON.parse(sessionData);
+        document.getElementById("sessionUserName").innerText = session.nombre_empleado || session.username;
+        document.getElementById("sessionUserRole").innerText = session.puesto || session.rol;
+
+        cargarMapa();
+    });
+
+    function cerrarSesion() {
+        localStorage.removeItem("sazontrack_session");
+        window.location.href = "login.html";
+    }
+
+    // 1. Obtener Mapa (obtener_mapa.php)
     async function cargarMapa() {
         try {
             const resp = await fetch('api/mesas/obtener_mapa.php');
@@ -271,7 +348,7 @@
                 document.getElementById("mapaContenedor").innerHTML = `<div class="alert alert-danger">${data.message || 'Error al obtener mapa'}</div>`;
             }
         } catch (err) {
-            document.getElementById("mapaContenedor").innerHTML = `<div class="alert alert-danger">Error conectando a obtener_mapa.php</div>`;
+            document.getElementById("mapaContenedor").innerHTML = `<div class="alert alert-danger">Error al conectar con la API de mesas</div>`;
         }
     }
 
@@ -294,13 +371,15 @@
             `;
 
             if (!area.mesas || area.mesas.length === 0) {
-                htmlArea += `<div class="col-12 text-muted small italic">Sin mesas en esta área.</div>`;
+                htmlArea += `<div class="col-12 text-muted small italic">Sin mesas agregadas a esta área.</div>`;
             } else {
                 area.mesas.forEach(m => {
                     let badgeColor = m.estado === 'disponible' ? 'success' : (m.estado === 'ocupada' ? 'danger' : 'primary');
+                    let ordenId = m.id_orden || m.id_comanda || m.id_mesa;
+
                     htmlArea += `
                         <div class="col-md-3">
-                            <div class="mesa-card ${m.estado}" onclick="abrirModalMesa(${m.id_mesa}, '${m.numero_mesa}')">
+                            <div class="mesa-card ${m.estado}" onclick="abrirModalMesa(${m.id_mesa}, '${m.numero_mesa}', ${ordenId})">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <span class="mesa-number">${m.numero_mesa}</span>
                                     <span class="badge bg-${badgeColor} text-capitalize">${m.estado ? m.estado.replace('_', ' ') : 'disponible'}</span>
@@ -319,13 +398,14 @@
         });
     }
 
-    function abrirModalMesa(id, numero) {
+    function abrirModalMesa(id, numero, ordenId) {
         mesaSeleccionadaId = id;
+        ordenActivaId = ordenId;
         document.getElementById("modalMesaTitulo").innerText = `Gestionar Mesa ${numero}`;
         new bootstrap.Modal(document.getElementById('modalMesa')).show();
     }
 
-    // 2. Conecta con api/mesas/actualizar_estado.php
+    // 2. Actualizar Estado (actualizar_estado.php)
     async function cambiarEstado(nuevoEstado) {
         if (!mesaSeleccionadaId) return;
         await fetch('api/mesas/actualizar_estado.php', {
@@ -337,7 +417,61 @@
         cargarMapa();
     }
 
-    // 3. Conecta con api/mesas/eliminar.php
+    // 3. Abrir modal y cargar lista de destino libre
+    function abrirModalCambiarMesa() {
+        const selectDestino = document.getElementById("selectMesaDestino");
+        selectDestino.innerHTML = "";
+        
+        mapaGlobal.forEach(area => {
+            if (area.mesas) {
+                area.mesas.forEach(m => {
+                    if (m.id_mesa !== mesaSeleccionadaId && m.estado === 'disponible') {
+                        selectDestino.innerHTML += `<option value="${m.id_mesa}">${area.nombre} - Mesa ${m.numero_mesa}</option>`;
+                    }
+                });
+            }
+        });
+
+        if (selectDestino.children.length === 0) {
+            selectDestino.innerHTML = `<option value="">No hay otras mesas libres</option>`;
+        }
+
+        bootstrap.Modal.getInstance(document.getElementById('modalMesa')).hide();
+        new bootstrap.Modal(document.getElementById('modalCambiarMesa')).show();
+    }
+
+    // 4. Ejecutar Cambio de Mesa (cambiar_mesa.php con tus parámetros orden_id y nueva_mesa_id)
+    async function ejecutarCambioMesa() {
+        const nueva_mesa_id = document.getElementById("selectMesaDestino").value;
+        if (!nueva_mesa_id) {
+            alert("Por favor seleccione una mesa libre.");
+            return;
+        }
+
+        try {
+            const resp = await fetch('api/mesas/cambiar_mesa.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    orden_id: parseInt(ordenActivaId),
+                    nueva_mesa_id: parseInt(nueva_mesa_id)
+                })
+            });
+
+            const data = await resp.json();
+            
+            if (resp.ok && data.status === 'success') {
+                bootstrap.Modal.getInstance(document.getElementById('modalCambiarMesa')).hide();
+                cargarMapa();
+            } else {
+                alert(data.message || "Error al realizar el cambio de mesa");
+            }
+        } catch (err) {
+            alert("Error al conectar con api/mesas/cambiar_mesa.php");
+        }
+    }
+
+    // 5. Eliminar Mesa (eliminar.php)
     async function ejecutarEliminarMesa() {
         if (!confirm("¿Deseas eliminar esta mesa?")) return;
         await fetch('api/mesas/eliminar.php', {
@@ -358,7 +492,7 @@
         new bootstrap.Modal(document.getElementById('modalCrearMesa')).show();
     }
 
-    // 4. Conecta con api/mesas/crear.php
+    // 6. Crear Mesa (crear.php)
     async function ejecutarCrearMesa() {
         const numero_mesa = document.getElementById("crearNumMesa").value;
         const capacidad = document.getElementById("crearCapMesa").value;
