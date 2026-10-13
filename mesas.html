@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SazónTrack POS - Mapa de Mesas</title>
+    <!-- CSS de Bootstrap, FontAwesome e Iconos/Fuentes Google (Italianno y Plus Jakarta Sans) -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11,6 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Italianno&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
+        /* Variables globales de color: Paleta Off-white, Ivory, Nude y estados de mesa */
         :root {
             --bg-offwhite: #FDFCF8;
             --bg-ivory: #F3F0E9;
@@ -31,7 +33,7 @@
             margin: 0;
         }
 
-        /* Sidebar Styling */
+        /* Menú Lateral (Sidebar) Fijo a la izquierda */
         .sidebar {
             width: 260px;
             background: var(--bg-offwhite);
@@ -95,7 +97,7 @@
             color: var(--bg-offwhite);
         }
 
-        /* Layout Principal */
+        /* Áreas y Contenedor Principal desplazado a la derecha de la sidebar */
         .main-wrapper {
             margin-left: 260px;
             padding: 2rem;
@@ -110,7 +112,7 @@
             border: 1px solid var(--color-nude);
         }
 
-        /* Tarjetas de Mesas */
+        /* Tarjetas Dinámicas de Mesas con borde superior según el estado */
         .mesa-card {
             background: var(--bg-offwhite);
             border: 2px solid var(--color-nude);
@@ -126,6 +128,7 @@
             box-shadow: 0 8px 25px rgba(42, 38, 33, 0.1);
         }
 
+        /* Colores del borde superior de la tarjeta según el estado */
         .mesa-card.disponible { border-top: 6px solid var(--color-disponible); }
         .mesa-card.ocupada { border-top: 6px solid var(--color-ocupada); }
         .mesa-card.reservada { border-top: 6px solid var(--color-reservada); }
@@ -149,6 +152,7 @@
             align-items: center;
         }
 
+        /* Estilos de botones estándar en tono oscuro */
         .btn-action-dark {
             background: var(--text-dark);
             color: var(--bg-offwhite);
@@ -166,9 +170,10 @@
 </head>
 <body>
 
-<!-- Sidebar -->
+<!-- NAVEGACIÓN LATERAL (Sidebar con datos del usuario en sesión) -->
 <aside class="sidebar">
     <div>
+        <!-- Logo e Identidad del Sistema -->
         <div class="brand-header">
             <div class="brand-avatar"><i class="fa-solid fa-concierge-bell"></i></div>
             <div>
@@ -176,6 +181,7 @@
                 <span class="text-muted small fw-bold">Mapa de Mesas</span>
             </div>
         </div>
+        <!-- Opciones de Menú Lateral -->
         <nav class="sidebar-nav">
             <a href="index.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
             <a href="mesas.html" class="nav-link active"><i class="fa-solid fa-utensils"></i> Mapa Mesas</a>
@@ -183,7 +189,7 @@
         </nav>
     </div>
 
-    <!-- Usuario Activo -->
+    <!-- Indicador de Usuario Activo e Inicio de Sesión -->
     <div class="pt-3 border-top border-secondary-subtle">
         <div class="d-flex align-items-center justify-content-between">
             <div class="d-flex align-items-center gap-2">
@@ -200,19 +206,28 @@
     </div>
 </aside>
 
-<!-- Contenido Principal -->
+<!-- CONTENIDO PRINCIPAL DE LA PÁGINA -->
 <main class="main-wrapper">
+    <!-- Encabezado con Botones de Acción Globales (Bitácora, Nueva Reserva y Nueva Mesa) -->
     <div class="d-flex align-items-center justify-content-between mb-4">
         <div>
             <h3 class="fw-bold m-0">Mapa de Mesas</h3>
-            <p class="text-muted small m-0">Estado operativo, apertura y reasignación de ordenes</p>
+            <p class="text-muted small m-0">Estado operativo, apertura, reservaciones y reasignación de órdenes</p>
         </div>
-        <button class="btn btn-action-dark" onclick="abrirModalCrearMesa()">
-            <i class="fa-solid fa-plus me-1"></i> Nueva Mesa
-        </button>
+        <div class="d-flex gap-2">
+            <button class="btn btn-action-dark" onclick="abrirAgendaReservas()">
+                <i class="fa-solid fa-book-bookmark me-1"></i> Bitácora
+            </button>
+            <button class="btn btn-action-dark" onclick="abrirModalAgendarReservaGlobal()">
+                <i class="fa-solid fa-calendar-plus me-1"></i> Nueva Reserva
+            </button>
+            <button class="btn btn-action-dark" onclick="abrirModalCrearMesa()">
+                <i class="fa-solid fa-plus me-1"></i> Nueva Mesa
+            </button>
+        </div>
     </div>
 
-    <!-- Leyenda de Estados -->
+    <!-- Leyenda Explicativa del Código de Colores -->
     <div class="d-flex gap-2 mb-4">
         <span class="badge-status"><i class="fa-solid fa-circle text-success me-1"></i> Disponible</span>
         <span class="badge-status"><i class="fa-solid fa-circle text-danger me-1"></i> Ocupada</span>
@@ -220,7 +235,7 @@
         <span class="badge-status"><i class="fa-solid fa-circle text-primary me-1"></i> Por Limpiar</span>
     </div>
 
-    <!-- Contenedor del Mapa -->
+    <!-- Contenedor donde JavaScript dibujará las áreas y mesas recuperadas del servidor -->
     <div id="mapaContenedor">
         <div class="text-center py-5 text-muted">
             <i class="fa-solid fa-spinner fa-spin fa-2x mb-2"></i>
@@ -229,7 +244,7 @@
     </div>
 </main>
 
-<!-- Modal: Opciones y Gestión de Mesa -->
+<!-- MODAL 1: Opciones Rápidas de la Mesa Seleccionada -->
 <div class="modal fade" id="modalMesa" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="border-radius: 20px; background: var(--bg-offwhite);">
@@ -262,7 +277,82 @@
     </div>
 </div>
 
-<!-- Modal: Transferir/Cambiar Mesa (Conecta a cambiar_mesa.php) -->
+<!-- MODAL 2: Formulario para Agendar Nueva Reserva y Alergias -->
+<div class="modal fade" id="modalAgendarReserva" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 20px; background: var(--bg-offwhite);">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-calendar-plus me-2"></i>Agendar Nueva Reserva</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formNuevaReserva" onsubmit="guardarReserva(event)">
+                    <div class="mb-2">
+                        <label class="form-label small text-muted fw-bold">Asignar a Mesa</label>
+                        <select id="resSelectMesa" class="form-select" required></select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small text-muted fw-bold">Nombre del Cliente</label>
+                        <input type="text" id="resNombre" class="form-control" placeholder="" required>
+                    </div>
+                    <div class="row g-2 mb-2">
+                        <div class="col-6">
+                            <label class="form-label small text-muted fw-bold">Teléfono</label>
+                            <input type="tel" id="resTelefono" class="form-control" placeholder="">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small text-muted fw-bold">Personas</label>
+                            <input type="number" id="resPersonas" class="form-control" value="2" min="1" required>
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-2">
+                        <div class="col-6">
+                            <label class="form-label small text-muted fw-bold">Fecha</label>
+                            <input type="date" id="resFecha" class="form-control" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small text-muted fw-bold">Hora</label>
+                            <input type="time" id="resHora" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small text-muted fw-bold">Tipo de Evento</label>
+                        <select id="resEvento" class="form-select">
+                            <option value="Normal">Comida / Cena Regular</option>
+                            <option value="Cumpleaños">Cumpleaños (Traen pastel)</option>
+                            <option value="Aniversario">Aniversario / Romántico</option>
+                            <option value="Negocios">Reunión de Negocios</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-muted fw-bold text-danger"><i class="fa-solid fa-triangle-exclamation me-1"></i> Alergias & Notas Especiales</label>
+                        <textarea id="resNotas" class="form-control" rows="3" placeholder="Ej. Alergia severa a mariscos. Requieren silla alta de bebé."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-action-dark w-100">Confirmar & Guardar Reserva</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL 3: Visualización de Bitácora Completa de Reservaciones -->
+<div class="modal fade" id="modalAgendaReservas" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 20px; background: var(--bg-offwhite);">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-book-bookmark me-2"></i>Agenda de Reservaciones</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="listaReservasContenedor">
+                    <p class="text-center text-muted">Cargando reservaciones...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL 4: Transferir o Cambiar Comanda Activa a Otra Mesa Libre -->
 <div class="modal fade" id="modalCambiarMesa" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="border-radius: 20px; background: var(--bg-offwhite);">
@@ -282,7 +372,7 @@
     </div>
 </div>
 
-<!-- Modal: Crear Mesa (Conecta a crear.php) -->
+<!-- MODAL 5: Crear Nueva Mesa en el Sistema -->
 <div class="modal fade" id="modalCrearMesa" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="border-radius: 20px; background: var(--bg-offwhite);">
@@ -309,20 +399,23 @@
     </div>
 </div>
 
+<!-- Scripts de Bootstrap y Lógica Principal en JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+    // Variables globales de estado
     let mapaGlobal = [];
     let mesaSeleccionadaId = null;
     let ordenActivaId = null;
 
+    // Ejecutar al cargar completamente el DOM: verifica autenticación y consulta datos del mapa
     document.addEventListener("DOMContentLoaded", () => {
-        // Validar sesión
         const sessionData = localStorage.getItem("sazontrack_session");
         if (!sessionData) {
             window.location.href = "login.html";
             return;
         }
 
+        // Mostrar nombre y puesto del empleado activo
         const session = JSON.parse(sessionData);
         document.getElementById("sessionUserName").innerText = session.nombre_empleado || session.username;
         document.getElementById("sessionUserRole").innerText = session.puesto || session.rol;
@@ -330,12 +423,13 @@
         cargarMapa();
     });
 
+    // Cierra la sesión activa borrando el localStorage
     function cerrarSesion() {
         localStorage.removeItem("sazontrack_session");
         window.location.href = "login.html";
     }
 
-    // 1. Obtener Mapa (obtener_mapa.php)
+    // Petición GET al backend para obtener áreas y mesas organizadas
     async function cargarMapa() {
         try {
             const resp = await fetch('api/mesas/obtener_mapa.php');
@@ -352,6 +446,7 @@
         }
     }
 
+    // Genera dinámicamente el HTML de cada área y sus mesas correspondientes
     function renderizarMapa(areas) {
         const contenedor = document.getElementById("mapaContenedor");
         contenedor.innerHTML = "";
@@ -374,7 +469,7 @@
                 htmlArea += `<div class="col-12 text-muted small italic">Sin mesas agregadas a esta área.</div>`;
             } else {
                 area.mesas.forEach(m => {
-                    let badgeColor = m.estado === 'disponible' ? 'success' : (m.estado === 'ocupada' ? 'danger' : 'primary');
+                    let badgeColor = m.estado === 'disponible' ? 'success' : (m.estado === 'ocupada' ? 'danger' : (m.estado === 'reservada' ? 'warning text-dark' : 'primary'));
                     let ordenId = m.id_orden || m.id_comanda || m.id_mesa;
 
                     htmlArea += `
@@ -398,6 +493,7 @@
         });
     }
 
+    // Abre el modal de acciones operativas de la mesa elegida
     function abrirModalMesa(id, numero, ordenId) {
         mesaSeleccionadaId = id;
         ordenActivaId = ordenId;
@@ -405,7 +501,7 @@
         new bootstrap.Modal(document.getElementById('modalMesa')).show();
     }
 
-    // 2. Actualizar Estado (actualizar_estado.php)
+    // Cambia el estado directo (disponible, ocupada, por_limpiar) llamando al backend
     async function cambiarEstado(nuevoEstado) {
         if (!mesaSeleccionadaId) return;
         await fetch('api/mesas/actualizar_estado.php', {
@@ -417,7 +513,7 @@
         cargarMapa();
     }
 
-    // 3. Abrir modal y cargar lista de destino libre
+    // Prepara el select de mesas disponibles para realizar una transferencia
     function abrirModalCambiarMesa() {
         const selectDestino = document.getElementById("selectMesaDestino");
         selectDestino.innerHTML = "";
@@ -440,11 +536,11 @@
         new bootstrap.Modal(document.getElementById('modalCambiarMesa')).show();
     }
 
-    // 4. Ejecutar Cambio de Mesa (cambiar_mesa.php con tus parámetros orden_id y nueva_mesa_id)
+    // Ejecuta la API cambiar_mesa.php para mover comanda y estados
     async function ejecutarCambioMesa() {
         const nueva_mesa_id = document.getElementById("selectMesaDestino").value;
         if (!nueva_mesa_id) {
-            alert("Por favor seleccione una mesa libre.");
+            alert("Por favor seleccione una mesa libre destino.");
             return;
         }
 
@@ -453,36 +549,240 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    orden_id: parseInt(ordenActivaId),
-                    nueva_mesa_id: parseInt(nueva_mesa_id)
+                    id_mesa_origen: parseInt(mesaSeleccionadaId),
+                    nueva_mesa_id: parseInt(nueva_mesa_id),
+                    orden_id: parseInt(ordenActivaId || 0)
                 })
             });
 
             const data = await resp.json();
             
             if (resp.ok && data.status === 'success') {
-                bootstrap.Modal.getInstance(document.getElementById('modalCambiarMesa')).hide();
+                const modalEl = document.getElementById('modalCambiarMesa');
+                const modalObj = bootstrap.Modal.getInstance(modalEl);
+                if (modalObj) modalObj.hide();
                 cargarMapa();
             } else {
                 alert(data.message || "Error al realizar el cambio de mesa");
             }
         } catch (err) {
-            alert("Error al conectar con api/mesas/cambiar_mesa.php");
+            alert("Error de conexión al transferir la mesa");
         }
     }
 
-    // 5. Eliminar Mesa (eliminar.php)
-    async function ejecutarEliminarMesa() {
-        if (!confirm("¿Deseas eliminar esta mesa?")) return;
-        await fetch('api/mesas/eliminar.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id_mesa: mesaSeleccionadaId })
-        });
-        bootstrap.Modal.getInstance(document.getElementById('modalMesa')).hide();
-        cargarMapa();
+    // Puebla el select de mesas para agendar una reserva desde la barra superior
+    function abrirModalAgendarReservaGlobal() {
+    const selectMesa = document.getElementById("resSelectMesa");
+    selectMesa.innerHTML = "";
+
+    mapaGlobal.forEach(area => {
+        if (area.mesas && area.mesas.length > 0) {
+            area.mesas.forEach(m => {
+                selectMesa.innerHTML += `<option value="${m.id_mesa}">${area.nombre} - Mesa ${m.numero_mesa} (Cap: ${m.capacidad}p)</option>`;
+            });
+        }
+    });
+
+    const ahora = new Date();
+    const hoy = ahora.toISOString().split('T')[0];
+    
+    const inputFecha = document.getElementById("resFecha");
+    const inputHora = document.getElementById("resHora");
+
+    // 1. Bloquear fechas pasadas directamente en el calendario nativo del navegador
+    inputFecha.min = hoy;
+    inputFecha.value = hoy;
+
+    // Formatear hora actual HH:MM
+    const horas = String(ahora.getHours()).padStart(2, '0');
+    const minutos = String(ahora.getMinutes()).padStart(2, '0');
+    const horaActualStr = `${horas}:${minutos}`;
+
+    // 2. Establecer hora actual por defecto y limitar si es hoy
+    inputHora.min = horaActualStr;
+    inputHora.value = horaActualStr;
+
+    // Escuchar cambios en la fecha para liberar o restringir la hora según sea hoy u otro día
+    inputFecha.onchange = function() {
+        if (this.value === hoy) {
+            inputHora.min = horaActualStr;
+            if (inputHora.value < horaActualStr) {
+                inputHora.value = horaActualStr;
+            }
+        } else {
+            inputHora.removeAttribute('min'); // Liberar horas para fechas futuras
+        }
+    };
+
+    new bootstrap.Modal(document.getElementById('modalAgendarReserva')).show();
+}
+
+async function guardarReserva(e) {
+    e.preventDefault();
+    const id_mesa_reserva = document.getElementById("resSelectMesa").value;
+    const fecha_reserva = document.getElementById("resFecha").value;
+    const hora_reserva = document.getElementById("resHora").value;
+
+    if (!id_mesa_reserva) {
+        alert("Selecciona una mesa válida para la reserva.");
+        return;
     }
 
+    // Validación final antes de enviar
+    const ahora = new Date();
+    const fechaHoraIngresada = new Date(`${fecha_reserva}T${hora_reserva}`);
+
+    if (fechaHoraIngresada < ahora) {
+        alert("No es posible agendar reservas en un horario que ya transcurrió.");
+        return;
+    }
+
+    const datos = {
+        id_mesa: parseInt(id_mesa_reserva),
+        nombre_cliente: document.getElementById("resNombre").value,
+        telefono: document.getElementById("resTelefono").value,
+        num_personas: parseInt(document.getElementById("resPersonas").value),
+        fecha_reserva: fecha_reserva,
+        hora_reserva: hora_reserva,
+        tipo_evento: document.getElementById("resEvento").value,
+        alergias_notas: document.getElementById("resNotas").value
+    };
+
+    try {
+        const resp = await fetch('api/mesas/reservas.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(datos)
+        });
+
+        const data = await resp.json();
+
+        if (resp.ok && data.status === 'success') {
+            bootstrap.Modal.getInstance(document.getElementById('modalAgendarReserva')).hide();
+            document.getElementById("formNuevaReserva").reset();
+            cargarMapa();
+        } else {
+            alert(data.message || "Error al guardar la reserva.");
+        }
+    } catch (err) {
+        alert("Error de conexión al guardar la reserva.");
+    }
+}
+
+    // Envía la nueva reservación y sus notas de alergias a la API
+    async function guardarReserva(e) {
+        e.preventDefault();
+        const id_mesa_reserva = document.getElementById("resSelectMesa").value;
+
+        if (!id_mesa_reserva) {
+            alert("Selecciona una mesa válida para la reserva.");
+            return;
+        }
+
+        const datos = {
+            id_mesa: parseInt(id_mesa_reserva),
+            nombre_cliente: document.getElementById("resNombre").value,
+            telefono: document.getElementById("resTelefono").value,
+            num_personas: parseInt(document.getElementById("resPersonas").value),
+            fecha_reserva: document.getElementById("resFecha").value,
+            hora_reserva: document.getElementById("resHora").value,
+            tipo_evento: document.getElementById("resEvento").value,
+            alergias_notas: document.getElementById("resNotas").value
+        };
+
+        const resp = await fetch('api/mesas/reservas.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(datos)
+        });
+
+        if (resp.ok) {
+            bootstrap.Modal.getInstance(document.getElementById('modalAgendarReserva')).hide();
+            document.getElementById("formNuevaReserva").reset();
+            cargarMapa();
+        } else {
+            alert("Error al guardar la reserva");
+        }
+    }
+
+    // Consulta la lista de reservas registradas y las despliega en una tabla dentro del modal
+    async function abrirAgendaReservas() {
+        new bootstrap.Modal(document.getElementById('modalAgendaReservas')).show();
+        const contenedor = document.getElementById("listaReservasContenedor");
+
+        try {
+            const resp = await fetch('api/mesas/reservas.php');
+            const data = await resp.json();
+
+            if (resp.ok && data.status === 'success') {
+                if (data.reservas.length === 0) {
+                    contenedor.innerHTML = `<p class="text-center text-muted py-4">No hay reservas programadas activas.</p>`;
+                    return;
+                }
+
+                let html = `<div class="table-responsive"><table class="table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Mesa / Área</th>
+                            <th>Cliente</th>
+                            <th>Fecha & Hora</th>
+                            <th>Pers.</th>
+                            <th>Evento</th>
+                            <th>Alergias & Notas</th>
+                        </tr>
+                    </thead><tbody>`;
+
+                data.reservas.forEach(r => {
+                    html += `
+                        <tr>
+                            <td class="fw-bold">${r.numero_mesa} (${r.area_nombre})</td>
+                            <td>${r.nombre_cliente} <br><small class="text-muted">${r.telefono || 'Sin tel'}</small></td>
+                            <td>${r.fecha_reserva} <br><span class="badge bg-dark">${r.hora_reserva}</span></td>
+                            <td>${r.num_personas}</td>
+                            <td><span class="badge bg-warning text-dark">${r.tipo_evento}</span></td>
+                            <td><small class="text-danger fw-bold">${r.alergias_notas || 'Sin especificaciones'}</small></td>
+                        </tr>
+                    `;
+                });
+
+                html += `</tbody></table></div>`;
+                contenedor.innerHTML = html;
+            }
+        } catch (err) {
+            contenedor.innerHTML = `<div class="alert alert-danger">Error al obtener lista de reservas.</div>`;
+        }
+    }
+
+   // Solicita la eliminación física de una mesa a api/mesas/eliminar.php
+async function ejecutarEliminarMesa() {
+    if (!mesaSeleccionadaId) return;
+
+    if (!confirm("¿Deseas eliminar esta mesa del sistema de forma permanente?")) return;
+
+    try {
+        const resp = await fetch('api/mesas/eliminar.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id_mesa: parseInt(mesaSeleccionadaId) })
+        });
+
+        const data = await resp.json();
+
+        if (resp.ok && data.status === 'success') {
+            const modalEl = document.getElementById('modalMesa');
+            const modalObj = bootstrap.Modal.getInstance(modalEl);
+            if (modalObj) modalObj.hide();
+
+            cargarMapa();
+        } else {
+            alert(data.message || "No se pudo eliminar la mesa.");
+        }
+    } catch (err) {
+        alert("Error de conexión al intentar eliminar la mesa.");
+    }
+}
+
+    // Llena el desplegable de áreas para el modal de nueva mesa
     function abrirModalCrearMesa() {
         const select = document.getElementById("crearAreaMesa");
         select.innerHTML = "";
@@ -492,19 +792,43 @@
         new bootstrap.Modal(document.getElementById('modalCrearMesa')).show();
     }
 
-    // 6. Crear Mesa (crear.php)
+    // Registra una nueva mesa enviando datos a api/mesas/crear.php
     async function ejecutarCrearMesa() {
-        const numero_mesa = document.getElementById("crearNumMesa").value;
+        const numero_mesa = document.getElementById("crearNumMesa").value.trim();
         const capacidad = document.getElementById("crearCapMesa").value;
         const id_area = document.getElementById("crearAreaMesa").value;
 
-        await fetch('api/mesas/crear.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ numero_mesa, capacidad, id_area })
-        });
-        bootstrap.Modal.getInstance(document.getElementById('modalCrearMesa')).hide();
-        cargarMapa();
+        if (!numero_mesa) {
+            alert("Por favor ingresa un identificador para la mesa (Ej. M12).");
+            return;
+        }
+
+        try {
+            const resp = await fetch('api/mesas/crear.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    numero_mesa: numero_mesa,
+                    capacidad: parseInt(capacidad),
+                    id_area: parseInt(id_area)
+                })
+            });
+
+            const data = await resp.json();
+
+            if (resp.ok && data.status === 'success') {
+                const modalEl = document.getElementById('modalCrearMesa');
+                const modalObj = bootstrap.Modal.getInstance(modalEl);
+                if (modalObj) modalObj.hide();
+                
+                document.getElementById("crearNumMesa").value = "";
+                cargarMapa();
+            } else {
+                alert(data.message || "Error al crear la mesa");
+            }
+        } catch (err) {
+            alert("Error de conexión al guardar la mesa");
+        }
     }
 </script>
 </body>

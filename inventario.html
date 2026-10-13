@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SazónTrack POS - Control de Inventario & Mermas</title>
+         
+    <!-- Bootstrap CSS Local -->
+    <link href="assets/css/bootstrap.min.css" rel="stylesheet">
+         
+    <!-- FontAwesome CSS Local -->
+    <link href="assets/css/all.min.css" rel="stylesheet">
+         
+    <!-- Tipografías de Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Italianno&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-offwhite: #FDFCF8;
+            --bg-ivory: #F3F0E9;
+            --color-nude: #E3DBCC;
+            --text-dark: #2A2621;
+            --text-muted: #736B60;
+        }
+        body {
+            background-color: var(--bg-ivory);
+            color: var(--text-dark);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .sidebar {
+            width: 260px;
+            background: var(--bg-offwhite);
+            border-right: 1px solid var(--color-nude);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            padding: 1.5rem 1rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .brand-title {
+            font-family: 'Italianno', cursive;
+            font-size: 2.5rem;
+            margin: 0;
+            color: var(--text-dark);
+            line-height: 1;
+        }
+        .sidebar-nav .nav-link {
+            color: var(--text-muted);
+            font-weight: 600;
+            padding: 12px 16px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            margin-bottom: 6px;
+            transition: all 0.2s ease;
+        }
+        .sidebar-nav .nav-link.active, 
+        .sidebar-nav .nav-link:hover {
+            background: var(--text-dark);
+            color: var(--bg-offwhite);
+        }
+        .main-wrapper {
+            margin-left: 260px;
+            padding: 2rem;
+        }
+        .card-custom {
+            background: var(--bg-offwhite);
+            border: 1px solid var(--color-nude);
+            border-radius: 18px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+        }
+        .table thead th {
+            border-bottom: 2px solid var(--color-nude);
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .badge-optimo { background: #D1FAE5; color: #065F46; font-weight: 600; padding: 6px 12px; border-radius: 20px; }
+        .badge-critico { background: #FEF3C7; color: #92400E; font-weight: 600; padding: 6px 12px; border-radius: 20px; }
+        .badge-agotado { background: #FEE2E2; color: #991B1B; font-weight: 600; padding: 6px 12px; border-radius: 20px; }
+        .btn-dark-custom {
+            background-color: var(--text-dark);
+            color: var(--bg-offwhite);
+            border-radius: 10px;
+            font-weight: 600;
+            padding: 10px 20px;
+            border: none;
+        }
+        .btn-dark-custom:hover {
+            background-color: #423c34;
+            color: var(--bg-offwhite);
+        }
+        .modal-content {
+            background-color: var(--bg-offwhite);
+            border-radius: 18px;
+            border: 1px solid var(--color-nude);
+        }
+    </style>
+</head>
+<body>
+
+<!-- MENÚ LATERAL (SIDEBAR) -->
+<aside class="sidebar">
+    <div>
+        <div class="mb-4">
+            <h2 class="brand-title">SazónTrack</h2>
+            <span class="text-muted small fw-bold text-uppercase">Control de Inventarios</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="index.html" class="nav-link"><i class="fa-solid fa-chart-pie me-1"></i> Dashboard</a>
+            <a href="caja.html" class="nav-link"><i class="fa-solid fa-cash-register me-1"></i> Caja POS</a>
+            <a href="mesas.html" class="nav-link"><i class="fa-solid fa-utensils me-1"></i> Mapa Mesas</a>
+            <a href="inventario.html" class="nav-link active"><i class="fa-solid fa-boxes-stacked me-1"></i> Insumos / Stock</a>
+            <a href="recetas.html" class="nav-link"><i class="fa-solid fa-file-invoice-dollar me-1"></i> Escandallos POS</a>
+        </nav>
+    </div>
+    <div class="border-top pt-3" style="border-color: var(--color-nude) !important;">
+        <span class="small text-muted d-block"><i class="fa-solid fa-circle-user me-1"></i> Usuario Activo</span>
+        <strong class="small" id="sessionUserName">Administrador</strong>
+    </div>
+</aside>
+
+<!-- ÁREA PRINCIPAL DE TRABAJO -->
+<main class="main-wrapper">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold m-0"><i class="fa-solid fa-boxes-stacked me-2"></i>Gestión de Insumos</h3>
+            <p class="text-muted small m-0">Monitoreo de existencias, mermas e insumos de cocina</p>
+        </div>
+        <div class="d-flex gap-2">
+            <!-- Botón para Registrar Merma Operativa -->
+            <button class="btn btn-outline-danger fw-bold" onclick="abrirModalMerma()" style="border-radius: 10px;">
+                <i class="fa-solid fa-dumpster me-1"></i> Registrar Merma
+            </button>
+            <!-- Botón para Crear Nuevo Insumo -->
+            <button class="btn btn-dark-custom" onclick="abrirModalCrear()">
+                <i class="fa-solid fa-plus me-2"></i>Registrar Insumo
+            </button>
+        </div>
+    </div>
+
+    <!-- TABLA DE INSUMOS DE ALMACÉN -->
+    <div class="card-custom">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Nombre Insumo</th>
+                        <th>Stock Actual</th>
+                        <th>Stock Mínimo</th>
+                        <th>Costo Unitario</th>
+                        <th>Estado</th>
+                        <th class="text-end">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaInsumos">
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-muted">
+                            <i class="fa-solid fa-spinner fa-spin me-2"></i> Cargando insumos...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+
+<!-- MODAL 1: REGISTRAR / EDITAR INSUMO -->
+<div class="modal fade" id="modalInsumo" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-bottom-0">
+                <h5 class="modal-title fw-bold" id="modalTitulo"><i class="fa-solid fa-box me-2"></i>Nuevo Insumo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formInsumo">
+                    <input type="hidden" id="id_insumo">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Nombre del Insumo</label>
+                        <input type="text" class="form-control" id="nombre" placeholder="Ej: Queso Mozzarella" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold small">Unidad de Medida</label>
+                            <select class="form-select" id="unidad_medida" required>
+                                <option value="kg">Kilogramos (kg)</option>
+                                <option value="gr">Gramos (gr)</option>
+                                <option value="lt">Litros (lt)</option>
+                                <option value="ml">Mililitros (ml)</option>
+                                <option value="pz">Piezas (pz)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold small">Costo Unitario ($)</label>
+                            <input type="number" step="0.01" class="form-control" id="costo_unitario" placeholder="0.00" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold small">Stock Actual</label>
+                            <input type="number" step="0.001" class="form-control" id="stock_actual" placeholder="0.000" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold small">Stock Mínimo (Alerta)</label>
+                            <input type="number" step="0.001" class="form-control" id="stock_minimo" placeholder="0.000" required>
+                        </div>
+                    </div>
+                    <div class="text-end mt-3">
+                        <button type="button" class="btn btn-outline-secondary me-2" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-dark-custom">Guardar Insumo</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL 2: REGISTRAR MERMA OPERATIVA -->
+<div class="modal fade" id="modalMerma" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 18px; border: none;">
+            <div class="modal-header bg-danger text-white" style="border-radius: 18px 18px 0 0;">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-dumpster me-2"></i>Registrar Merma Operativa</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="formMerma" onsubmit="guardarMermaBD(event)">
+                    <!-- Seleccionar Insumo -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Insumo Afectado *</label>
+                        <select id="selectInsumoMerma" class="form-select" required></select>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <!-- Cantidad -->
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">Cantidad a Mermar *</label>
+                            <input type="number" step="0.001" id="cantMerma" class="form-control" placeholder="0.000" required>
+                        </div>
+                        <!-- Motivo -->
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">Motivo *</label>
+                            <select id="motivoMerma" class="form-select" required>
+                                <option value="Caducidad">Caducidad</option>
+                                <option value="Error de Preparacion">Error de Preparación</option>
+                                <option value="Accidente/Caida">Accidente / Caída</option>
+                                <option value="Mal Estado">Mal Estado de Origen</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Notas -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Notas Adicionales</label>
+                        <textarea id="notasMerma" class="form-control" rows="2" placeholder="Detalles de la pérdida..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-danger w-100 fw-bold py-2">
+                        <i class="fa-solid fa-check-circle me-1"></i> Descontar Merma
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="assets/js/bootstrap.bundle.min.js"></script>
+<script>
+    let listaInsumosGlobal = [];
+    let modalInsumoBS;
+    let modalMermaBS;
+
+    // Al cargar la página
+    document.addEventListener("DOMContentLoaded", () => {
+        modalInsumoBS = new bootstrap.Modal(document.getElementById('modalInsumo'));
+        modalMermaBS = new bootstrap.Modal(document.getElementById('modalMerma'));
+        
+        // Cargar nombre del usuario de la sesión activa
+        const sessionData = localStorage.getItem("sazontrack_session");
+        if (sessionData) {
+            const session = JSON.parse(sessionData);
+            document.getElementById("sessionUserName").innerText = session.nombre_empleado || session.username;
+        }
+
+        cargarInsumos();
+    });
+
+    // 1. Obtener la lista de insumos del servidor
+    async function cargarInsumos() {
+        const tbody = document.getElementById("tablaInsumos");
+        try {
+            const resp = await fetch('api/inventario/listar_stock.php');
+            const data = await resp.json();
+            tbody.innerHTML = "";
+            if (data.status === 'success' && data.data.length > 0) {
+                listaInsumosGlobal = data.data;
+                data.data.forEach(item => {
+                    let badgeClass = 'badge-optimo';
+                    if (item.estado_stock === 'critico') badgeClass = 'badge-critico';
+                    if (item.estado_stock === 'agotado') badgeClass = 'badge-agotado';
+                    
+                    tbody.innerHTML += `
+                        <tr>
+                            <td class="fw-bold">${item.nombre}</td>
+                            <td class="fw-bold">${parseFloat(item.stock_actual).toFixed(3)} ${item.unidad_medida}</td>
+                            <td>${parseFloat(item.stock_minimo).toFixed(3)} ${item.unidad_medida}</td>
+                            <td>$${parseFloat(item.costo_unitario).toFixed(2)}</td>
+                            <td><span class="badge ${badgeClass} text-capitalize">${item.estado_stock}</span></td>
+                            <td class="text-end">
+                                <button class="btn btn-sm btn-outline-dark me-1" onclick="editarInsumo(${item.id_insumo})">
+                                    <i class="fa-solid fa-pen"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="eliminarInsumo(${item.id_insumo})">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } else {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">No hay insumos registrados.</td></tr>`;
+            }
+        } catch (err) {
+            console.error("Error:", err);
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-danger">Error al cargar datos del servidor.</td></tr>`;
+        }
+    }
+
+    // 2. Abrir modal para crear insumo
+    function abrirModalCrear() {
+        document.getElementById("formInsumo").reset();
+        document.getElementById("id_insumo").value = "";
+        document.getElementById("modalTitulo").innerHTML = `<i class="fa-solid fa-box me-2"></i>Nuevo Insumo`;
+        modalInsumoBS.show();
+    }
+
+    // 3. Abrir modal para editar insumo
+    function editarInsumo(id) {
+        const item = listaInsumosGlobal.find(i => i.id_insumo == id);
+        if (!item) return;
+        document.getElementById("id_insumo").value = item.id_insumo;
+        document.getElementById("nombre").value = item.nombre;
+        document.getElementById("unidad_medida").value = item.unidad_medida;
+        document.getElementById("costo_unitario").value = item.costo_unitario;
+        document.getElementById("stock_actual").value = item.stock_actual;
+        document.getElementById("stock_minimo").value = item.stock_minimo;
+        document.getElementById("modalTitulo").innerHTML = `<i class="fa-solid fa-pen me-2"></i>Editar Insumo`;
+        modalInsumoBS.show();
+    }
+
+    // 4. Guardar insumo (Crear o Actualizar)
+    document.getElementById("formInsumo").addEventListener("submit", async function(e) {
+        e.preventDefault();
+        const id_insumo = document.getElementById("id_insumo").value;
+        const esEdicion = id_insumo !== "";
+        const payload = {
+            id_insumo: id_insumo ? parseInt(id_insumo) : null,
+            nombre: document.getElementById("nombre").value,
+            unidad_medida: document.getElementById("unidad_medida").value,
+            costo_unitario: parseFloat(document.getElementById("costo_unitario").value),
+            stock_actual: parseFloat(document.getElementById("stock_actual").value),
+            stock_minimo: parseFloat(document.getElementById("stock_minimo").value)
+        };
+        
+        const url = esEdicion ? 'api/inventario/actualizar.php' : 'api/inventario/crear.php';
+        try {
+            const resp = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const res = await resp.json();
+            if (res.status === 'success') {
+                modalInsumoBS.hide();
+                cargarInsumos();
+            } else {
+                alert("Error: " + res.message);
+            }
+        } catch (error) {
+            console.error("Error al guardar:", error);
+        }
+    });
+
+    // 5. Eliminar insumo
+    async function eliminarInsumo(id) {
+        if (!confirm("¿Deseas eliminar este insumo del inventario?")) return;
+        try {
+            const resp = await fetch('api/inventario/eliminar.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id_insumo: id })
+            });
+            const res = await resp.json();
+            if (res.status === 'success') {
+                cargarInsumos();
+            } else {
+                alert("No se pudo eliminar: " + res.message);
+            }
+        } catch (error) {
+            console.error("Error al eliminar:", error);
+        }
+    }
+
+    // 6. Abrir modal para registrar merma
+    function abrirModalMerma() {
+        document.getElementById("formMerma").reset();
+        const select = document.getElementById("selectInsumoMerma");
+        select.innerHTML = '<option value="">-- Seleccionar Insumo --</option>';
+        
+        listaInsumosGlobal.forEach(ins => {
+            select.innerHTML += `<option value="${ins.id_insumo}">${ins.nombre} (Stock: ${parseFloat(ins.stock_actual).toFixed(3)} ${ins.unidad_medida})</option>`;
+        });
+        
+        modalMermaBS.show();
+    }
+
+    // 7. Enviar registro de merma a la API
+    async function guardarMermaBD(e) {
+        e.preventDefault();
+        const payload = {
+            id_insumo: parseInt(document.getElementById("selectInsumoMerma").value),
+            cantidad: parseFloat(document.getElementById("cantMerma").value),
+            motivo: document.getElementById("motivoMerma").value,
+            notas: document.getElementById("notasMerma").value
+        };
+
+        try {
+            const resp = await fetch('api/inventario/registrar_merma.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const res = await resp.json();
+            if (res.status === 'success') {
+                alert("¡Merma registrada y stock actualizado!");
+                modalMermaBS.hide();
+                cargarInsumos();
+            } else {
+                alert("Error: " + res.message);
+            }
+        } catch (error) {
+            console.error("Error al registrar merma:", error);
+            alert("Error al conectar con el servidor.");
+        }
+    }
+</script>
+</body>
+</html>

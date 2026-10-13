@@ -1,84 +1,80 @@
 <?php
 require_once '../../config/conexion.php';
 
-if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-    http_response_code(405);
-    echo json_encode(["status" => "error", "message" => "Método no permitido"]);
-    exit();
-}
+header('Content-Type: application/json');
 
-$estacion_id = isset($_GET['estacion_id']) ? (int)$_GET['estacion_id'] : null;
+$estacion = isset($_GET['estacion']) ? trim($_GET['estacion']) : 'cocina';
+$ver_historial = isset($_GET['historial']) && $_GET['historial'] === 'true';
 
 $db = new Database();
 $conn = $db->getConnection();
 
 try {
-    $sql = "
+    // Si solicita historial, muestra las últimas 10 entregadas
+    $condicionEstado = $ver_historial 
+        ? "od.estado_preparacion = 'entregado'"
+        : "(od.estado_preparacion IS NULL OR od.estado_preparacion != 'entregado')";
+
+    $query = "
         SELECT 
+            o.id AS orden_id,
+            m.numero_mesa,
+            a.nombre AS area_nombre,
+            o.creado_en AS hora_orden,
+            EXTRACT(EPOCH FROM (NOW() - o.creado_en))/60 AS minutos_transcurridos,
             od.id AS detalle_id,
-            od.orden_id,
-            o.folio,
-            m.numero AS mesa_numero,
-            u.nombre AS mesero,
-            p.nombre AS platillo,
+            p.nombre AS producto,
             od.cantidad,
-            od.notas_cocina,
-            od.estado_kds,
-            od.hora_envio,
-            od.hora_inicio_cocina,
-            ROUND(TIMESTAMPDIFF(SECOND, od.hora_envio, NOW()) / 60, 1) AS minutos_espera
-        FROM orden_detalles od
-        INNER JOIN ordenes o ON od.orden_id = o.id
-        INNER JOIN mesas m ON o.mesa_id = m.id
-        INNER JOIN usuarios u ON o.mesero_id = u.id
-        INNER JOIN productos p ON od.producto_id = p.id
-        WHERE od.estado_kds IN ('pendiente', 'en_preparacion')
-          AND o.estado = 'abierta'
+            o.notas AS notas,
+            od.estado_preparacion,
+            c.estacion
+        FROM ordenes o
+        JOIN mesas m ON m.id_mesa = o.id_mesa OR m.id = o.mesa_id
+        JOIN areas a ON a.id_area = m.id_area
+        JOIN orden_detalles od ON od.orden_id = o.id
+        JOIN productos p ON p.id = od.producto_id
+        JOIN categorias c ON c.id = p.categoria_id
+        WHERE o.estado NOT IN ('pagada', 'cancelada')
+          AND LOWER(c.estacion) = :estacion
+          AND {$condicionEstado}
+        ORDER BY o.creado_en ASC, od.id ASC
     ";
 
-    $params = [];
-    if ($estacion_id) {
-        $sql .= " AND od.estacion_kds_id = ?";
-        $params[] = $estacion_id;
-    }
-
-    $sql .= " ORDER BY od.hora_envio ASC, od.id ASC";
-
-    $stmt = $conn->prepare($sql);
-    $stmt->execute($params);
-    $items = $stmt->fetchAll();
+    $stmt = $conn->prepare($query);
+    $stmt->execute([':estacion' => strtolower($estacion)]);
+    $filas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     $comandas = [];
-    foreach ($items as $row) {
-        $oid = $row['orden_id'];
+    foreach ($filas as $fila) {
+        $oid = $fila['orden_id'];
         if (!isset($comandas[$oid])) {
             $comandas[$oid] = [
-                "orden_id" => (int)$row['orden_id'],
-                "folio" => $row['folio'],
-                "mesa" => "Mesa " . $row['mesa_numero'],
-                "mesero" => $row['mesero'],
-                "hora_envio" => $row['hora_envio'],
-                "items" => []
+                'orden_id'             => $fila['orden_id'],
+                'numero_mesa'          => $fila['numero_mesa'],
+                'area_nombre'          => $fila['area_nombre'],
+                'hora_orden'           => $fila['hora_orden'],
+                'minutos_transcurridos'=> round((float)$fila['minutos_transcurridos']),
+                'detalles'             => []
             ];
         }
 
-        $comandas[$oid]['items'][] = [
-            "detalle_id" => (int)$row['detalle_id'],
-            "platillo" => $row['platillo'],
-            "cantidad" => (int)$row['cantidad'],
-            "notas_cocina" => $row['notas_cocina'],
-            "estado_kds" => $row['estado_kds'],
-            "minutos_espera" => (float)$row['minutos_espera']
+        $comandas[$oid]['detalles'][] = [
+            'detalle_id'         => $fila['detalle_id'],
+            'producto'           => $fila['producto'],
+            'cantidad'           => $fila['cantidad'],
+            'notas'              => $fila['notas'] ?? '',
+            'estado_preparacion' => $fila['estado_preparacion'] ?? 'pendiente'
         ];
     }
 
     http_response_code(200);
     echo json_encode([
-        "status" => "success",
-        "total_comandas" => count($comandas),
-        "data" => array_values($comandas)
+        "status"   => "success",
+        "estacion" => $estacion,
+        "comandas" => array_values($comandas)
     ]);
+
 } catch (PDOException $e) {
     http_response_code(500);
-    echo json_encode(["status" => "error", "message" => "Error al obtener comandas KDS: " . $e->getMessage()]);
+    echo json_encode(["status" => "error", "message" => "Error BD: " . $e->getMessage()]);
 }

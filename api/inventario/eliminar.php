@@ -1,55 +1,47 @@
 <?php
-require_once '../../config/conexion.php';
+ob_start();
+ini_set('display_errors', 0);
+error_reporting(E_ALL);
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST' && $_SERVER['REQUEST_METHOD'] !== 'DELETE') {
-    http_response_code(405);
-    echo json_encode(["status" => "error", "message" => "Método no permitido"]);
-    exit();
-}
-
-$input = json_decode(file_get_contents("php://input"), true);
-
-if (empty($input['id'])) {
-    http_response_code(400);
-    echo json_encode(["status" => "error", "message" => "Falta el id del insumo"]);
-    exit();
-}
-
-$id = (int)$input['id'];
-
-$db = new Database();
-$conn = $db->getConnection();
+header('Content-Type: application/json; charset=utf-8');
 
 try {
-    // Validar si el insumo está siendo usado en alguna receta
-    $stmtRecetas = $conn->prepare("SELECT COUNT(*) AS total FROM recetas WHERE insumo_id = ?");
-    $stmtRecetas->execute([$id]);
-    $usos = (int)$stmtRecetas->fetch()['total'];
+    $path_db = dirname(__FILE__) . '/../../config/conexion.php';
 
-    if ($usos > 0) {
-        http_response_code(409);
-        echo json_encode([
-            "status" => "error",
-            "message" => "No se puede eliminar el insumo porque forma parte de $usos receta(s) activa(s)."
-        ]);
-        exit();
+    if (!file_exists($path_db)) {
+        $path_db = $_SERVER['DOCUMENT_ROOT'] . '/restaurante_app/config/conexion.php';
     }
 
-    $stmtDelete = $conn->prepare("DELETE FROM insumos WHERE id = ?");
-    $stmtDelete->execute([$id]);
-
-    if ($stmtDelete->rowCount() === 0) {
-        http_response_code(404);
-        echo json_encode(["status" => "error", "message" => "Insumo no encontrado"]);
-        exit();
+    if (!file_exists($path_db)) {
+        throw new Exception("No se encontró conexion.php");
     }
 
-    http_response_code(200);
-    echo json_encode([
-        "status" => "success",
-        "message" => "Insumo eliminado del almacén"
-    ]);
-} catch (PDOException $e) {
+    require_once $path_db;
+
+    $pdo = isset($db) ? $db : (isset($conn) ? $conn : (isset($conexion) ? $conexion : null));
+
+    if (!$pdo) {
+        throw new Exception("No se detectó una variable de conexión válida en conexion.php");
+    }
+
+    $data = json_decode(file_get_contents("php://input"), true);
+
+    if (empty($data['id_insumo'])) {
+        ob_end_clean();
+        http_response_code(400);
+        echo json_encode(['status' => 'error', 'message' => 'Falta id_insumo']);
+        exit;
+    }
+
+    $stmt = $pdo->prepare("DELETE FROM insumos WHERE id_insumo = :id_insumo");
+    $stmt->execute([':id_insumo' => intval($data['id_insumo'])]);
+
+    ob_end_clean();
+    echo json_encode(['status' => 'success', 'message' => 'Insumo eliminado']);
+
+} catch (Exception $e) {
+    ob_end_clean();
     http_response_code(500);
-    echo json_encode(["status" => "error", "message" => "Error al eliminar: " . $e->getMessage()]);
+    echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
 }
+?>

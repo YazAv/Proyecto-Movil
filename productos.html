@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SazónTrack - Catálogo de Menú</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Italianno&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- CSS Dependencies -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-offwhite: #FDFCF8;
+            --bg-ivory: #F3F0E9;
+            --color-nude: #E3DBCC;
+            --color-nude-hover: #D5C7B3;
+            --text-dark: #2A2621;
+            --text-muted: #736B60;
+            --card-shadow: rgba(42, 38, 33, 0.08);
+            --sidebar-width: 260px;
+        }
+
+        body {
+            background-color: var(--bg-ivory);
+            color: var(--text-dark);
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--color-nude-hover); border-radius: 10px; }
+
+        /* ==================== SIDEBAR ==================== */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg-offwhite);
+            border-right: 1px solid var(--color-nude);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem 1rem;
+            z-index: 100;
+        }
+        .sidebar-scrollable { overflow-y: auto; flex-grow: 1; padding-right: 5px; }
+        
+        .brand-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 1.2rem;
+            border-bottom: 1px solid var(--color-nude);
+            margin-bottom: 1rem;
+        }
+        .brand-avatar {
+            width: 44px;
+            height: 44px;
+            background: var(--text-dark);
+            color: var(--bg-offwhite);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+        .brand-title {
+            font-family: 'Italianno', cursive, serif;
+            font-size: 2.2rem;
+            color: var(--text-dark);
+            line-height: 0.8;
+            margin: 0;
+        }
+        .brand-sub { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
+
+        .nav-category {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin: 1.2rem 0 0.4rem 0.8rem;
+        }
+        .sidebar-nav .nav-link {
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 10px 14px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 4px;
+            transition: all 0.15s ease;
+            text-decoration: none;
+        }
+        .sidebar-nav .nav-link:hover { background: var(--bg-ivory); color: var(--text-dark); }
+        .sidebar-nav .nav-link.active {
+            background: var(--text-dark);
+            color: var(--bg-offwhite);
+            box-shadow: 0 4px 12px rgba(42, 38, 33, 0.12);
+        }
+
+        /* ==================== MAIN CONTENT ==================== */
+        .main-wrapper {
+            margin-left: var(--sidebar-width);
+            padding: 2rem 2.5rem;
+        }
+
+        .card-custom {
+            background: var(--bg-offwhite);
+            border: 1px solid var(--color-nude);
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(42, 38, 33, 0.03);
+        }
+
+        /* ==================== CATALOG CARDS ==================== */
+        .catalog-card {
+            background: var(--bg-offwhite);
+            border: 1px solid var(--color-nude);
+            border-radius: 24px;
+            padding: 1.5rem;
+            position: relative;
+            transition: all 0.2s ease;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .catalog-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px var(--card-shadow);
+            border-color: var(--text-muted);
+        }
+
+        .card-actions {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            gap: 6px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        .catalog-card:hover .card-actions {
+            opacity: 1;
+        }
+
+        .btn-action-sm {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            color: var(--text-dark);
+            transition: background 0.1s;
+        }
+        .btn-action-sm:hover { background: var(--color-nude); }
+        .btn-action-sm.delete:hover { background: #FEE2E2; color: #DC2626; }
+
+        .product-price {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #10B981; 
+        }
+        
+        .kds-badge {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: var(--bg-ivory);
+            color: var(--text-muted);
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+    <div class="sidebar-scrollable">
+        <div class="brand-header">
+            <div class="brand-avatar"><i class="fa-solid fa-concierge-bell"></i></div>
+            <div>
+                <h2 class="brand-title">SazónTrack</h2>
+                <span class="brand-sub">Panel de Control</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-category">Principal</div>
+            <a href="index.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+            <a href="caja.html" class="nav-link"><i class="fa-solid fa-cash-register"></i> Caja POS</a>
+            <a href="mesas.html" class="nav-link"><i class="fa-solid fa-utensils"></i> Mapa Mesas</a>
+            
+            <div class="nav-category">Recursos Humanos</div>
+            <a href="asistencia.html" target="_blank" class="nav-link"><i class="fa-solid fa-clock"></i> Reloj Checador</a>
+            <a href="empleados.html" class="nav-link"><i class="fa-solid fa-users"></i> Empleados</a>
+
+            <div class="nav-category">Administración</div>
+            <a href="productos.html" class="nav-link"><i class="fa-solid fa-burger"></i>  Menú</a>
+            <a href="inventario.html" class="nav-link"><i class="fa-solid fa-boxes-stacked"></i> Inventario</a>
+        </nav>
+    </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="main-wrapper">
+    
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold m-0">Catálogo de Menú</h3>
+            <p class="text-muted small m-0">Visualiza y administra tus platillos estilo vitrina.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="index.html" class="btn btn-outline-dark rounded-3 fw-bold">
+                <i class="fa-solid fa-arrow-left me-2"></i> Dashboard
+            </a>
+            <button class="btn btn-dark rounded-3 fw-bold" onclick="abrirModalCrear()">
+                <i class="fa-solid fa-plus me-2"></i> Nuevo Producto
+            </button>
+        </div>
+    </div>
+
+    <!-- FILTROS -->
+    <div class="card-custom p-3 mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div class="input-group" style="max-width: 400px;">
+            <span class="input-group-text bg-white border-end-0 border-secondary-subtle"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+            <input type="text" id="inputBuscar" class="form-control border-start-0 border-secondary-subtle" placeholder="Buscar producto...">
+        </div>
+        <select id="filtroCategoria" class="form-select border-secondary-subtle w-auto fw-semibold text-muted">
+            <option value="todos">Todas las Categorías</option>
+        </select>
+    </div>
+
+    <!-- GRID DE PRODUCTOS (CATÁLOGO) -->
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-4 g-4" id="catalogoProductos">
+        <!-- Tarjetas inyectadas por JS -->
+    </div>
+
+</main>
+
+<!-- MODAL: AGREGAR / EDITAR PRODUCTO -->
+<div class="modal fade" id="modalProducto" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background-color: var(--bg-offwhite); border-radius: 20px;">
+            <div class="modal-header border-bottom border-secondary-subtle">
+                <h5 class="modal-title fw-bold" id="modalProductoTitle"><i class="fa-solid fa-utensils me-2"></i>Registrar Nuevo Producto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="formProducto" onsubmit="guardarProducto(event)">
+                    <input type="hidden" id="prodId">
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted">Nombre del Platillo / Bebida</label>
+                        <input type="text" id="prodNombre" class="form-control rounded-3" placeholder="" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted">Descripción (Opcional)</label>
+                        <textarea id="prodDescripcion" class="form-control rounded-3" rows="2" placeholder="Breve descripción..."></textarea>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-bold small text-muted">Categoría</label>
+                            <select id="prodCategoria" class="form-select rounded-3" required>
+                                <option value="">Selecciona...</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-bold small text-muted">Precio (MXN)</label>
+                            <input type="text" id="prodPrecio" class="form-control rounded-3" placeholder="0.00" required>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <label class="form-label fw-bold small text-muted">Destino de Comanda (Estación KDS)</label>
+                            <select id="prodEstacion" class="form-select rounded-3" required>
+                                <option value="1">Cocina Principal</option>
+                                <option value="2">Barra de Bebidas</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-2">
+                        <button type="button" class="btn btn-light border fw-bold rounded-3" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-dark fw-bold rounded-3 px-4" id="btnGuardar">Guardar Producto</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- BOOTSTRAP JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    let productosData = [];
+    let categoriasGlobal = [];
+
+    document.addEventListener("DOMContentLoaded", () => {
+        cargarCategorias().then(() => {
+            cargarCatalogo();
+        });
+
+        document.getElementById('inputBuscar').addEventListener('input', filtrarCatalogo);
+        document.getElementById('filtroCategoria').addEventListener('change', filtrarCatalogo);
+    });
+
+    // ================== CARGAR CATEGORÍAS ÚNICAS DESDE BD ==================
+    async function cargarCategorias() {
+        try {
+            const response = await fetch('api/categorias/listar.php');
+            if(!response.ok) {
+                categoriasGlobal = [
+                    { id_categoria: 1, nombre: 'Bebidas' },
+                    { id_categoria: 2, nombre: 'Entradas' },
+                    { id_categoria: 3, nombre: 'Platos Fuertes' },
+                    { id_categoria: 4, nombre: 'Postres' },
+                    { id_categoria: 5, nombre: 'Bebidas y Cocteles' },
+                    { id_categoria: 8, nombre: 'Comida' }
+                ];
+            } else {
+                const data = await response.json();
+                categoriasGlobal = Array.isArray(data) ? data : (data.data || []);
+            }
+        } catch (e) {
+            categoriasGlobal = [
+                { id_categoria: 1, nombre: 'Bebidas' },
+                { id_categoria: 2, nombre: 'Entradas' },
+                { id_categoria: 3, nombre: 'Platos Fuertes' },
+                { id_categoria: 4, nombre: 'Postres' },
+                { id_categoria: 5, nombre: 'Bebidas y Cocteles' },
+                { id_categoria: 8, nombre: 'Comida' }
+            ];
+        }
+
+        // Filtro para asegurar que no se repitan nombres de categorías en el selector
+        const categoriasUnicas = [];
+        const nombresVistos = new Set();
+        
+        categoriasGlobal.forEach(cat => {
+            const nombreCat = cat.nombre.trim();
+            if (!nombresVistos.has(nombreCat)) {
+                nombresVistos.add(nombreCat);
+                categoriasUnicas.push(cat);
+            }
+        });
+
+        // Poblar select del modal y filtro superior
+        const selectModal = document.getElementById('prodCategoria');
+        const selectFiltro = document.getElementById('filtroCategoria');
+        
+        selectModal.innerHTML = '<option value="">Selecciona...</option>';
+        selectFiltro.innerHTML = '<option value="todos">Todas las Categorías</option>';
+
+        categoriasUnicas.forEach(cat => {
+            const idCat = cat.id_categoria || cat.id;
+            selectModal.insertAdjacentHTML('beforeend', `<option value="${idCat}">${cat.nombre}</option>`);
+            selectFiltro.insertAdjacentHTML('beforeend', `<option value="${cat.nombre}">${cat.nombre}</option>`);
+        });
+    }
+
+    // ================== LEER: CARGAR CATÁLOGO ==================
+    async function cargarCatalogo() {
+        const grid = document.getElementById('catalogoProductos');
+        grid.innerHTML = '<div class="col-12 text-center py-5"><i class="fa-solid fa-spinner fa-spin fa-2x text-muted mb-3"></i><p class="fw-bold text-muted">Cargando catálogo...</p></div>';
+
+        try {
+            const response = await fetch('api/platillos/listar_platillos.php');
+            if (!response.ok) throw new Error("Error en servidor");
+            
+            const data = await response.json();
+            productosData = Array.isArray(data) ? data : (data.data || []);
+            
+            renderizarTarjetas(productosData);
+        } catch (error) {
+            console.error(error);
+            grid.innerHTML = '<div class="col-12 text-center py-5 text-danger"><i class="fa-solid fa-triangle-exclamation fa-2x mb-2"></i><p class="fw-bold">Error al cargar el menú.</p></div>';
+        }
+    }
+
+    // ================== PINTAR TARJETAS EN EL DOM ==================
+    function renderizarTarjetas(lista) {
+        const grid = document.getElementById('catalogoProductos');
+        grid.innerHTML = '';
+
+        if (lista.length === 0) {
+            grid.innerHTML = '<div class="col-12 text-center py-5"><p class="text-muted fw-bold">No se encontraron productos.</p></div>';
+            return;
+        }
+
+        lista.forEach(prod => {
+            let kdsNombre = prod.estacion_kds || 'Cocina Principal';
+            let kdsIcono = kdsNombre.toLowerCase().includes('barra') ? 'fa-martini-glass-citrus text-info' : 'fa-fire-burner text-danger';
+
+            const cardHTML = `
+                <div class="col">
+                    <div class="catalog-card">
+                        <div class="card-actions">
+                            <button type="button" class="btn-action-sm" onclick="editarProducto(${prod.id})" title="Editar"><i class="fa-solid fa-pen"></i></button>
+                            <button type="button" class="btn-action-sm delete" onclick="eliminarProducto(${prod.id})" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                        <div class="text-center flex-grow-1 pt-4">
+                            <span class="badge bg-dark text-white rounded-pill mb-2" style="font-size: 0.65rem;">${prod.categoria || 'General'}</span>
+                            <h6 class="fw-bold mb-1" style="font-size: 1.05rem; line-height: 1.2;">${prod.nombre}</h6>
+                            <p class="text-muted small mb-3" style="font-size: 0.8rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                ${prod.descripcion || 'Sin descripción detallada.'}
+                            </p>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-end mt-3 pt-3 border-top border-secondary-subtle">
+                            <div>
+                                <div class="text-muted" style="font-size: 0.7rem; font-weight: 700;">PRECIO</div>
+                                <div class="product-price">$${parseFloat(prod.precio).toFixed(2)}</div>
+                            </div>
+                            <div class="kds-badge" title="Destino de Comanda">
+                                <i class="fa-solid ${kdsIcono}"></i> ${kdsNombre}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            grid.insertAdjacentHTML('beforeend', cardHTML);
+        });
+    }
+
+    // ================== FILTRAR CATÁLOGO ==================
+    function filtrarCatalogo() {
+        const texto = document.getElementById('inputBuscar').value.toLowerCase();
+        const categoriaFiltro = document.getElementById('filtroCategoria').value;
+
+        const filtrados = productosData.filter(prod => {
+            const coincideTexto = prod.nombre.toLowerCase().includes(texto) || (prod.descripcion && prod.descripcion.toLowerCase().includes(texto));
+            const coincideCat = (categoriaFiltro === 'todos') || (prod.categoria === categoriaFiltro);
+            return coincideTexto && coincideCat;
+        });
+
+        renderizarTarjetas(filtrados);
+    }
+
+    // ================== ABRIR MODAL CREAR ==================
+    function abrirModalCrear() {
+        document.getElementById('formProducto').reset(); 
+        document.getElementById('prodId').value = "";    
+        document.getElementById('modalProductoTitle').innerHTML = '<i class="fa-solid fa-utensils me-2"></i>Registrar Nuevo Producto';
+        
+        const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('modalProducto'));
+        modal.show();
+    }
+
+    // ================== ABRIR MODAL EDITAR ==================
+    function editarProducto(id) {
+        const prod = productosData.find(p => p.id == id);
+        if(!prod) return;
+
+        document.getElementById('prodId').value = prod.id;
+        document.getElementById('prodNombre').value = prod.nombre;
+        document.getElementById('prodDescripcion').value = prod.descripcion || '';
+        document.getElementById('prodPrecio').value = prod.precio;
+        
+        document.getElementById('prodCategoria').value = prod.categoria_id || "";
+        document.getElementById('prodEstacion').value = prod.estacion_kds_id || "1";
+
+        document.getElementById('modalProductoTitle').innerHTML = '<i class="fa-solid fa-pen me-2"></i>Editar Producto';
+        const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('modalProducto'));
+        modal.show();
+    }
+
+    // ================== GUARDAR (CREAR Y ACTUALIZAR) ==================
+    async function guardarProducto(event) {
+        event.preventDefault(); 
+
+        const btnGuardar = document.getElementById('btnGuardar');
+        const textoOriginal = btnGuardar.innerHTML;
+        btnGuardar.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Guardando...';
+        btnGuardar.disabled = true;
+
+        const prodId = document.getElementById('prodId').value;
+        const formData = new FormData();
+        
+        if(prodId) {
+            formData.append('id', prodId);
+        }
+        
+        formData.append('nombre', document.getElementById('prodNombre').value);
+        formData.append('descripcion', document.getElementById('prodDescripcion').value);
+        formData.append('categoria_id', document.getElementById('prodCategoria').value);
+        
+        let precioVal = document.getElementById('prodPrecio').value.replace(',', '.');
+        formData.append('precio', precioVal);
+        
+        formData.append('estacion_kds_id', document.getElementById('prodEstacion').value);
+        formData.append('disponible', 1); 
+
+        const urlEndpoint = prodId ? 'api/platillos/actualizar.php' : 'api/platillos/registrar.php';
+
+        try {
+            const response = await fetch(urlEndpoint, {
+                method: 'POST', 
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (response.ok || data.status === 'success') {
+                const modalElement = document.getElementById('modalProducto');
+                const modalInstance = bootstrap.Modal.getInstance(modalElement);
+                if (modalInstance) {
+                    modalInstance.hide();
+                }
+                document.getElementById('formProducto').reset();
+                document.getElementById('prodId').value = ""; 
+                cargarCatalogo(); 
+            } else {
+                alert("Error al guardar: " + (data.message || "Revisa los datos"));
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            alert("Error de conexión al servidor.");
+        } finally {
+            btnGuardar.innerHTML = textoOriginal;
+            btnGuardar.disabled = false;
+        }
+    }
+
+    // ================== ELIMINAR ==================
+    async function eliminarProducto(id) {
+        if (!confirm("¿Estás seguro de eliminar este platillo del menú?")) return;
+
+        const formData = new FormData();
+        formData.append('id', id);
+
+        try {
+            const response = await fetch('api/platillos/eliminar.php', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+
+            if (response.ok || data.status === 'success') {
+                cargarCatalogo(); 
+            } else {
+                alert("No se pudo eliminar: " + (data.message || "Error desconocido"));
+            }
+        } catch (error) {
+            alert("Hubo un problema al conectar con el servidor.");
+        }
+    }
+</script>
+</body>
+</html>

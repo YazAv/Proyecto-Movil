@@ -1,113 +1,78 @@
 <?php
-require_once '../../config/conexion.php';
+header('Content-Type: application/json');
+require_once '../../config/conexion.php'; // Tu archivo de conexión a PostgreSQL
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(["status" => "error", "message" => "Método no permitido"]);
-    exit();
+$data = json_decode(file_get_contents("php://input"), true);
+
+if (!isset($data['id_orden'])) {
+    echo json_encode(['status' => 'error', 'message' => 'Falta el id_orden']);
+    exit;
 }
 
-$input = json_decode(file_get_contents("php://input"), true);
-
-if (!isset($input['detalle_id'])) {
-    http_response_code(400);
-    echo json_encode(["status" => "error", "message" => "Falta detalle_id de la orden"]);
-    exit();
-}
-
-$detalle_id = (int)$input['detalle_id'];
-
-$db = new Database();
-$conn = $db->getConnection();
+$id_orden = intval($data['id_orden']);
+$id_usuario = isset($data['id_usuario']) ? intval($data['id_usuario']) : 1;
 
 try {
-    $conn->beginTransaction();
+    $db->beginTransaction();
 
-    // 1. Obtener producto y cantidad solicitada en la comanda
-    $stmtDetalle = $conn->prepare("
-        SELECT producto_id, cantidad, estado_kds 
+    // 1. Obtener todos los productos y cantidades de la orden
+    $stmtDetalles = $db->prepare("
+        SELECT id_producto, cantidad 
         FROM orden_detalles 
-        WHERE id = ? FOR UPDATE
+        WHERE id_orden = :id_orden
     ");
-    $stmtDetalle->execute([$detalle_id]);
-    $detalle = $stmtDetalle->fetch();
+    $stmtDetalles->execute([':id_orden' => $id_orden]);
+    $detalles = $stmtDetalles->fetchAll(PDO::FETCH_ASSOC);
 
-    if (!$detalle) {
-        throw new Exception("El platillo en la comanda no existe.");
+    foreach ($detalles as $item) {
+        $id_producto = $item['id_producto'];
+        $cant_platillo = $item['cantidad'];
+
+        // 2. Obtener los ingredientes requeridos según la receta
+        $stmtReceta = $db->prepare("
+            SELECT id_insumo, cantidad 
+            FROM recetas 
+            WHERE id_producto = :id_producto
+        ");
+        $stmtReceta->execute([':id_producto' => $id_producto]);
+        $ingredientes = $stmtReceta->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($ingredientes as $ing) {
+            $id_insumo = $ing['id_insumo'];
+            $cantidad_descontar = $ing['cantidad'] * $cant_platillo;
+
+            // 3. Descontar del stock actual
+            $stmtUpdate = $db->prepare("
+                UPDATE insumos 
+                SET stock_actual = stock_actual - :cant 
+                WHERE id_insumo = :id_insumo
+            ");
+            $stmtUpdate->execute([
+                ':cant' => $cantidad_descontar,
+                ':id_insumo' => $id_insumo
+            ]);
+
+            // 4. Registrar en el Kardex de movimientos
+            $stmtKardex = $db->prepare("
+                INSERT INTO movimientos_inventario (id_insumo, id_usuario, tipo, cantidad, motivo) 
+                VALUES (:id_insumo, :id_usuario, 'SALIDA_VENTA', :cant, :motivo)
+            ");
+            $stmtKardex->execute([
+                ':id_insumo' => $id_insumo,
+                ':id_usuario' => $id_usuario,
+                ':cant' => $cantidad_descontar,
+                ':motivo' => "Venta de Orden #" . $id_orden
+            ]);
+        }
     }
 
-    $producto_id = (int)$detalle['producto_id'];
-    $cantidad_platillos = (int)$detalle['cantidad'];
-
-    // 2. Consultar la receta asociada al producto
-    $stmtReceta = $conn->prepare("
-        SELECT r.insumo_id, r.cantidad_necesaria, i.nombre AS insumo_nombre, i.stock_actual, i.stock_minimo
-        FROM producto_recetas r
-        JOIN insumos i ON r.insumo_id = i.id
-        WHERE r.producto_id = ?
-    ");
-    $stmtReceta->execute([$producto_id]);
-    $ingredientes = $stmtReceta->fetchAll();
-
-    if (empty($ingredientes)) {
-        // Platillo sin receta configurada (ej. producto empaquetado o directo)
-        $conn->commit();
-        echo json_encode([
-            "status" => "success", 
-            "message" => "El platillo no cuenta con insumos configurados para descuento automático."
-        ]);
-        exit();
-    }
-
-    // 3. Descontar insumos y registrar movimiento en kardex/inventario
-    $stmtUpdateStock = $conn->prepare("
-        UPDATE insumos 
-        SET stock_actual = stock_actual - ? 
-        WHERE id = ?
-    ");
-
-    $stmtKardex = $conn->prepare("
-        INSERT INTO movimientos_inventario (insumo_id, tipo_movimiento, cantidad, referencia_id, notas, creado_en) 
-        VALUES (?, 'salida_comanda', ?, ?, ?, NOW())
-    ");
-
-    $insumos_afectados = [];
-
-    foreach ($ingredientes as $ing) {
-        $insumo_id = (int)$ing['insumo_id'];
-        $total_a_descontar = (float)$ing['cantidad_necesaria'] * $cantidad_platillos;
-
-        // Descontar stock
-        $stmtUpdateStock->execute([$total_a_descontar, $insumo_id]);
-
-        // Registrar en historial de movimientos
-        $nota = "Descuento automático comanda detalle #$detalle_id";
-        $stmtKardex->execute([$insumo_id, $total_a_descontar, $detalle_id, $nota]);
-
-        $stock_remanente = (float)$ing['stock_actual'] - $total_a_descontar;
-
-        $insumos_afectados[] = [
-            "insumo" => $ing['insumo_nombre'],
-            "descontado" => $total_a_descontar,
-            "stock_remanente" => $stock_remanente,
-            "alerta_stock_bajo" => ($stock_remanente <= (float)$ing['stock_minimo'])
-        ];
-    }
-
-    $conn->commit();
-
-    http_response_code(200);
-    echo json_encode([
-        "status" => "success",
-        "message" => "Inventario descontado exitosamente",
-        "data" => [
-            "detalle_id" => $detalle_id,
-            "insumos_actualizados" => $insumos_afectados
-        ]
-    ]);
+    $db->commit();
+    echo json_encode(['status' => 'success', 'message' => 'Stock descontado correctamente']);
 
 } catch (Exception $e) {
-    $conn->rollBack();
-    http_response_code(500);
-    echo json_encode(["status" => "error", "message" => $e->getMessage()]);
+    if ($db->inTransaction()) {
+        $db->rollBack();
+    }
+    echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
 }
+?>

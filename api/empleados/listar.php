@@ -1,55 +1,29 @@
 <?php
-require_once '../../config/conexion.php';
-
-header('Content-Type: application/json');
-
-if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-    http_response_code(405);
-    echo json_encode(["status" => "error", "message" => "Método no permitido"]);
-    exit();
-}
-
-$db = new Database();
-$conn = $db->getConnection();
+header("Content-Type: application/json; charset=UTF-8");
+require_once "../../config/conexion.php";
 
 try {
-    $stmt = $conn->prepare("
-        SELECT 
-            e.id_empleado,
-            e.nombre,
-            e.apellido,
-            e.puesto,
-            e.activo,
-            u.id AS id_usuario,
-            u.nombre AS nombre_usuario,
-            u.rol
-        FROM empleados e
-        LEFT JOIN usuarios u ON u.empleado_id = e.id_empleado
-        ORDER BY e.id_empleado ASC
-    ");
+    $db = new Database();
+    
+    if (method_exists($db, 'getConexion')) { $conexion = $db->getConexion(); }
+    elseif (method_exists($db, 'conectar')) { $conexion = $db->conectar(); }
+    elseif (method_exists($db, 'getConnection')) { $conexion = $db->getConnection(); }
+    elseif (property_exists($db, 'pdo')) { $conexion = $db->pdo; }
+    elseif (property_exists($db, 'conexion')) { $conexion = $db->conexion; }
+    else { $conexion = $db; }
+
+    $query = "SELECT id_empleado, nombre, apellido, COALESCE(puesto, 'Empleado') AS puesto, 
+                     COALESCE(telefono, 'N/A') AS telefono, COALESCE(salario_por_hora, 0.00) AS salario_por_hora,
+                     CASE WHEN activo = true THEN 'Activo' ELSE 'Inactivo' END AS estado,
+                     COALESCE(codigo_qr, CONCAT('EMP-', id_empleado)) AS codigo_qr
+              FROM empleados 
+              ORDER BY id_empleado DESC";
+
+    $stmt = $conexion->prepare($query);
     $stmt->execute();
     $empleados = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    http_response_code(200);
-    echo json_encode([
-        "status" => "success",
-        "total"  => count($empleados),
-        "data"   => array_map(function($emp) {
-            return [
-                "empleado_id" => (int)$emp['id_empleado'],
-                "nombre_completo" => $emp['nombre'] . ' ' . $emp['apellido'],
-                "puesto" => $emp['puesto'],
-                "activo" => (bool)$emp['activo'],
-                "cuenta_usuario" => $emp['id_usuario'] ? [
-                    "usuario_id" => (int)$emp['id_usuario'],
-                    "username"   => $emp['nombre_usuario'],
-                    "rol"        => $emp['rol']
-                ] : null
-            ];
-        }, $empleados)
-    ]);
-
+    echo json_encode(["status" => "success", "data" => $empleados]);
 } catch (Exception $e) {
-    http_response_code(500);
-    echo json_encode(["status" => "error", "message" => "Error al consultar empleados: " . $e->getMessage()]);
+    echo json_encode(["status" => "error", "message" => "Error BD: " . $e->getMessage()]);
 }

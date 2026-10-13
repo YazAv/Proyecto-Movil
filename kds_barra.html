@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SazónTrack POS - KDS Barra Pro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Italianno&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-offwhite: #FDFCF8;
+            --bg-ivory: #F3F0E9;
+            --color-nude: #E3DBCC;
+            --text-dark: #2A2621;
+            --text-muted: #736B60;
+        }
+
+        body {
+            background-color: var(--bg-ivory);
+            color: var(--text-dark);
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .sidebar {
+            width: 260px;
+            background: var(--bg-offwhite);
+            border-right: 1px solid var(--color-nude);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 1.5rem 1rem;
+            z-index: 100;
+        }
+
+        .brand-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 1.2rem;
+            border-bottom: 1px solid var(--color-nude);
+            margin-bottom: 1rem;
+        }
+
+        .brand-avatar {
+            width: 44px;
+            height: 44px;
+            background: #2563EB;
+            color: var(--bg-offwhite);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .brand-title {
+            font-family: 'Italianno', cursive, serif;
+            font-size: 2.2rem;
+            color: var(--text-dark);
+            margin: 0;
+            line-height: 0.8;
+        }
+
+        .sidebar-nav .nav-link {
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 10px 14px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 4px;
+            text-decoration: none;
+        }
+
+        .sidebar-nav .nav-link:hover, .sidebar-nav .nav-link.active {
+            background: var(--text-dark);
+            color: var(--bg-offwhite);
+        }
+
+        .main-wrapper {
+            margin-left: 260px;
+            padding: 2rem;
+        }
+
+        /* Panel Consolidado de Producción de Bebidas */
+        .summary-card {
+            background: var(--bg-offwhite);
+            border: 2px solid var(--color-nude);
+            border-radius: 16px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .summary-pill {
+            background: var(--bg-ivory);
+            border: 1px solid var(--color-nude);
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Tarjeta de Ticket */
+        .ticket-card {
+            background: var(--bg-offwhite);
+            border: 2px solid var(--color-nude);
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            transition: all 0.2s ease;
+        }
+
+        .ticket-header {
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid transparent;
+        }
+
+        .ticket-header.tiempo-normal { background: #E0F2FE; border-color: #38BDF8; color: #0369A1; }
+        .ticket-header.tiempo-alerta { background: #FEF3C7; border-color: #F59E0B; color: #92400E; }
+        .ticket-header.tiempo-critico { background: #FEE2E2; border-color: #EF4444; color: #991B1B; animation: pulseRed 1.5s infinite; }
+
+        @keyframes pulseRed {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        .ticket-body {
+            padding: 1rem;
+            flex-grow: 1;
+        }
+
+        .item-row {
+            padding: 10px 0;
+            border-bottom: 1px dashed var(--color-nude);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .item-row:last-child {
+            border-bottom: none;
+        }
+
+        .badge-alerta-nota {
+            background: #FEE2E2;
+            color: #991B1B;
+            border: 1px solid #F87171;
+            border-radius: 6px;
+            padding: 2px 6px;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+
+        .btn-estado {
+            font-size: 0.8rem;
+            font-weight: 700;
+            border-radius: 8px;
+            padding: 6px 12px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-estado.pendiente { background: #FEF3C7; color: #92400E; }
+        .btn-estado.en_preparacion { background: #DBEAFE; color: #1E40AF; }
+        .btn-estado.listo { background: #D1FAE5; color: #065F46; }
+
+        .btn-despachar-todo {
+            background: var(--text-dark);
+            color: var(--bg-offwhite);
+            border: none;
+            width: 100%;
+            padding: 10px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            border-radius: 0 0 18px 18px;
+        }
+
+        .btn-despachar-todo:hover {
+            background: #065F46;
+        }
+    </style>
+</head>
+<body>
+
+<aside class="sidebar">
+    <div>
+        <div class="brand-header">
+            <div class="brand-avatar"><i class="fa-solid fa-martini-glass-citrus"></i></div>
+            <div>
+                <h2 class="brand-title">SazónTrack</h2>
+                <span class="text-muted small fw-bold">KDS Barra Pro</span>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="index.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+            <a href="mesas.html" class="nav-link"><i class="fa-solid fa-utensils"></i> Mapa Mesas</a>
+            <a href="kds_cocina.html" class="nav-link"><i class="fa-solid fa-fire-burner"></i> KDS Cocina</a>
+            <a href="kds_barra.html" class="nav-link active"><i class="fa-solid fa-martini-glass-citrus"></i> KDS Barra</a>
+        </nav>
+    </div>
+
+    <div class="pt-3 border-top border-secondary-subtle">
+        <div class="d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-2">
+                <i class="fa-solid fa-user-circle fa-2x text-secondary"></i>
+                <div class="lh-1">
+                    <div id="sessionUserName" class="fw-bold small">Cargando...</div>
+                    <small id="sessionUserRole" class="text-muted" style="font-size: 0.75rem;"></small>
+                </div>
+            </div>
+            <button onclick="cerrarSesion()" class="btn btn-sm text-danger" title="Cerrar Sesión">
+                <i class="fa-solid fa-right-from-bracket"></i>
+            </button>
+        </div>
+    </div>
+</aside>
+
+<main class="main-wrapper">
+    <!-- Encabezado con Botones de Filtro e Historial -->
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+            <h3 class="fw-bold m-0"><i class="fa-solid fa-martini-glass-citrus me-2 text-primary"></i>KDS - Pantalla de Barra</h3>
+            <p class="text-muted small m-0">Control de producción, ruteo FIFO y bebidas consolidadas</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button id="btnModoHistorial" class="btn btn-outline-dark fw-bold" onclick="toggleHistorial()">
+                <i class="fa-solid fa-clock-rotate-left me-1"></i> Ver Despachados
+            </button>
+            <span class="badge bg-primary text-white px-3 py-2 rounded-pill fw-bold d-flex align-items-center">
+                <i class="fa-solid fa-rotate me-1"></i> Live 4s
+            </span>
+        </div>
+    </div>
+
+    <!-- Panel Consolidado: Totales por Preparar en Barra -->
+    <div class="summary-card" id="panelConsolidado" style="display: none;">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+            <span class="fw-bold small text-muted text-uppercase"><i class="fa-solid fa-list-check me-1"></i> Resumen de Bebidas en Cola (Acumulado)</span>
+            <button class="btn btn-sm btn-link text-dark p-0 fw-bold text-decoration-none" onclick="toggleResumenVisibilidad()" id="btnToggleResumen">Ocultar</button>
+        </div>
+        <div class="d-flex flex-wrap gap-2" id="contenedorConsolidadoBody"></div>
+    </div>
+
+    <!-- Filtros Secundarios y Tiempos -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-dark rounded-pill px-3 fw-bold" onclick="filtrarEstado('todos')" id="fTodos">Todos</button>
+            <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-bold" onclick="filtrarEstado('pendiente')" id="fPendientes">🟡 Pendientes</button>
+            <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-bold" onclick="filtrarEstado('en_preparacion')" id="fCoccion">🔵 En Preparación</button>
+        </div>
+        <div class="d-flex gap-2">
+            <span class="badge bg-info text-dark">< 10 min (Normal)</span>
+            <span class="badge bg-warning text-dark">10 - 15 min (Alerta)</span>
+            <span class="badge bg-danger text-white">> 15 min (Urgente)</span>
+        </div>
+    </div>
+
+    <!-- Contenedor Principal de Comandas -->
+    <div class="row g-3" id="contenedorKds">
+        <div class="col-12 text-center py-5 text-muted">
+            <i class="fa-solid fa-spinner fa-spin fa-2x mb-2"></i>
+            <p>Cargando comanda de barra...</p>
+        </div>
+    </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    let intervaloAutoRefresh = null;
+    let totalComandasPrevio = 0;
+    let mostrandoHistorial = false;
+    let filtroEstadoActivo = 'todos';
+    let comandasCache = [];
+
+    function emitirSonidoNuevaComanda() {
+        try {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(659.25, audioCtx.currentTime); // Nota E5
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        } catch(e) {}
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const sessionData = localStorage.getItem("sazontrack_session");
+        if (!sessionData) {
+            window.location.href = "login.html";
+            return;
+        }
+
+        const session = JSON.parse(sessionData);
+        document.getElementById("sessionUserName").innerText = session.nombre_empleado || session.username;
+        document.getElementById("sessionUserRole").innerText = session.puesto || session.rol;
+
+        cargarComandasBarra();
+        intervaloAutoRefresh = setInterval(cargarComandasBarra, 4000);
+    });
+
+    function cerrarSesion() {
+        clearInterval(intervaloAutoRefresh);
+        localStorage.removeItem("sazontrack_session");
+        window.location.href = "login.html";
+    }
+
+    function toggleHistorial() {
+        mostrandoHistorial = !mostrandoHistorial;
+        const btn = document.getElementById("btnModoHistorial");
+        btn.classList.toggle("btn-outline-dark", !mostrandoHistorial);
+        btn.classList.toggle("btn-dark", mostrandoHistorial);
+        btn.innerHTML = mostrandoHistorial 
+            ? `<i class="fa-solid fa-arrow-left me-1"></i> Volver a Pantalla Activa` 
+            : `<i class="fa-solid fa-clock-rotate-left me-1"></i> Ver Despachados`;
+        
+        document.getElementById("panelConsolidado").style.display = mostrandoHistorial ? "none" : "block";
+        cargarComandasBarra();
+    }
+
+    function filtrarEstado(estado) {
+        filtroEstadoActivo = estado;
+        document.getElementById("fTodos").className = estado === 'todos' ? 'btn btn-sm btn-dark rounded-pill px-3 fw-bold' : 'btn btn-sm btn-outline-secondary rounded-pill px-3 fw-bold';
+        document.getElementById("fPendientes").className = estado === 'pendiente' ? 'btn btn-sm btn-dark rounded-pill px-3 fw-bold' : 'btn btn-sm btn-outline-secondary rounded-pill px-3 fw-bold';
+        document.getElementById("fCoccion").className = estado === 'en_preparacion' ? 'btn btn-sm btn-dark rounded-pill px-3 fw-bold' : 'btn btn-sm btn-outline-secondary rounded-pill px-3 fw-bold';
+        
+        renderizarComandas(comandasCache);
+    }
+
+    async function cargarComandasBarra() {
+        try {
+            const url = `api/estaciones_kds/obtener_comandas.php?estacion=barra${mostrandoHistorial ? '&historial=true' : ''}`;
+            const resp = await fetch(url);
+            const data = await resp.json();
+
+            if (resp.ok && data.status === 'success') {
+                comandasCache = data.comandas || [];
+
+                if (!mostrandoHistorial && comandasCache.length > totalComandasPrevio && totalComandasPrevio !== 0) {
+                    emitirSonidoNuevaComanda();
+                }
+                if (!mostrandoHistorial) totalComandasPrevio = comandasCache.length;
+
+                if (!mostrandoHistorial) calcularConsolidado(comandasCache);
+                renderizarComandas(comandasCache);
+            }
+        } catch (err) {
+            console.error("Error al obtener comandas de barra:", err);
+        }
+    }
+
+    function calcularConsolidado(comandas) {
+        const panel = document.getElementById("panelConsolidado");
+        const contenedor = document.getElementById("contenedorConsolidadoBody");
+        contenedor.innerHTML = "";
+
+        if (!comandas || comandas.length === 0) {
+            panel.style.display = "none";
+            return;
+        }
+
+        const totales = {};
+        comandas.forEach(c => {
+            if (c.detalles) {
+                c.detalles.forEach(d => {
+                    totales[d.producto] = (totales[d.producto] || 0) + parseInt(d.cantidad);
+                });
+            }
+        });
+
+        Object.keys(totales).forEach(prod => {
+            contenedor.innerHTML += `
+                <span class="summary-pill">
+                    <span class="badge bg-primary rounded-circle">${totales[prod]}</span> ${prod}
+                </span>
+            `;
+        });
+
+        panel.style.display = "block";
+    }
+
+    function toggleResumenVisibilidad() {
+        const body = document.getElementById("contenedorConsolidadoBody");
+        const btn = document.getElementById("btnToggleResumen");
+        if (body.style.display === "none") {
+            body.style.display = "flex";
+            btn.innerText = "Ocultar";
+        } else {
+            body.style.display = "none";
+            btn.innerText = "Mostrar";
+        }
+    }
+
+    function renderizarComandas(comandas) {
+        const contenedor = document.getElementById("contenedorKds");
+        contenedor.innerHTML = "";
+
+        if (!comandas || comandas.length === 0) {
+            contenedor.innerHTML = `
+                <div class="col-12 text-center py-5 text-muted">
+                    <i class="fa-solid fa-circle-check fa-3x text-success mb-3"></i>
+                    <h5 class="fw-bold">${mostrandoHistorial ? 'Sin historial reciente' : '¡Barra al día!'}</h5>
+                    <p class="small m-0">${mostrandoHistorial ? 'No hay registros de bebidas entregadas.' : 'No hay órdenes pendientes de bebidas.'}</p>
+                </div>
+            `;
+            return;
+        }
+
+        comandas.forEach(c => {
+            let detallesFiltrados = c.detalles;
+            if (filtroEstadoActivo !== 'todos') {
+                detallesFiltrados = c.detalles.filter(d => d.estado_preparacion === filtroEstadoActivo);
+            }
+
+            if (detallesFiltrados.length === 0) return;
+
+            const mins = c.minutos_transcurridos || 0;
+            let claseTiempo = 'tiempo-normal';
+            if (mins >= 15) claseTiempo = 'tiempo-critico';
+            else if (mins >= 10) claseTiempo = 'tiempo-alerta';
+
+            let htmlTicket = `
+                <div class="col-md-4 col-lg-3">
+                    <div class="ticket-card">
+                        <div class="ticket-header ${claseTiempo}">
+                            <div>
+                                <strong class="fs-5">${c.numero_mesa}</strong>
+                                <small class="d-block" style="font-size: 0.75rem;">${c.area_nombre}</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-dark">${c.hora_orden ? c.hora_orden.substring(11, 16) : ''}</span>
+                                <small class="d-block fw-bold mt-1" style="font-size: 0.8rem;"><i class="fa-solid fa-stopwatch me-1"></i>${mins} min</small>
+                            </div>
+                        </div>
+                        <div class="ticket-body">
+            `;
+
+            detallesFiltrados.forEach(d => {
+                let badgeClass = d.estado_preparacion === 'pendiente' ? 'pendiente' : (d.estado_preparacion === 'en_preparacion' ? 'en_preparacion' : 'listo');
+                let textoEstado = d.estado_preparacion === 'pendiente' ? 'Pendiente' : (d.estado_preparacion === 'en_preparacion' ? 'En Preparación' : 'Listo');
+
+                htmlTicket += `
+                    <div class="item-row">
+                        <div>
+                            <span class="fw-bold me-1">${d.cantidad}x</span>
+                            <span class="fw-semibold">${d.producto}</span>
+                            ${d.notas ? `<div class="mt-1"><span class="badge-alerta-nota"><i class="fa-solid fa-triangle-exclamation me-1"></i>${d.notas}</span></div>` : ''}
+                        </div>
+                        ${!mostrandoHistorial ? `
+                        <button class="btn-estado ${badgeClass}" onclick="avanzarEstado(${d.detalle_id}, '${d.estado_preparacion}')">
+                            ${textoEstado}
+                        </button>` : `<span class="badge bg-success">Entregado</span>`}
+                    </div>
+                `;
+            });
+
+            htmlTicket += `
+                        </div>
+                        ${!mostrandoHistorial ? `
+                        <button class="btn-despachar-todo" onclick="despacharMesaCompleta(${c.orden_id})">
+                            <i class="fa-solid fa-check-double me-1"></i> Despachar Ticket
+                        </button>` : `
+                        <button class="btn btn-sm btn-outline-dark m-2 fw-bold" onclick="reabrirMesaCompleta(${c.orden_id})">
+                            <i class="fa-solid fa-rotate-left me-1"></i> Reabrir Ticket
+                        </button>`}
+                    </div>
+                </div>
+            `;
+            contenedor.innerHTML += htmlTicket;
+        });
+    }
+
+    async function avanzarEstado(detalle_id, estadoActual) {
+        let nuevoEstado = 'en_preparacion';
+        if (estadoActual === 'en_preparacion') nuevoEstado = 'listo';
+        else if (estadoActual === 'listo') nuevoEstado = 'entregado';
+
+        try {
+            const resp = await fetch('api/estaciones_kds/cambiar_estado.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ detalle_id: detalle_id, estado: nuevoEstado })
+            });
+
+            if (resp.ok) {
+                cargarComandasBarra();
+            }
+        } catch (err) {
+            alert("Error al actualizar estado en barra.");
+        }
+    }
+
+    async function despacharMesaCompleta(orden_id) {
+        try {
+            const resp = await fetch('api/estaciones_kds/despachar_orden.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orden_id: orden_id, estacion: 'barra' })
+            });
+
+            if (resp.ok) {
+                cargarComandasBarra();
+            }
+        } catch (err) {
+            alert("Error al despachar la comanda completa.");
+        }
+    }
+
+    async function reabrirMesaCompleta(orden_id) {
+        try {
+            const resp = await fetch('api/estaciones_kds/reabrir_orden.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orden_id: orden_id, estacion: 'barra' })
+            });
+
+            if (resp.ok) {
+                cargarComandasBarra();
+            }
+        } catch (err) {
+            alert("Error al reabrir la comanda.");
+        }
+    }
+</script>
+</body>
+</html>

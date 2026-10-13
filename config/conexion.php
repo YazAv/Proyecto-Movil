@@ -42,3 +42,8 @@ class Database {
         return $this->conn;
     }
 }
+
+// Instanciación automática para compatibilidad con la API
+$database = new Database();
+$db = $database->getConnection();
+$conn = $db;

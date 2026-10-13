@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SazónTrack - Gestión de Empleados</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- CSS Dependencies -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- QR Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <style>
+        :root {
+            --bg-main: #FDFCF8;
+            --bg-card: #F3F0E9;
+            --accent: #E3DBCC;
+            --text-dark: #1E1E1E;
+            --brand-primary: #2C2C2C;
+            --brand-success: #15803D;
+            --brand-danger: #DC2626;
+        }
+
+        body { 
+            background-color: var(--bg-main); 
+            color: var(--text-dark); 
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .card-custom { 
+            background-color: var(--bg-card); 
+            border: 1px solid var(--accent); 
+            border-radius: 16px; 
+        }
+
+        .kpi-card { 
+            background: #ffffff; 
+            border: 1px solid var(--accent); 
+            border-radius: 16px; 
+            transition: all 0.25s ease; 
+        }
+        .kpi-card:hover { 
+            transform: translateY(-3px); 
+            box-shadow: 0 10px 20px -5px rgba(0,0,0,0.06);
+        }
+        
+        /* Badges por Rol */
+        .badge-admin { background-color: #2C2C2C; color: #fff; }
+        .badge-cajero { background-color: #8C7A6B; color: #fff; }
+        .badge-mesero { background-color: #6c757d; color: #fff; }
+        .badge-cocina { background-color: #d97706; color: #fff; }
+        .badge-barra { background-color: #2563eb; color: #fff; }
+
+        /* Fila Clickeable */
+        .fila-empleado { cursor: pointer; transition: background-color 0.2s ease; }
+        .fila-empleado:hover { background-color: #e9e4d9 !important; }
+
+        /* Estilo y Animación de Despliegue */
+        .detalle-row { background-color: #faf8f5; display: none; }
+        .detalle-container {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0, 1, 0, 1), opacity 0.3s ease;
+            opacity: 0;
+        }
+        .detalle-row.active .detalle-container {
+            max-height: 800px;
+            opacity: 1;
+            transition: max-height 0.5s ease-in-out, opacity 0.4s ease-in-out;
+        }
+        .avatar-placeholder {
+            width: 85px;
+            height: 85px;
+            border-radius: 50%;
+            background-color: #e3dbcc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: #555;
+            border: 2px solid #8c7a6b;
+        }
+
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 1px solid var(--accent);
+            padding: 0.55rem 0.85rem;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--brand-primary);
+            box-shadow: 0 0 0 3px rgba(44, 44, 44, 0.1);
+        }
+
+        /* Estilos de Impresión */
+        @media print {
+            body * { visibility: hidden; }
+            #modalQR, #modalQR * { visibility: visible; }
+            #modalQR { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; }
+            .modal-dialog { margin: 40px auto !important; }
+            .modal-content { border: none !important; box-shadow: none !important; }
+            .btn, .btn-close { display: none !important; }
+        }
+    </style>
+</head>
+<body class="p-3 p-md-4">
+
+    <div class="container-fluid">
+        <!-- ÁREA DE NOTIFICACIONES -->
+        <div id="alertContainer"></div>
+
+        <!-- ENCABEZADO -->
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+                <h2 class="h3 mb-0 fw-800"><i class="fa-solid fa-users me-2"></i>Gestión de Empleados</h2>
+                <small class="text-muted">Selecciona cualquier empleado para desplegar su ficha técnica o generar su QR</small>
+            </div>
+            <div class="d-flex gap-2">
+                <!-- AGREGA ESTO AQUÍ: -->
+                <a href="index.html" class="btn btn-outline-dark rounded-3 fw-semibold">
+                    <i class="fa-solid fa-arrow-left me-2"></i> Regresar
+                </a>
+                <button class="btn btn-dark rounded-3 fw-semibold">
+                    <i class="fa-solid fa-user-plus me-1"></i> Nuevo Empleado
+                </button>
+            </div>
+        </div>
+
+        <!-- TARJETAS MÉTRICAS (KPIs) -->
+        <div class="row g-3 mb-4">
+            <div class="col-12 col-md-4">
+                <div class="kpi-card p-3 d-flex align-items-center justify-content-between shadow-sm">
+                    <div>
+                        <small class="text-muted text-uppercase fw-bold">Total Personal</small>
+                        <h3 class="mb-0 fw-bold" id="kpiTotal">0</h3>
+                    </div>
+                    <div class="bg-light p-3 rounded-circle text-dark">
+                        <i class="fa-solid fa-users-gear fa-xl"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="kpi-card p-3 d-flex align-items-center justify-content-between shadow-sm">
+                    <div>
+                        <small class="text-muted text-uppercase fw-bold">Empleados Activos</small>
+                        <h3 class="mb-0 fw-bold text-success" id="kpiActivos">0</h3>
+                    </div>
+                    <div class="bg-light p-3 rounded-circle text-success">
+                        <i class="fa-solid fa-user-check fa-xl"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="kpi-card p-3 d-flex align-items-center justify-content-between shadow-sm">
+                    <div>
+                        <small class="text-muted text-uppercase fw-bold">Puestos Registrados</small>
+                        <h3 class="mb-0 fw-bold text-primary" id="kpiRoles">5</h3>
+                    </div>
+                    <div class="bg-light p-3 rounded-circle text-primary">
+                        <i class="fa-solid fa-id-badge fa-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FILTROS -->
+        <div class="card card-custom p-3 shadow-sm mb-4">
+            <div class="row g-2">
+                <div class="col-12 col-md-8">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                        <input type="text" id="inputBuscar" class="form-control border-start-0" placeholder="Buscar por nombre o teléfono..." onkeyup="filtrarTabla()">
+                    </div>
+                </div>
+                <div class="col-12 col-md-4">
+                    <select id="selectFiltroRol" class="form-select" onchange="filtrarTabla()">
+                        <option value="">Todos los Puestos</option>
+                        <option value="Administrador">Administrador</option>
+                        <option value="Cajero">Cajero</option>
+                        <option value="Mesero">Mesero</option>
+                        <option value="Cocina">Cocina</option>
+                        <option value="Barra">Barra</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- TABLA PRINCIPAL DE EMPLEADOS -->
+        <div class="card card-custom p-3 shadow-sm overflow-hidden">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0" id="tablaMain">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 40px;"></th>
+                            <th>ID</th>
+                            <th>Empleado</th>
+                            <th>Puesto</th>
+                            <th>Teléfono</th>
+                            <th>Salario/Hr</th>
+                            <th>Estado</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaEmpleados">
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-4"><i class="fa-solid fa-spinner fa-spin me-2"></i>Cargando datos...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL REGISTRO / EDICIÓN -->
+    <div class="modal fade" id="modalEmpleado" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold" id="modalTitulo"><i class="fa-solid fa-user-pen me-2"></i>Empleado</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="formEmpleado">
+                    <input type="hidden" id="id_empleado">
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <label class="form-label fw-semibold small">Nombre</label>
+                                <input type="text" id="nombre" class="form-control" required placeholder="Ej. Juan">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-semibold small">Apellido</label>
+                                <input type="text" id="apellido" class="form-control" required placeholder="Ej. Pérez">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-semibold small">Puesto / Rol</label>
+                                <select id="puesto" class="form-select" required>
+                                    <option value="Administrador">Administrador</option>
+                                    <option value="Cajero">Cajero</option>
+                                    <option value="Mesero" selected>Mesero</option>
+                                    <option value="Cocina">Cocina</option>
+                                    <option value="Barra">Barra</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-semibold small">Teléfono</label>
+                                <input type="tel" id="telefono" class="form-control" placeholder="3312345678">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-semibold small">Salario x Hora ($ MXN)</label>
+                                <input type="number" step="0.01" id="salario_por_hora" class="form-control" value="50.00">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="button" class="btn btn-secondary rounded-3" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" id="btnSubmit" class="btn btn-dark rounded-3">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CREDENCIAL QR CON ENVÍO AUTOMÁTICO VÍA BOT -->
+    <div class="modal fade" id="modalQR" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-sm modal-dialog-centered text-center">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+                <div class="modal-body p-4">
+                    <div class="border rounded-4 p-4 bg-white shadow-sm" id="credencialImprimible">
+                        <small class="text-uppercase text-muted fw-bold d-block mb-1" style="font-size: 0.7rem; letter-spacing: 1px;">SazónTrack POS</small>
+                        <h5 id="qrNombre" class="fw-bold mb-1 text-dark"></h5>
+                        <span id="qrRol" class="badge bg-dark mb-3"></span>
+                        
+                        <div id="qrWrapper" class="p-3 bg-white border rounded-3 d-inline-block my-2">
+                            <div id="qrcode"></div>
+                        </div>
+                        
+                        <small class="text-muted font-monospace d-block fw-bold mt-2" id="qrCodigoText"></small>
+                    </div>
+
+                    <div class="d-flex flex-column gap-2 mt-3">
+                        <button class="btn btn-success btn-sm w-100 rounded-3 py-2 fw-bold" id="btnEnviarWA" onclick="enviarWhatsAppAuto()">
+                            <i class="fa-brands fa-whatsapp me-1"></i> Enviar QR por WhatsApp Bot
+                        </button>
+                        <button class="btn btn-dark btn-sm w-100 rounded-3 py-2 fw-semibold" onclick="descargarQR()">
+                            <i class="fa-solid fa-download me-1"></i> Descargar Imagen PNG
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm w-100 rounded-3 py-2 fw-semibold" onclick="window.print()">
+                            <i class="fa-solid fa-print me-1"></i> Imprimir Credencial
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOOTSTRAP JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- JS SCRIPT -->
+    <script>
+        let listaEmpleados = [];
+        let currentQRData = { id: null, nombre: '', rol: '', codigoQR: '', telefono: '' };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            cargarEmpleados();
+
+            // Guardar / Editar Empleado
+            document.getElementById('formEmpleado').addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const btnSubmit = document.getElementById('btnSubmit');
+                btnSubmit.disabled = true;
+                btnSubmit.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Guardando...';
+
+                const idEmpleado = document.getElementById('id_empleado').value;
+                const nombre = document.getElementById('nombre').value.trim();
+                const apellido = document.getElementById('apellido').value.trim();
+                const puesto = document.getElementById('puesto').value;
+                const telefono = document.getElementById('telefono').value.trim();
+                const salario = parseFloat(document.getElementById('salario_por_hora').value) || 0.00;
+
+                const datos = {
+                    id_empleado: idEmpleado ? parseInt(idEmpleado) : null,
+                    nombre: nombre,
+                    apellido: apellido,
+                    puesto: puesto,
+                    telefono: telefono,
+                    salario_por_hora: salario
+                };
+
+                try {
+                    const res = await fetch('api/empleados/index.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(datos)
+                    });
+
+                    const textResponse = await res.text();
+                    let data;
+                    try {
+                        data = JSON.parse(textResponse);
+                    } catch (err) {
+                        console.error('Respuesta no JSON:', textResponse);
+                        mostrarError('Error de respuesta del servidor PHP.');
+                        return;
+                    }
+
+                    if (data.status === 'success') {
+                        mostrarExito(data.message);
+                        
+                        const modalEl = document.getElementById('modalEmpleado');
+                        const modal = bootstrap.Modal.getInstance(modalEl);
+                        if (modal) modal.hide();
+                        
+                        document.getElementById('formEmpleado').reset();
+                        await cargarEmpleados();
+
+                        // Desplegar automáticamente el QR recién generado
+                        if (!idEmpleado && data.id_empleado) {
+                            const nombreCompleto = `${nombre} ${apellido}`;
+                            verQR(data.id_empleado, nombreCompleto, puesto, `EMP-${data.id_empleado}`, telefono);
+                        }
+                    } else {
+                        mostrarError('Error: ' + (data.message || 'No se pudo guardar'));
+                    }
+                } catch (error) {
+                    console.error('Error Fetch:', error);
+                    mostrarError('Error al conectar con el servidor.');
+                } finally {
+                    btnSubmit.disabled = false;
+                }
+            });
+        });
+
+        // Cargar empleados desde API
+        async function cargarEmpleados() {
+            const tbody = document.getElementById('tablaEmpleados');
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4"><i class="fa-solid fa-spinner fa-spin me-2"></i>Cargando datos...</td></tr>';
+
+            try {
+                const res = await fetch('api/empleados/listar.php');
+                const result = await res.json();
+
+                if (result.status === 'success' && Array.isArray(result.data)) {
+                    listaEmpleados = result.data;
+                    actualizarMetricas();
+                    renderizarTabla(listaEmpleados);
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="8" class="text-center text-warning py-4">${result.message || 'Error al obtener datos.'}</td></tr>`;
+                }
+            } catch (error) {
+                console.error('Error al consultar:', error);
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center text-danger py-4">Error de conexión con la API.</td></tr>';
+            }
+        }
+
+        // Renderizar Tabla
+        function renderizarTabla(datos) {
+            const tbody = document.getElementById('tablaEmpleados');
+            tbody.innerHTML = '';
+
+            if (datos.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">No se encontraron empleados.</td></tr>';
+                return;
+            }
+
+            datos.forEach(emp => {
+                let badgeClass = 'badge-mesero';
+                if (emp.puesto === 'Administrador') badgeClass = 'badge-admin';
+                else if (emp.puesto === 'Cajero') badgeClass = 'badge-cajero';
+                else if (emp.puesto === 'Cocina') badgeClass = 'badge-cocina';
+                else if (emp.puesto === 'Barra') badgeClass = 'badge-barra';
+
+                const esActivo = emp.estado === 'Activo';
+                const qrValue = `EMP-${emp.id_empleado}`;
+
+                tbody.innerHTML += `
+                    <tr class="fila-empleado" onclick="toggleDetalle(${emp.id_empleado})">
+                        <td class="text-center text-muted"><i class="fa-solid fa-chevron-right chevron-icon" id="chevron-${emp.id_empleado}"></i></td>
+                        <td class="fw-bold">#${emp.id_empleado}</td>
+                        <td>
+                            <div class="fw-bold">${emp.nombre} ${emp.apellido}</div>
+                        </td>
+                        <td><span class="badge ${badgeClass}">${emp.puesto}</span></td>
+                        <td>${emp.telefono}</td>
+                        <td><span class="fw-semibold">$${parseFloat(emp.salario_por_hora).toFixed(2)}</span></td>
+                        <td>
+                            <span class="badge ${esActivo ? 'bg-success' : 'bg-secondary'}">${emp.estado}</span>
+                        </td>
+                        <td class="text-center" onclick="event.stopPropagation()">
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button class="btn btn-outline-dark" onclick="abrirModalEditar(${emp.id_empleado})" title="Editar Empleado">
+                                    <i class="fa-solid fa-pen-to-square"></i> Editar
+                                </button>
+                                <button class="btn btn-outline-secondary" onclick="verQR(${emp.id_empleado}, '${emp.nombre} ${emp.apellido}', '${emp.puesto}', '${qrValue}', '${emp.telefono}')" title="Ver Credencial QR">
+                                    <i class="fa-solid fa-qrcode"></i> QR
+                                </button>
+                                <button class="btn ${esActivo ? 'btn-outline-warning' : 'btn-outline-success'}" onclick="cambiarEstado(${emp.id_empleado}, '${esActivo ? 'Inactivo' : 'Activo'}')" title="Cambiar Estado">
+                                    <i class="fa-solid ${esActivo ? 'fa-user-slash' : 'fa-user-check'}"></i>
+                                </button>
+                                <button class="btn btn-outline-danger" onclick="eliminarEmpleado(${emp.id_empleado}, '${emp.nombre} ${emp.apellido}')" title="Eliminar del Sistema">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    
+                    <tr class="detalle-row" id="row-detalle-${emp.id_empleado}">
+                        <td colspan="8" class="p-0">
+                            <div class="detalle-container p-4" id="container-detalle-${emp.id_empleado}">
+                                <div class="card card-body bg-white border-0 shadow-sm rounded-4">
+                                    <div class="row align-items-center">
+                                        <div class="col-auto text-center pe-md-4">
+                                            <div class="avatar-placeholder mx-auto mb-2">
+                                                <i class="fa-solid fa-user"></i>
+                                            </div>
+                                            <small class="badge bg-dark">${qrValue}</small>
+                                        </div>
+                                        <div class="col">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div>
+                                                    <h5 class="fw-bold text-dark mb-1">${emp.nombre} ${emp.apellido}</h5>
+                                                    <p class="text-muted small mb-3"><i class="fa-solid fa-briefcase me-1"></i>Puesto: ${emp.puesto}</p>
+                                                </div>
+                                                <button class="btn btn-sm btn-outline-danger rounded-3" onclick="eliminarEmpleado(${emp.id_empleado}, '${emp.nombre} ${emp.apellido}')">
+                                                    <i class="fa-solid fa-trash-can me-1"></i> Eliminar
+                                                </button>
+                                            </div>
+                                            
+                                            <div class="row g-3 small">
+                                                <div class="col-6 col-md-4">
+                                                    <span class="text-muted d-block">Teléfono:</span>
+                                                    <strong>${emp.telefono}</strong>
+                                                </div>
+                                                <div class="col-6 col-md-4">
+                                                    <span class="text-muted d-block">Salario x Hora:</span>
+                                                    <strong class="text-success">$${parseFloat(emp.salario_por_hora).toFixed(2)} MXN</strong>
+                                                </div>
+                                                <div class="col-6 col-md-4">
+                                                    <span class="text-muted d-block">Estado:</span>
+                                                    <strong class="${esActivo ? 'text-success' : 'text-danger'}">${emp.estado}</strong>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function toggleDetalle(id) {
+            const rowDetalle = document.getElementById('row-detalle-' + id);
+            const chevron = document.getElementById('chevron-' + id);
+
+            if (rowDetalle.classList.contains('active')) {
+                rowDetalle.classList.remove('active');
+                setTimeout(() => { rowDetalle.style.display = 'none'; }, 300);
+                if (chevron) chevron.className = 'fa-solid fa-chevron-right';
+            } else {
+                document.querySelectorAll('.detalle-row.active').forEach(r => {
+                    r.classList.remove('active');
+                    setTimeout(() => { r.style.display = 'none'; }, 300);
+                });
+                document.querySelectorAll('.chevron-icon').forEach(c => c.className = 'fa-solid fa-chevron-right');
+
+                rowDetalle.style.display = 'table-row';
+                setTimeout(() => { rowDetalle.classList.add('active'); }, 10);
+                if (chevron) chevron.className = 'fa-solid fa-chevron-down text-primary';
+            }
+        }
+
+        function actualizarMetricas() {
+            document.getElementById('kpiTotal').innerText = listaEmpleados.length;
+            const activos = listaEmpleados.filter(e => e.estado === 'Activo').length;
+            document.getElementById('kpiActivos').innerText = activos;
+        }
+
+        function filtrarTabla() {
+            const texto = document.getElementById('inputBuscar').value.toLowerCase();
+            const rolSel = document.getElementById('selectFiltroRol').value;
+
+            const filtrados = listaEmpleados.filter(emp => {
+                const coincideTexto = (emp.nombre + ' ' + emp.apellido + ' ' + emp.telefono).toLowerCase().includes(texto);
+                const coincideRol = rolSel === '' || emp.puesto === rolSel;
+                return coincideTexto && coincideRol;
+            });
+
+            renderizarTabla(filtrados);
+        }
+
+        function abrirModalCrear() {
+            document.getElementById('modalTitulo').innerHTML = '<i class="fa-solid fa-user-plus me-2"></i>Nuevo Empleado';
+            document.getElementById('id_empleado').value = '';
+            document.getElementById('formEmpleado').reset();
+            document.getElementById('btnSubmit').innerText = 'Guardar Empleado';
+            new bootstrap.Modal(document.getElementById('modalEmpleado')).show();
+        }
+
+        function abrirModalEditar(id) {
+            const emp = listaEmpleados.find(e => e.id_empleado == id);
+            if (!emp) return;
+
+            document.getElementById('modalTitulo').innerHTML = '<i class="fa-solid fa-user-pen me-2"></i>Editar Empleado #' + emp.id_empleado;
+            document.getElementById('id_empleado').value = emp.id_empleado;
+            document.getElementById('nombre').value = emp.nombre;
+            document.getElementById('apellido').value = emp.apellido;
+            document.getElementById('puesto').value = emp.puesto;
+            document.getElementById('telefono').value = emp.telefono !== 'N/A' ? emp.telefono : '';
+            document.getElementById('salario_por_hora').value = emp.salario_por_hora;
+            document.getElementById('btnSubmit').innerText = 'Actualizar Cambios';
+
+            new bootstrap.Modal(document.getElementById('modalEmpleado')).show();
+        }
+
+        async function cambiarEstado(id, nuevoEstado) {
+            if (!confirm(`¿Deseas cambiar el estado del empleado #${id} a ${nuevoEstado}?`)) return;
+
+            try {
+                const res = await fetch('api/empleados/index.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id_empleado: id, estado: nuevoEstado, accion: 'cambiar_estado' })
+                });
+
+                const data = await res.json();
+                if (data.status === 'success') {
+                    mostrarExito(`Empleado #${id} actualizado a ${nuevoEstado}.`);
+                    cargarEmpleados();
+                } else {
+                    mostrarError(data.message || 'No se pudo cambiar el estado.');
+                }
+            } catch (error) {
+                console.error(error);
+                mostrarError('Error de red al actualizar estado.');
+            }
+        }
+
+        async function eliminarEmpleado(id, nombreCompleto) {
+            if (!confirm(`¿Está seguro de eliminar permanentemente a ${nombreCompleto} (ID: #${id})?`)) return;
+
+            try {
+                const res = await fetch('api/empleados/index.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id_empleado: id, accion: 'eliminar' })
+                });
+
+                const data = await res.json();
+                if (data.status === 'success') {
+                    mostrarExito(`El empleado ${nombreCompleto} fue eliminado.`);
+                    cargarEmpleados();
+                } else {
+                    mostrarError(data.message || 'No se pudo eliminar el empleado.');
+                }
+            } catch (error) {
+                console.error(error);
+                mostrarError('Error al procesar la baja del empleado.');
+            }
+        }
+
+        // Generar QR
+        function verQR(id, nombre, rol, qrCode, telefono) {
+            if (!id || id === 'undefined' || id === 'null') {
+                alert('Error: El empleado no tiene un ID válido asignado.');
+                return;
+            }
+
+            const codigoLimpio = `EMP-${id}`;
+            currentQRData = { id: id, nombre: nombre, rol: rol, codigoQR: codigoLimpio, telefono: telefono };
+
+            document.getElementById('qrNombre').innerText = nombre;
+            document.getElementById('qrRol').innerText = rol;
+            document.getElementById('qrCodigoText').innerText = codigoLimpio;
+
+            const qrContainer = document.getElementById('qrcode');
+            qrContainer.innerHTML = '';
+
+            new QRCode(qrContainer, { 
+                text: codigoLimpio, 
+                width: 190, 
+                height: 190,
+                colorDark : "#000000",
+                colorLight : "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            new bootstrap.Modal(document.getElementById('modalQR')).show();
+        }
+
+        function descargarQR() {
+            const qrCanvas = document.querySelector('#qrcode canvas') || document.querySelector('#qrcode img');
+            if (!qrCanvas) return;
+
+            let imageURI = qrCanvas.tagName.toLowerCase() === 'img' ? qrCanvas.src : qrCanvas.toDataURL("image/png");
+
+            const link = document.createElement('a');
+            link.download = `Credencial_QR_${currentQRData.nombre.replace(/\s+/g, '_')}.png`;
+            link.href = imageURI;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Envío Automático por Bot de WhatsApp (Servidor Node.js activo)
+        async function enviarWhatsAppAuto() {
+            if (!currentQRData.telefono || currentQRData.telefono.trim() === '' || currentQRData.telefono === 'N/A') {
+                alert('El empleado no tiene un número de teléfono válido registrado en el sistema.');
+                return;
+            }
+
+            const btnWa = document.getElementById('btnEnviarWA');
+            const textoOriginal = btnWa.innerHTML;
+            btnWa.disabled = true;
+            btnWa.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Enviando automáticamente...';
+
+            const qrCanvas = document.querySelector('#qrcode canvas');
+            const qrBase64 = qrCanvas ? qrCanvas.toDataURL("image/png") : null;
+
+            const mensaje = `Hola *${currentQRData.nombre}*, bienvenido(a) a *SazónTrack POS*.\n\n` +
+                            `📌 *Puesto:* ${currentQRData.rol}\n` +
+                            `🔑 *Código de Marcaje:* ${currentQRData.codigoQR}\n\n` +
+                            `Te adjuntamos tu imagen de código QR personal. Muestra esta imagen frente a la cámara del reloj checador para registrar tu ENTRADA y SALIDA.`;
+
+            try {
+                const res = await fetch('api/whatsapp/enviar.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        telefono: currentQRData.telefono,
+                        mensaje: mensaje,
+                        qrBase64: qrBase64,
+                        nombre: currentQRData.nombre
+                    })
+                });
+
+                const textResponse = await res.text();
+                let data;
+                
+                try {
+                    data = JSON.parse(textResponse);
+                } catch (e) {
+                    console.error('Respuesta no JSON:', textResponse);
+                    mostrarError('❌ Error del servidor PHP. Asegúrate de tener "node assets/js/server-wa.js" activo.');
+                    return;
+                }
+
+                if (data.status === 'success') {
+                    mostrarExito(`✅ Credencial e imagen QR enviadas automáticamente a ${currentQRData.nombre} (${currentQRData.telefono}).`);
+                    const modalEl = document.getElementById('modalQR');
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    if (modal) modal.hide();
+                } else {
+                    mostrarError(`⚠️ ${data.message}`);
+                }
+            } catch (err) {
+                console.error('Error al enviar mensaje:', err);
+                mostrarError('❌ Error de red al conectar con el servidor PHP.');
+            } finally {
+                btnWa.disabled = false;
+                btnWa.innerHTML = textoOriginal;
+            }
+        }
+
+        function mostrarExito(msg) {
+            document.getElementById('alertContainer').innerHTML = `
+                <div class="alert alert-success alert-dismissible fade show shadow-sm rounded-3" role="alert">
+                    <i class="fa-solid fa-check-circle me-2"></i>${msg}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>`;
+        }
+
+        function mostrarError(msg) {
+            document.getElementById('alertContainer').innerHTML = `
+                <div class="alert alert-danger alert-dismissible fade show shadow-sm rounded-3" role="alert">
+                    <i class="fa-solid fa-triangle-exclamation me-2"></i>${msg}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>`;
+        }
+    </script>
+</body>
+</html>

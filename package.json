@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "@open-wa/wa-automate": "^5.4.0",
+    "@whiskeysockets/baileys": "^7.0.0-rc14",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "qrcode-terminal": "^0.12.0",
+    "simple-zstd": "^2.1.0"
+  }
+}

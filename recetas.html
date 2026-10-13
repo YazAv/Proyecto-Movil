@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SazónTrack POS - Escandallo  & Fichas Técnicas</title>
+    
+    <!-- CSS Locales de Bootstrap y FontAwesome -->
+    <link href="assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/css/all.min.css" rel="stylesheet">
+    
+    <!-- Tipografías de Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Italianno&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Exportadores de PDF y Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <style>
+        :root {
+            --bg-offwhite: #FDFCF8;
+            --bg-ivory: #F3F0E9;
+            --color-nude: #E3DBCC;
+            --text-dark: #2A2621;
+            --text-muted: #736B60;
+            --restosoft-header: #0F172A;
+            --accent-gold: #D97706;
+        }
+        body {
+            background-color: var(--bg-ivory);
+            color: var(--text-dark);
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .sidebar {
+            width: 260px;
+            background: var(--bg-offwhite);
+            border-right: 1px solid var(--color-nude);
+            height: 100vh;
+            position: fixed;
+            top: 0; left: 0;
+            display: flex; flex-direction: column; justify-content: space-between;
+            padding: 1.5rem 1rem;
+            z-index: 100;
+        }
+        .brand-header {
+            display: flex; align-items: center; gap: 12px;
+            padding-bottom: 1.2rem;
+            border-bottom: 1px solid var(--color-nude);
+            margin-bottom: 1rem;
+        }
+        .brand-avatar {
+            width: 44px; height: 44px;
+            background: var(--text-dark);
+            color: var(--bg-offwhite);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem;
+        }
+        .brand-title {
+            font-family: 'Italianno', cursive, serif;
+            font-size: 2.2rem;
+            color: var(--text-dark);
+            margin: 0; line-height: 0.8;
+        }
+        .sidebar-nav .nav-link {
+            color: var(--text-muted);
+            font-weight: 600; font-size: 0.9rem;
+            padding: 10px 14px;
+            border-radius: 12px;
+            display: flex; align-items: center; gap: 12px;
+            margin-bottom: 4px; text-decoration: none;
+            transition: all 0.15s ease;
+        }
+        .sidebar-nav .nav-link:hover, .sidebar-nav .nav-link.active {
+            background: var(--text-dark);
+            color: var(--bg-offwhite);
+        }
+        .main-wrapper { margin-left: 260px; padding: 2rem; }
+
+        /* DISEÑO DE BOTONES PREMIUM Y ESTILIZADOS */
+        .btn-action-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .btn-btn-premium {
+            border-radius: 14px;
+            font-weight: 700;
+            padding: 10px 20px;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+            border: none;
+            font-size: 0.88rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-btn-premium:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+        .btn-save-main {
+            background: linear-gradient(135deg, #0c0d0d, #010101);
+            color: #FFFFFF;
+            font-size: 0.95rem;
+            padding: 11px 24px;
+            box-shadow: 0 6px 16px rgba(5, 150, 105, 0.25);
+        }
+        .btn-save-main:hover {
+            background: linear-gradient(135deg, #6c6d6c, #7a7b7b);
+            color: #FFFFFF;
+        }
+        .btn-new-gold {
+            background: linear-gradient(135deg, #F59E0B, #D97706);
+            color: #FFFFFF;
+        }
+        .btn-excel-green {
+            background: linear-gradient(135deg, #10B981, #059669);
+            color: #FFFFFF;
+        }
+        .btn-pdf-red {
+            background: linear-gradient(135deg, #EF4444, #B91C1C);
+            color: #FFFFFF;
+        }
+
+        .platillo-item-card {
+            background: #FFFFFF;
+            border: 1px solid var(--color-nude);
+            border-radius: 12px;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .platillo-item-card:hover, .platillo-item-card.active {
+            border-color: var(--text-dark);
+            background: #F8F5EE;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .ficha-tecnica-card {
+            background: #FFFFFF;
+            border: 2px solid var(--color-nude);
+            border-radius: 18px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+        }
+
+        .header-restosoft {
+            background: var(--restosoft-header);
+            color: #FFFFFF;
+            padding: 14px 20px;
+            border-radius: 12px;
+            font-weight: 700;
+        }
+
+        .tabla-escandallo {
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 100%;
+        }
+        .tabla-escandallo th {
+            background: var(--bg-offwhite);
+            color: var(--text-dark);
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            border-bottom: 2px solid var(--color-nude);
+            padding: 8px 10px;
+        }
+        .tabla-escandallo td {
+            padding: 6px;
+            border-bottom: 1px solid #EFEAE1;
+        }
+        .tabla-escandallo input, .tabla-escandallo select {
+            border: 1px solid var(--color-nude);
+            border-radius: 8px;
+            padding: 5px 8px;
+            font-size: 0.85rem;
+            width: 100%;
+        }
+
+        .kpi-card-restosoft {
+            border-radius: 12px;
+            padding: 12px 16px;
+            border: 1px solid var(--color-nude);
+            background: #FAFAFA;
+        }
+
+        .badge-foodcost {
+            font-size: 0.85rem;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 700;
+        }
+
+        /* CARD DE INSTRUCCIONES OPERATIVAS */
+        .ficha-operativa-section {
+            background: #F8FAFC;
+            border: 2px solid #E2E8F0;
+            border-radius: 16px;
+            padding: 1.25rem;
+            margin-top: 1.25rem;
+        }
+        .header-operativo {
+            color: #0F172A;
+            font-weight: 800;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            border-bottom: 2px solid #CBD5E1;
+            padding-bottom: 8px;
+            margin-bottom: 14px;
+        }
+
+        /* DROPZONE DE IMAGEN DE EMPLATADO */
+        .image-upload-wrapper {
+            border: 2px dashed #94A3B8;
+            border-radius: 14px;
+            background: #FFFFFF;
+            height: 210px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            overflow: hidden;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+        .image-upload-wrapper:hover {
+            border-color: #0F172A;
+            background: #F1F5F9;
+        }
+        .image-upload-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .image-upload-placeholder {
+            text-align: center;
+            color: #64748B;
+            padding: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+    <div>
+        <div class="brand-header">
+            <div class="brand-avatar"><i class="fa-solid fa-calculator text-white"></i></div>
+            <div>
+                <h2 class="brand-title">SazónTrack</h2>
+                <span class="text-muted small fw-bold">Escandallos POS</span>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="index.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+            <a href="caja.html" class="nav-link"><i class="fa-solid fa-cash-register"></i> Caja POS</a>
+            <a href="mesas.html" class="nav-link"><i class="fa-solid fa-utensils"></i> Mapa Mesas</a>
+            <a href="kds_cocina.html" class="nav-link"><i class="fa-solid fa-fire-burner"></i> KDS Cocina</a>
+            <a href="kds_barra.html" class="nav-link"><i class="fa-solid fa-martini-glass-citrus"></i> KDS Barra</a>
+            <a href="recetas.html" class="nav-link active"><i class="fa-solid fa-file-invoice-dollar"></i> Recetas</a>
+        </nav>
+    </div>
+</aside>
+
+<!-- CONTENIDO PRINCIPAL -->
+<main class="main-wrapper">
+    <!-- ENCABEZADO Y BOTONES SUPERIORES REORGANIZADOS -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h3 class="fw-bold m-0"><i class="fa-solid fa-utensils me-2"></i>Módulo de Recetas & Escandallo </h3>
+            <p class="text-muted small m-0">Fichas técnicas de cocina, mermas, costeo e ingeniería de menú</p>
+        </div>
+        <div class="btn-action-group">
+            <button class="btn btn-btn-premium btn-new-gold" onclick="abrirModalNuevoPlatillo()">
+                <i class="fa-solid fa-circle-plus"></i> Nuevo Platillo
+            </button>
+            <button class="btn btn-btn-premium btn-excel-green" onclick="exportarExcelMultiplesHojas()">
+                <i class="fa-solid fa-file-excel"></i> Excel (.xlsx)
+            </button>
+            <button class="btn btn-btn-premium btn-pdf-red" onclick="descargarPDF()">
+                <i class="fa-solid fa-file-pdf"></i> PDF
+            </button>
+            <!-- BOTÓN PRINCIPAL DE GUARDADO DESTACADO -->
+            <button class="btn btn-btn-premium btn-save-main" onclick="guardarRecetaBD()">
+                <i class="fa-solid fa-floppy-disk"></i> Guardar Receta
+            </button>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <!-- COLUMNA IZQUIERDA: CATÁLOGOS Y NAVEGACIÓN -->
+        <div class="col-lg-4">
+            <div class="card p-3 border-0 shadow-sm" style="border-radius: 16px; background: #FFFFFF;">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold m-0"><i class="fa-solid fa-book-open me-2"></i>Platillos del Menú</h6>
+                    <span class="badge bg-dark" id="lblTotalPlatillos">0</span>
+                </div>
+                <div class="input-group mb-3">
+                    <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                    <input type="text" id="inputBuscarPlatillo" class="form-control border-start-0 bg-light" placeholder="Buscar..." oninput="filtrarPlatillos(this.value)">
+                </div>
+                <div id="listaPlatillosMenu" style="max-height: 520px; overflow-y: auto;" class="d-flex flex-column gap-2">
+                    <div class="text-center py-4 text-muted">
+                        <i class="fa-solid fa-spinner fa-spin me-2"></i> Cargando...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- COLUMNA DERECHA: CONSTRUCTOR DE RECETA Y FICHA TÉCNICA -->
+        <div class="col-lg-8">
+            <div class="ficha-tecnica-card" id="areaImpresionPDF">
+                <div class="header-restosoft d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <span class="fs-6 text-uppercase" id="lblPlatilloSeleccionadoTitle">SELECCIONA UN PLATILLO</span>
+                        <small class="d-block text-white-50 fw-normal">Ficha Técnica de Preparación y Costeo Estándar</small>
+                    </div>
+                    <span class="badge bg-light text-dark font-monospace" id="lblFolioPlatillo">BD ID: --</span>
+                </div>
+
+                <!-- 1. DATOS GENERALES DE LA RECETA -->
+                <div class="row g-2 mb-3 align-items-center">
+                    <div class="col-md-4">
+                        <label class="form-label small text-muted fw-bold">Nombre de la Receta</label>
+                        <input type="text" id="nombreReceta" class="form-control fw-bold" placeholder="Nombre comercial o técnico">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted fw-bold">Categoría / Tipo</label>
+                        <select id="categoriaReceta" class="form-select fw-semibold">
+                            <option value="Plato Fuerte">Plato Fuerte</option>
+                            <option value="Entrada">Entrada</option>
+                            <option value="Postre">Postre</option>
+                            <option value="Bebida">Bebida</option>
+                            <option value="Subreceta/Salsa">Subreceta / Salsa Base</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted fw-bold">Precio Venta ($)</label>
+                        <input type="number" step="0.50" id="precioVentaActual" class="form-control fw-bold text-success" value="0.00" oninput="calcularEscandallo()">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-muted fw-bold">Raciones</label>
+                        <input type="number" id="numRaciones" class="form-control text-center fw-bold" value="1" min="1" oninput="calcularEscandallo()">
+                    </div>
+                </div>
+
+                <div class="row g-2 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label small text-muted fw-bold">Tamaño Porción Servida</label>
+                        <input type="text" id="tamanoPorcion" class="form-control" placeholder="Ej. 250 g / 350 ml">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small text-muted fw-bold">Tiempo Preparación (Min)</label>
+                        <input type="number" id="tiempoPrep" class="form-control" value="15">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small text-muted fw-bold">Tiempo Cocción (Min)</label>
+                        <input type="number" id="tiempoCoccion" class="form-control" value="10">
+                    </div>
+                </div>
+
+                <!-- 2. TABLA DINÁMICA DE INGREDIENTES (ESCANDALLO) -->
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="fw-bold small text-uppercase text-muted"><i class="fa-solid fa-boxes-stacked me-1"></i> Desglose de Insumos y Mermas</span>
+                    <button class="btn btn-sm btn-outline-dark fw-bold" onclick="agregarFilaIngrediente()">
+                        <i class="fa-solid fa-plus me-1"></i> Añadir Insumo
+                    </button>
+                </div>
+
+                <div class="table-responsive mb-3">
+                    <table class="tabla-escandallo align-middle">
+                        <thead>
+                            <tr>
+                                <th style="width: 220px;">Insumo BD</th>
+                                <th style="width: 90px;" class="text-center">Unidad</th>
+                                <th style="width: 100px;" class="text-end">Cant. Bruta</th>
+                                <th style="width: 80px;" class="text-end">% Merma</th>
+                                <th style="width: 100px;" class="text-end">Cant. Neta</th>
+                                <th style="width: 110px;" class="text-end">Costo Unit ($)</th>
+                                <th style="width: 110px;" class="text-end">Importe ($)</th>
+                                <th style="width: 30px;" class="text-center"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyIngredientes"></tbody>
+                    </table>
+                </div>
+
+                <!-- 3. PANEL DE COSTOS Y RENTABILIDAD (KPIs) -->
+                <div class="row g-2 mb-3 pt-2 border-top">
+                    <div class="col-md-6">
+                        <div class="kpi-card-restosoft">
+                            <span class="small fw-bold text-muted text-uppercase d-block mb-1">Costo Materia Prima</span>
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span>Costo Lote Completo:</span>
+                                <strong id="txtCostoTotalReceta" class="text-dark">$0.00</strong>
+                            </div>
+                            <div class="d-flex justify-content-between small">
+                                <span>Costo por Porción:</span>
+                                <strong id="txtCostoPorRacion" class="text-dark">$0.00</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="kpi-card-restosoft">
+                            <span class="small fw-bold text-muted text-uppercase d-block mb-1">Margen & Rentabilidad</span>
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="small">P. Sugerido (30% FC Target):</span>
+                                <strong id="txtPrecioSugerido" class="text-primary">$0.00</strong>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="small">Margen Bruto Est.:</span>
+                                <strong id="txtMargenBruto" class="text-success">$0.00</strong>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="small">% Food Cost Real:</span>
+                                <span id="txtPorcentajeCoste" class="badge badge-foodcost bg-success">0.0%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. INSTRUCCIONES OPERATIVAS PARA EL CHEF / COCINA CON FOTO DE EMPLATADO -->
+                <div class="ficha-operativa-section">
+                    <div class="header-operativo d-flex justify-content-between align-items-center">
+                        <span><i class="fa-solid fa-hat-chef text-warning me-2"></i> Instrucciones Operativas para el Chef / Cocina</span>
+                        <small class="text-muted text-lowercase fw-semibold">Estandarización de Preparación</small>
+                    </div>
+
+                    <div class="row g-3">
+                        <!-- Subir Foto del Emplatado -->
+                        <div class="col-md-4">
+                            <label class="form-label small text-muted fw-bold"><i class="fa-solid fa-camera me-1"></i> Foto de Emplatado / Presentación</label>
+                            <input type="file" id="fileEmplatado" class="d-none" accept="image/*" onchange="previewImagenEmplatado(this)">
+                            
+                            <div class="image-upload-wrapper" onclick="document.getElementById('fileEmplatado').click()">
+                                <img id="imgPreviewEmplatado" class="d-none" alt="Foto de Emplatado Final">
+                                <div id="placeholderEmplatado" class="image-upload-placeholder">
+                                    <i class="fa-solid fa-cloud-arrow-up fa-2x mb-2 text-secondary"></i>
+                                    <span class="d-block fw-bold small text-dark">Subir Foto de Emplatado</span>
+                                    <small class="text-muted d-block" style="font-size: 0.72rem;">Formato JPG, PNG o WEBP</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Campos Detallados de la Ficha Operativa -->
+                        <div class="col-md-8">
+                            <!-- Modo de Preparación / Procedimiento Paso a Paso -->
+                            <div class="mb-2">
+                                <label class="form-label small text-muted fw-bold"><i class="fa-solid fa-list-check me-1"></i> Modo de Preparación / Procedimiento Paso a Paso</label>
+                                <textarea id="procedimientoPrep" class="form-control form-control-sm" rows="3" placeholder="Pasos detallados para elaborar la receta de forma consistente..."></textarea>
+                            </div>
+
+                            <div class="row g-2 mb-2">
+                                <!-- Temperatura y Puntos de Cocción -->
+                                <div class="col-6">
+                                    <label class="form-label small text-muted fw-bold"><i class="fa-solid fa-temperature-three-quarters me-1"></i> Temp. & Puntos de Cocción</label>
+                                    <input type="text" id="puntosTermino" class="form-control form-control-sm" placeholder="Ej. Término 3/4, 180°C plancha">
+                                </div>
+                                <!-- Presentación y Emplatado -->
+                                <div class="col-6">
+                                    <label class="form-label small text-muted fw-bold"><i class="fa-solid fa-plate-wheat me-1"></i> Presentación y Emplatado</label>
+                                    <input type="text" id="tipoVajilla" class="form-control form-control-sm" placeholder="Ej. Plato trinchero blanco 28cm">
+                                </div>
+                            </div>
+
+                            <!-- Notas y Alergias -->
+                            <div>
+                                <label class="form-label small text-danger fw-bold"><i class="fa-solid fa-triangle-exclamation me-1"></i> Notas  (Indicaciones Especiales)</label>
+                                <input type="text" id="emplatadoAlergias" class="form-control form-control-sm border-danger-subtle" placeholder="Ej. Contiene gluten, lácteos, mariscos, frutos secos...">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- MODAL CREAR NUEVO PLATILLO -->
+<div class="modal fade" id="modalNuevoPlatillo" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 18px; border: none;">
+            <div class="modal-header bg-dark text-white" style="border-radius: 18px 18px 0 0;">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-utensils me-2"></i>Nuevo Platillo</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="formNuevoPlatillo" onsubmit="guardarNuevoPlatilloBD(event)">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Nombre del Platillo</label>
+                        <input type="text" id="nuevoNombrePlatillo" class="form-control" placeholder="Ej. Tacos al Pastor" required>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">Precio de Venta ($)</label>
+                            <input type="number" step="0.50" id="nuevoPrecioPlatillo" class="form-control" placeholder="0.00" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">Categoría *</label>
+                            <select id="nuevoCategoriaPlatillo" class="form-select" required></select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Estación KDS *</label>
+                        <select id="nuevoEstacionKds" class="form-select" required>
+                            <option value="1">Cocina Principal</option>
+                            <option value="2">Barra</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-dark w-100 fw-bold py-2">
+                        <i class="fa-solid fa-check-circle me-1"></i> Registrar Platillo
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JS Local de Bootstrap -->
+<script src="assets/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    let productosCache = [];
+    let insumosCache = [];
+    let categoriasCache = [];
+    let idProductoSeleccionado = null;
+    let modalPlatilloBS = null;
+
+    document.addEventListener("DOMContentLoaded", () => {
+        modalPlatilloBS = new bootstrap.Modal(document.getElementById('modalNuevoPlatillo'));
+        cargarCatalogosBaseDatos();
+    });
+
+    async function cargarCatalogosBaseDatos() {
+        try {
+            const resp = await fetch('api/recetas/obtener.php');
+            const data = await resp.json();
+            if (data.status === 'success') {
+                productosCache = data.productos || data.data || [];
+            }
+
+            const respIns = await fetch('api/inventario/listar_stock.php');
+            const dataIns = await respIns.json();
+            if (dataIns.status === 'success') {
+                insumosCache = dataIns.data || [];
+            }
+
+            categoriasCache = data.categorias || [
+                { id_categoria: 1, nombre: 'Bebidas' },
+                { id_categoria: 2, nombre: 'Entradas' },
+                { id_categoria: 3, nombre: 'Platos Fuertes' },
+                { id_categoria: 4, nombre: 'Postres' }
+            ];
+
+            renderizarListaPlatillos(productosCache);
+        } catch (e) {
+            console.error("Error al cargar catálogos:", e);
+        }
+    }
+
+    function renderizarListaPlatillos(platillos) {
+        const contenedor = document.getElementById("listaPlatillosMenu");
+        document.getElementById("lblTotalPlatillos").innerText = platillos.length;
+        contenedor.innerHTML = "";
+
+        if (platillos.length === 0) {
+            contenedor.innerHTML = `<div class="text-center py-4 text-muted small">Sin platillos registrados.</div>`;
+            return;
+        }
+
+        platillos.forEach(p => {
+            const esActivo = idProductoSeleccionado === p.id_producto;
+            contenedor.innerHTML += `
+                <div class="platillo-item-card ${esActivo ? 'active' : ''}" onclick="cargarRecetaPlatillo(${p.id_producto})">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong class="d-block lh-1 text-dark" style="font-size: 0.95rem;">${p.nombre}</strong>
+                            <small class="text-muted" style="font-size: 0.75rem;">Categoría BD</small>
+                        </div>
+                        <span class="fw-bold text-success" style="font-size: 0.9rem;">$${parseFloat(p.precio).toFixed(2)}</span>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    function filtrarPlatillos(query) {
+        const q = query.toLowerCase().trim();
+        const filtrados = productosCache.filter(p => p.nombre.toLowerCase().includes(q));
+        renderizarListaPlatillos(filtrados);
+    }
+
+    async function cargarRecetaPlatillo(idProducto) {
+        idProductoSeleccionado = idProducto;
+        const p = productosCache.find(item => item.id_producto === idProducto);
+        if (!p) return;
+
+        renderizarListaPlatillos(productosCache);
+
+        document.getElementById("lblPlatilloSeleccionadoTitle").innerText = p.nombre;
+        document.getElementById("lblFolioPlatillo").innerText = `BD ID: #${p.id_producto}`;
+        document.getElementById("nombreReceta").value = p.nombre;
+        document.getElementById("precioVentaActual").value = parseFloat(p.precio).toFixed(2);
+
+        const tbody = document.getElementById("tbodyIngredientes");
+        tbody.innerHTML = "";
+
+        try {
+            const resp = await fetch(`api/recetas/obtener.php?id_producto=${idProducto}`);
+            const data = await resp.json();
+            if (resp.ok && data.status === 'success' && data.receta && data.receta.length > 0) {
+                data.receta.forEach(r => {
+                    agregarFilaIngrediente({
+                        id_insumo: r.id_insumo,
+                        nombre: r.insumo_nombre,
+                        unidad: r.unidad_medida,
+                        pesoBruto: r.cantidad,
+                        merma: 0,
+                        precioUnit: r.costo_unitario
+                    });
+                });
+            } else {
+                for (let i = 0; i < 2; i++) agregarFilaIngrediente();
+            }
+            calcularEscandallo();
+        } catch(e) {
+            console.error("Error al obtener receta:", e);
+        }
+    }
+
+    function agregarFilaIngrediente(data = null) {
+        const tbody = document.getElementById("tbodyIngredientes");
+        const idx = tbody.children.length;
+
+        const idInsumoSelect = data ? data.id_insumo : '';
+        const unidad = data ? (data.unidad || 'KG').toUpperCase() : 'KG';
+        const pesoBruto = data ? data.pesoBruto : '';
+        const merma = data ? data.merma : '0';
+        const precioUnit = data ? data.precioUnit : '';
+
+        let optionsInsumos = `<option value="">-- Seleccionar Insumo --</option>`;
+        insumosCache.forEach(ins => {
+            const sel = ins.id_insumo == idInsumoSelect ? 'selected' : '';
+            optionsInsumos += `<option value="${ins.id_insumo}" data-unidad="${ins.unidad_medida}" data-precio="${ins.costo_unitario}" ${sel}>${ins.nombre}</option>`;
+        });
+
+        const tr = document.createElement("tr");
+        tr.id = `fila_${idx}`;
+        tr.innerHTML = `
+            <td>
+                <select class="form-select form-select-sm select-insumo-bd" onchange="autocompletarInsumoBD(${idx}, this)">
+                    ${optionsInsumos}
+                </select>
+            </td>
+            <td>
+                <select class="form-select form-select-sm select-unidad-ing" onchange="calcularEscandallo()">
+                    <option value="KG" ${unidad === 'KG' ? 'selected' : ''}>KG</option>
+                    <option value="GR" ${unidad === 'GR' ? 'selected' : ''}>GR</option>
+                    <option value="LT" ${unidad === 'LT' ? 'selected' : ''}>LT</option>
+                    <option value="ML" ${unidad === 'ML' ? 'selected' : ''}>ML</option>
+                    <option value="PZA" ${unidad === 'PZA' || unidad === 'PZ' ? 'selected' : ''}>PZA</option>
+                </select>
+            </td>
+            <td><input type="number" step="0.001" class="text-end input-bruto" value="${pesoBruto}" placeholder="0.000" oninput="calcularPesoNeto(${idx})"></td>
+            <td><input type="number" step="0.1" class="text-end text-danger fw-bold input-merma" value="${merma}" placeholder="0" oninput="calcularPesoNeto(${idx})"></td>
+            <td><input type="number" step="0.001" class="text-end fw-bold input-neto" value="0.000" placeholder="0.000" readonly></td>
+            <td><input type="number" step="0.01" class="text-end input-precio" value="${precioUnit}" placeholder="0.00" oninput="calcularEscandallo()"></td>
+            <td class="text-end fw-bold text-dark">$<span class="coste-total-item">0.00</span></td>
+            <td class="text-center">
+                <button class="btn btn-sm text-danger p-0" onclick="eliminarFila(${idx})"><i class="fa-solid fa-xmark fs-5"></i></button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+        if (data) calcularPesoNeto(idx);
+    }
+
+    function autocompletarInsumoBD(idx, select) {
+        const tr = document.getElementById(`fila_${idx}`);
+        if (!tr) return;
+        const opt = select.options[select.selectedIndex];
+        if (select.value !== "") {
+            let unidadBase = (opt.getAttribute("data-unidad") || "KG").toUpperCase();
+            if (unidadBase === "PZ") unidadBase = "PZA";
+            tr.querySelector(".select-unidad-ing").value = unidadBase;
+            tr.querySelector(".input-precio").value = parseFloat(opt.getAttribute("data-precio") || 0).toFixed(2);
+            calcularPesoNeto(idx);
+        }
+    }
+
+    function calcularPesoNeto(idx) {
+        const fila = document.getElementById(`fila_${idx}`);
+        if (!fila) return;
+        const pesoBruto = parseFloat(fila.querySelector(".input-bruto").value) || 0;
+        const porcentajeMerma = parseFloat(fila.querySelector(".input-merma").value) || 0;
+        
+        const pesoNeto = pesoBruto * (1 - (porcentajeMerma / 100));
+        fila.querySelector(".input-neto").value = pesoNeto > 0 ? pesoNeto.toFixed(3) : "0.000";
+        calcularEscandallo();
+    }
+
+    function eliminarFila(idx) {
+        const fila = document.getElementById(`fila_${idx}`);
+        if (fila) fila.remove();
+        calcularEscandallo();
+    }
+
+    function calcularEscandallo() {
+        const tbody = document.getElementById("tbodyIngredientes");
+        let costoTotalReceta = 0;
+
+        Array.from(tbody.children).forEach(tr => {
+            const pesoBruto = parseFloat(tr.querySelector(".input-bruto").value) || 0;
+            const unidad = tr.querySelector(".select-unidad-ing").value;
+            const precioUnitarioBD = parseFloat(tr.querySelector(".input-precio").value) || 0;
+
+            let factorUnidad = 1.0;
+            if (unidad === 'GR' || unidad === 'ML') factorUnidad = 0.001;
+
+            const costeItem = (pesoBruto * factorUnidad) * precioUnitarioBD;
+            tr.querySelector(".coste-total-item").innerText = costeItem.toFixed(2);
+            costoTotalReceta += costeItem;
+        });
+
+        const numRaciones = parseInt(document.getElementById("numRaciones").value) || 1;
+        const precioVenta = parseFloat(document.getElementById("precioVentaActual").value) || 0;
+
+        const costoPorRacion = costoTotalReceta / numRaciones;
+        const precioSugerido = costoPorRacion / 0.30;
+        const margenBrutoEst = precioVenta - costoPorRacion;
+        let pctFoodCost = precioVenta > 0 ? (costoPorRacion / precioVenta) * 100 : 0;
+
+        document.getElementById("txtCostoTotalReceta").innerText = `$${costoTotalReceta.toFixed(2)}`;
+        document.getElementById("txtCostoPorRacion").innerText = `$${costoPorRacion.toFixed(2)}`;
+        document.getElementById("txtPrecioSugerido").innerText = `$${precioSugerido.toFixed(2)}`;
+        document.getElementById("txtMargenBruto").innerText = `$${margenBrutoEst.toFixed(2)}`;
+
+        const elPct = document.getElementById("txtPorcentajeCoste");
+        elPct.innerText = `${pctFoodCost.toFixed(1)}% FC`;
+
+        if (pctFoodCost <= 30) {
+            elPct.className = "badge badge-foodcost bg-success";
+        } else if (pctFoodCost <= 35) {
+            elPct.className = "badge badge-foodcost bg-warning text-dark";
+        } else {
+            elPct.className = "badge badge-foodcost bg-danger";
+        }
+    }
+
+    function previewImagenEmplatado(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.getElementById("imgPreviewEmplatado");
+                const placeholder = document.getElementById("placeholderEmplatado");
+                img.src = e.target.result;
+                img.classList.remove("d-none");
+                placeholder.classList.add("d-none");
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    async function guardarRecetaBD() {
+        if (!idProductoSeleccionado) {
+            alert("Selecciona un platillo de la lista izquierda.");
+            return;
+        }
+
+        const tbody = document.getElementById("tbodyIngredientes");
+        const ingredientes = [];
+
+        Array.from(tbody.children).forEach(tr => {
+            const idInsumo = tr.querySelector(".select-insumo-bd").value;
+            const pesoBruto = parseFloat(tr.querySelector(".input-bruto").value) || 0;
+            const unidad = tr.querySelector(".select-unidad-ing").value;
+
+            let cantidadConvertida = pesoBruto;
+            if (unidad === 'GR' || unidad === 'ML') cantidadConvertida = pesoBruto / 1000.0;
+
+            if (idInsumo && pesoBruto > 0) {
+                ingredientes.push({
+                    id_insumo: parseInt(idInsumo),
+                    cantidad: cantidadConvertida
+                });
+            }
+        });
+
+        if (ingredientes.length === 0) {
+            alert("Ingresa al menos un insumo válido.");
+            return;
+        }
+
+        try {
+            const resp = await fetch('api/recetas/guardar.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id_producto: parseInt(idProductoSeleccionado),
+                    ingredientes: ingredientes
+                })
+            });
+            const data = await resp.json();
+            if (data.status === 'success') {
+                alert("¡Ficha técnica guardada correctamente!");
+            } else {
+                alert("Error: " + (data.message || "No se pudo guardar la receta."));
+            }
+        } catch (e) {
+            alert("Error de conexión al guardar.");
+        }
+    }
+
+    function abrirModalNuevoPlatillo() {
+        document.getElementById("formNuevoPlatillo").reset();
+        const selCat = document.getElementById("nuevoCategoriaPlatillo");
+        selCat.innerHTML = '<option value="">-- Seleccionar Categoría --</option>';
+        categoriasCache.forEach(c => {
+            selCat.innerHTML += `<option value="${c.id_categoria}">${c.nombre}</option>`;
+        });
+        modalPlatilloBS.show();
+    }
+
+    async function guardarNuevoPlatilloBD(e) {
+        e.preventDefault();
+
+        const catVal = document.getElementById("nuevoCategoriaPlatillo").value;
+        if (!catVal) {
+            alert("Selecciona una Categoría para el platillo.");
+            return;
+        }
+
+        const payload = {
+            nombre: document.getElementById("nuevoNombrePlatillo").value,
+            precio: parseFloat(document.getElementById("nuevoPrecioPlatillo").value),
+            categoria_id: parseInt(catVal),
+            estacion_kds_id: parseInt(document.getElementById("nuevoEstacionKds").value)
+        };
+
+        try {
+            const resp = await fetch('api/productos/crear.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await resp.json();
+            if (data.status === 'success') {
+                modalPlatilloBS.hide();
+                await cargarCatalogosBaseDatos();
+                if (data.id_producto || data.id) {
+                    cargarRecetaPlatillo(data.id_producto || data.id);
+                }
+            } else {
+                alert("Error del servidor: " + (data.message || "Faltan parámetros requeridos."));
+            }
+        } catch (e) {
+            alert("Error al conectar con la API de productos.");
+        }
+    }
+
+    function exportarExcelMultiplesHojas() {
+        const nombrePlatillo = document.getElementById("nombreReceta").value.trim() || "Platillo";
+        const precioVenta = parseFloat(document.getElementById("precioVentaActual").value) || 0;
+        const porciones = parseInt(document.getElementById("numRaciones").value) || 1;
+        const costoTotal = parseFloat(document.getElementById("txtCostoTotalReceta").innerText.replace('$', '')) || 0;
+        const costoPorcion = parseFloat(document.getElementById("txtCostoPorRacion").innerText.replace('$', '')) || 0;
+
+        const datosResumen = [
+            ["SAZÓNTRACK POS - ESCANDALLO DE PLATILLO"],
+            ["Platillo:", nombrePlatillo],
+            ["Precio de Venta:", precioVenta],
+            ["Porciones:", porciones],
+            ["Costo Lote:", costoTotal],
+            ["Costo Porción:", costoPorcion],
+            ["Procedimiento:", document.getElementById("procedimientoPrep").value],
+            ["Temp / Puntos:", document.getElementById("puntosTermino").value],
+            ["Vajilla / Presentación:", document.getElementById("tipoVajilla").value],
+            ["Notas / Alergias:", document.getElementById("emplatadoAlergias").value]
+        ];
+
+        const datosInsumos = [
+            ["INSUMO", "UNIDAD", "CANT. BRUTA", "% MERMA", "CANT. NETA", "COSTO UNITARIO ($)", "IMPORTE ($)"]
+        ];
+
+        const tbody = document.getElementById("tbodyIngredientes");
+        Array.from(tbody.children).forEach(tr => {
+            const selectInsumo = tr.querySelector(".select-insumo-bd");
+            const nombreInsumo = selectInsumo.options[selectInsumo.selectedIndex]?.text || "Insumo";
+            const unidad = tr.querySelector(".select-unidad-ing").value;
+            const cantBruta = parseFloat(tr.querySelector(".input-bruto").value) || 0;
+            const merma = parseFloat(tr.querySelector(".input-merma").value) || 0;
+            const cantNeta = parseFloat(tr.querySelector(".input-neto").value) || 0;
+            const costoUnit = parseFloat(tr.querySelector(".input-precio").value) || 0;
+            const importe = parseFloat(tr.querySelector(".coste-total-item").innerText) || 0;
+
+            if (cantBruta > 0) {
+                datosInsumos.push([nombreInsumo, unidad, cantBruta, `${merma}%`, cantNeta, costoUnit, importe]);
+            }
+        });
+
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(datosResumen), "Resumen Ficha");
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(datosInsumos), "Desglose Escandallo");
+        XLSX.writeFile(wb, `${nombrePlatillo.replace(/\s+/g, '_')}_Escandallo.xlsx`);
+    }
+
+    function descargarPDF() {
+        const nombre = document.getElementById("nombreReceta").value.trim() || "Escandallo_Platillo";
+        const elemento = document.getElementById("areaImpresionPDF");
+        html2pdf().set({
+            margin: 0.4,
+            filename: `${nombre.replace(/\s+/g, '_')}_Ficha_Tecnica.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+        }).from(elemento).save();
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SazónTrack - Caja POS Avanzada</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Italianno&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- CSS Dependencies -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-offwhite: #FDFCF8;
+            --bg-ivory: #F3F0E9;
+            --color-nude: #E3DBCC;
+            --color-nude-hover: #D5C7B3;
+            --text-dark: #2A2621;
+            --text-muted: #736B60;
+            --card-shadow: rgba(42, 38, 33, 0.08);
+            --sidebar-width: 260px;
+        }
+
+        body {
+            background-color: var(--bg-ivory);
+            color: var(--text-dark);
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--color-nude-hover); border-radius: 10px; }
+
+        /* ==================== SIDEBAR ==================== */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg-offwhite);
+            border-right: 1px solid var(--color-nude);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem 1rem;
+            z-index: 100;
+        }
+        .sidebar-scrollable { overflow-y: auto; flex-grow: 1; padding-right: 5px; }
+        
+        .brand-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 1.2rem;
+            border-bottom: 1px solid var(--color-nude);
+            margin-bottom: 1rem;
+        }
+        .brand-avatar {
+            width: 44px;
+            height: 44px;
+            background: var(--text-dark);
+            color: var(--bg-offwhite);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+        .brand-title {
+            font-family: 'Italianno', cursive, serif;
+            font-size: 2.2rem;
+            color: var(--text-dark);
+            line-height: 0.8;
+            margin: 0;
+        }
+        .brand-sub { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
+
+        .nav-category {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin: 1.2rem 0 0.4rem 0.8rem;
+        }
+        .sidebar-nav .nav-link {
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 10px 14px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 4px;
+            transition: all 0.15s ease;
+            text-decoration: none;
+        }
+        .sidebar-nav .nav-link:hover { background: var(--bg-ivory); color: var(--text-dark); }
+        .sidebar-nav .nav-link.active {
+            background: var(--text-dark);
+            color: var(--bg-offwhite);
+            box-shadow: 0 4px 12px rgba(42, 38, 33, 0.12);
+        }
+
+        /* ==================== MAIN CONTENT ==================== */
+        .main-wrapper {
+            margin-left: var(--sidebar-width);
+            padding: 1.5rem 2.5rem;
+        }
+
+        .card-custom {
+            background: var(--bg-offwhite);
+            border: 1px solid var(--color-nude);
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(42, 38, 33, 0.03);
+        }
+
+        .pos-grid-card {
+            background: var(--bg-offwhite);
+            border: 1px solid var(--color-nude);
+            border-radius: 16px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .pos-grid-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--text-dark);
+            box-shadow: 0 6px 15px var(--card-shadow);
+        }
+        .pos-price {
+            font-weight: 800;
+            color: #10B981;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+    <div class="sidebar-scrollable">
+        <div class="brand-header">
+            <div class="brand-avatar"><i class="fa-solid fa-concierge-bell"></i></div>
+            <div>
+                <h2 class="brand-title">SazónTrack</h2>
+                <span class="brand-sub">Panel de Control</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-category">Principal</div>
+            <a href="index.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+            <a href="caja.html" class="nav-link active"><i class="fa-solid fa-cash-register"></i> Caja POS</a>
+            <a href="mesas.html" class="nav-link"><i class="fa-solid fa-utensils"></i> Mapa Mesas</a>
+            
+            <div class="nav-category">Recursos Humanos</div>
+            <a href="asistencia.html" class="nav-link"><i class="fa-solid fa-clock"></i> Reloj Checador</a>
+            <a href="empleados.html" class="nav-link"><i class="fa-solid fa-users"></i> Empleados</a>
+
+            <div class="nav-category">Administración</div>
+            <a href="productos.html" class="nav-link"><i class="fa-solid fa-book-open"></i> Catálogo Menú</a>
+            <a href="inventario.html" class="nav-link"><i class="fa-solid fa-boxes-stacked"></i> Inventario</a>
+        </nav>
+    </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="main-wrapper">
+    
+    <!-- PESTAÑAS SUPERIORES Y CONTROL DE TURNO -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="btn-group bg-white p-1 border rounded-pill shadow-sm">
+            <button class="btn btn-dark rounded-pill px-4 btn-sm fw-bold" id="tabVentaBtn" onclick="cambiarModo('venta')"><i class="fa-solid fa-utensils me-2"></i>Menú</button>
+            <button class="btn btn-light rounded-pill px-4 btn-sm fw-bold text-muted" id="tabMesasBtn" onclick="cambiarModo('mesas')"><i class="fa-solid fa-chair me-2"></i>Mesas Pendientes</button>
+        </div>
+        
+        <div class="d-flex gap-3 align-items-center">
+            <div class="input-group" style="max-width: 280px;" id="contenedorBuscador">
+                <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-search text-muted"></i></span>
+                <input type="text" id="buscarPos" class="form-control border-start-0" placeholder="Buscar platillo...">
+            </div>
+            
+        
+            </button>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- COLUMNA IZQUIERDA: CATÁLOGO O MESAS -->
+        <div class="col-lg-7 col-xl-8">
+            <div id="vistaMenu">
+                <div class="d-flex gap-2 overflow-auto pb-2 mb-3" id="categoriasFiltroPos">
+                    <button class="btn btn-dark btn-sm rounded-pill px-3 active" onclick="filtrarPosCat('todos')">Todas</button>
+                </div>
+                <div class="row row-cols-2 row-cols-md-3 g-3 overflow-y-auto" style="max-height: 70vh;" id="gridProductosPos">
+                    <!-- Inyectado por JS -->
+                </div>
+            </div>
+
+            <div id="vistaMesas" style="display: none;">
+                <h5 class="fw-bold mb-3"><i class="fa-solid fa-receipt me-2 text-warning"></i>Cuentas por Cobrar</h5>
+                <div class="row row-cols-1 row-cols-md-2 g-3 overflow-y-auto" style="max-height: 70vh;" id="gridMesasPendientes">
+                    <!-- Inyectado por JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- COLUMNA DERECHA: CAJA Y COBRO AVANZADO -->
+        <div class="col-lg-5 col-xl-4">
+            <div class="card-custom p-4 d-flex flex-column" style="height: 85vh;">
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+                    <h5 class="fw-bold m-0" id="tituloTicket"><i class="fa-solid fa-receipt me-2"></i>Orden Actual</h5>
+                    <button class="btn btn-outline-danger btn-sm rounded-3" onclick="vaciarCarrito()"><i class="fa-solid fa-trash"></i></button>
+                </div>
+
+                <!-- Lista de Items en el Ticket -->
+                <div class="flex-grow-1 overflow-y-auto pe-1 mb-3" id="listaCarrito">
+                    <div class="text-center text-muted py-5">
+                        <i class="fa-solid fa-cart-shopping fa-2x mb-2 opacity-50"></i>
+                        <p class="small fw-bold">La orden está vacía.</p>
+                    </div>
+                </div>
+
+                <!-- Resumen de Totales y Opciones de Pago -->
+                <div class="border-top pt-3">
+                    
+                    <!-- Subtotal y Propina -->
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-muted fw-semibold small">Subtotal</span>
+                        <span class="fw-bold" id="txtSubtotal">$0.00</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted fw-semibold small">Propina (Opcional)</span>
+                        <div class="input-group input-group-sm" style="width: 100px;">
+                            <span class="input-group-text">$</span>
+                            <input type="number" id="inputPropina" class="form-control text-end" value="0" min="0" oninput="calcularTotales()">
+                        </div>
+                    </div>
+
+                    <!-- Total a Pagar -->
+                    <div class="d-flex justify-content-between align-items-center mb-3 p-2 bg-light rounded-3 border">
+                        <span class="fw-bold text-dark">TOTAL A PAGAR</span>
+                        <span class="fs-4 fw-800 text-success" id="txtTotal">$0.00</span>
+                    </div>
+
+                    <!-- Controles de Cobro -->
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-muted mb-1">Método</label>
+                            <select id="metodoPago" class="form-select form-select-sm rounded-3" onchange="calcularTotales()">
+                                <option value="Efectivo">Efectivo</option>
+                                <option value="Tarjeta">Tarjeta</option>
+                                <option value="Transferencia">Transferencia</option>
+                            </select>
+                        </div>
+                        <div class="col-6" id="divRecibido">
+                            <label class="form-label small fw-bold text-muted mb-1">Recibido</label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text">$</span>
+                                <input type="number" id="inputRecibido" class="form-control text-end" placeholder="0.00" oninput="calcularTotales()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cambio y Facturación -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="checkFactura">
+                            <label class="form-check-label small fw-bold text-muted" for="checkFactura">Requiere Factura</label>
+                        </div>
+                        <div class="text-end" id="divCambio">
+                            <span class="small text-muted fw-bold">Cambio: </span>
+                            <span class="fw-bold text-primary" id="txtCambio">$0.00</span>
+                        </div>
+                    </div>
+
+                    <button id="btnProcesarCobro" class="btn btn-dark w-100 rounded-3 fw-bold py-2 shadow-sm fs-6" onclick="cobrarOrden()">
+                        <i class="fa-solid fa-cash-register me-2"></i> Confirmar y Cobrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- MODAL: CONTROL DE TURNOS Y ARQUEOS -->
+<div class="modal fade" id="modalTurno" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow-lg">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-vault text-warning me-2"></i>Control de Turno</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-3">
+                <div class="alert alert-light border mb-4">
+                    <p class="mb-1 small fw-bold text-muted">Estado actual: <span class="badge bg-success">Turno Abierto</span></p>
+                    <p class="mb-0 small text-muted">Apertura: Hoy 08:30 AM | Fondo inicial: $500.00</p>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">Efectivo declarado en caja (Arqueo)</label>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input type="number" class="form-control" placeholder="0.00">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">Observaciones / Gastos extras</label>
+                    <textarea class="form-control" rows="2" placeholder="Ej. Pago de garrafones de agua..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer border-top-0 pt-0">
+                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger rounded-pill px-4" data-bs-dismiss="modal" onclick="alert('Corte de caja registrado con éxito. Ticket de cierre imprimiendo...')">Cerrar Turno e Imprimir</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- BOOTSTRAP JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    let productosPos = [];
+    let mesasPendientes = [];
+    let carrito = [];
+    let categoriaSeleccionada = 'todos';
+    let ordenActualId = null;
+
+    document.addEventListener("DOMContentLoaded", () => {
+        cargarDatosPos();
+        cargarMesasPendientes();
+        const inputBuscar = document.getElementById('buscarPos');
+        if(inputBuscar) {
+            inputBuscar.addEventListener('input', renderizarGridPos);
+        }
+    });
+
+    function cambiarModo(modo) {
+        const btnVenta = document.getElementById('tabVentaBtn');
+        const btnMesas = document.getElementById('tabMesasBtn');
+        const vistaMenu = document.getElementById('vistaMenu');
+        const vistaMesas = document.getElementById('vistaMesas');
+        const buscador = document.getElementById('contenedorBuscador');
+
+        if(modo === 'venta') {
+            btnVenta.className = "btn btn-dark rounded-pill px-4 btn-sm fw-bold";
+            btnMesas.className = "btn btn-light rounded-pill px-4 btn-sm fw-bold text-muted";
+            vistaMenu.style.display = "block";
+            vistaMesas.style.display = "none";
+            buscador.style.display = "flex";
+        } else {
+            btnMesas.className = "btn btn-dark rounded-pill px-4 btn-sm fw-bold";
+            btnVenta.className = "btn btn-light rounded-pill px-4 btn-sm fw-bold text-muted";
+            vistaMesas.style.display = "block";
+            vistaMenu.style.display = "none";
+            buscador.style.display = "none";
+            cargarMesasPendientes();
+        }
+    }
+
+    async function cargarDatosPos() {
+        try {
+            const response = await fetch('api/productos/listar.php');
+            if(!response.ok) {
+                const responseAlt = await fetch('api/categorias/listar.php');
+                const dataAlt = await responseAlt.json();
+                productosPos = Array.isArray(dataAlt) ? dataAlt : (dataAlt.data || []);
+            } else {
+                const data = await response.json();
+                productosPos = Array.isArray(data) ? data : (data.data || []);
+            }
+            renderizarGridPos();
+            generarFiltrosCategorias();
+        } catch (e) {
+            console.error("Error al cargar productos", e);
+            document.getElementById('gridProductosPos').innerHTML = '<div class="col-12 text-center text-danger py-4"><small>Error al cargar el catálogo.</small></div>';
+        }
+    }
+
+    async function cargarMesasPendientes() {
+        const grid = document.getElementById('gridMesasPendientes');
+        grid.innerHTML = '<div class="col-12 text-center py-4 text-muted"><i class="fa-solid fa-spinner fa-spin me-2"></i>Buscando mesas abiertas...</div>';
+        
+        try {
+            const response = await fetch('api/comandas/listar_mesas_pendientes.php');
+            const data = await response.json();
+            mesasPendientes = Array.isArray(data) ? data : (data.data || []);
+            
+            grid.innerHTML = '';
+            if(mesasPendientes.length === 0) {
+                grid.innerHTML = '<div class="col-12 text-center text-muted py-5"><i class="fa-solid fa-circle-check fa-2x mb-2 text-success"></i><p class="small fw-bold">No hay mesas pendientes.</p></div>';
+                return;
+            }
+
+            mesasPendientes.forEach(m => {
+                grid.insertAdjacentHTML('beforeend', `
+                    <div class="col">
+                        <div class="pos-grid-card border-warning-subtle" onclick="cargarCuentaMesa(${m.id_orden}, '${m.nombre_mesa}')">
+                            <div>
+                                <span class="badge bg-warning text-dark rounded-pill mb-1 fw-bold"><i class="fa-solid fa-chair me-1"></i>${m.nombre_mesa}</span>
+                                <h6 class="fw-bold mb-1 text-dark small">Orden #${m.id_orden}</h6>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-end mt-3 pt-2 border-top">
+                                <span class="pos-price">$${parseFloat(m.total).toFixed(2)}</span>
+                                <button class="btn btn-sm btn-dark rounded-3 px-2 py-1" style="font-size: 0.75rem;">Cobrar</button>
+                            </div>
+                        </div>
+                    </div>
+                `);
+            });
+        } catch(e) {
+            grid.innerHTML = '<div class="col-12 text-center text-danger py-4"><small>Error de conexión.</small></div>';
+        }
+    }
+
+    function cargarCuentaMesa(idOrden, nombreMesa) {
+        const mesaObj = mesasPendientes.find(m => m.id_orden == idOrden);
+        if(!mesaObj) return;
+
+        ordenActualId = idOrden;
+        document.getElementById('tituloTicket').innerHTML = `<i class="fa-solid fa-chair me-2 text-warning"></i>${nombreMesa}`;
+        
+        carrito = mesaObj.productos ? mesaObj.productos.map(p => ({
+            id: p.producto_id,
+            nombre: p.nombre_producto,
+            precio: parseFloat(p.precio_unitario),
+            cantidad: parseInt(p.cantidad)
+        })) : [];
+
+        renderizarCarrito();
+    }
+
+    function generarFiltrosCategorias() {
+        const contenedor = document.getElementById('categoriasFiltroPos');
+        const categoriasUnicas = [...new Set(productosPos.map(p => p.categoria || 'General'))];
+        
+        categoriasUnicas.forEach(cat => {
+            contenedor.insertAdjacentHTML('beforeend', `
+                <button class="btn btn-outline-dark btn-sm rounded-pill px-3" onclick="filtrarPosCat('${cat}')">${cat}</button>
+            `);
+        });
+    }
+
+    function filtrarPosCat(cat) {
+        categoriaSeleccionada = cat;
+        renderizarGridPos();
+    }
+
+    function renderizarGridPos() {
+        const grid = document.getElementById('gridProductosPos');
+        grid.innerHTML = '';
+        const inputBuscar = document.getElementById('buscarPos');
+        const textoBusqueda = inputBuscar ? inputBuscar.value.toLowerCase() : '';
+
+        const filtrados = productosPos.filter(p => {
+            const coincideTexto = p.nombre.toLowerCase().includes(textoBusqueda);
+            const coincideCat = (categoriaSeleccionada === 'todos') || (p.categoria === categoriaSeleccionada);
+            return coincideTexto && coincideCat;
+        });
+
+        if (filtrados.length === 0) {
+            grid.innerHTML = '<div class="col-12 text-center text-muted py-4"><small>No hay platillos disponibles.</small></div>';
+            return;
+        }
+
+        filtrados.forEach(prod => {
+            grid.insertAdjacentHTML('beforeend', `
+                <div class="col">
+                    <div class="pos-grid-card" onclick="agregarAlCarrito(${prod.id_producto || prod.id})">
+                        <div>
+                            <span class="badge bg-dark text-white rounded-pill mb-1" style="font-size: 0.6rem;">${prod.categoria || 'General'}</span>
+                            <h6 class="fw-bold mb-1 text-dark" style="font-size: 0.95rem; line-height: 1.1;">${prod.nombre}</h6>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-end mt-2">
+                            <span class="pos-price">$${parseFloat(prod.precio).toFixed(2)}</span>
+                            <span class="btn btn-sm btn-light rounded-circle shadow-sm" style="width: 26px; height: 26px; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-plus text-dark" style="font-size: 0.7rem;"></i></span>
+                        </div>
+                    </div>
+                </div>
+            `);
+        });
+    }
+
+    function agregarAlCarrito(id) {
+        const prod = productosPos.find(p => (p.id_producto == id || p.id == id));
+        if(!prod) return;
+
+        const prodId = prod.id_producto || prod.id;
+        const existe = carrito.find(item => item.id == prodId);
+        
+        if (existe) {
+            existe.cantidad++;
+        } else {
+            carrito.push({
+                id: prodId,
+                nombre: prod.nombre,
+                precio: parseFloat(prod.precio),
+                cantidad: 1
+            });
+        }
+        renderizarCarrito();
+    }
+
+    function cambiarCantidad(id, delta) {
+        const item = carrito.find(i => i.id == id);
+        if(!item) return;
+        item.cantidad += delta;
+        if(item.cantidad <= 0) {
+            carrito = carrito.filter(i => i.id != id);
+        }
+        renderizarCarrito();
+    }
+
+    function vaciarCarrito() {
+        carrito = [];
+        ordenActualId = null;
+        document.getElementById('tituloTicket').innerHTML = `<i class="fa-solid fa-receipt me-2"></i>Orden Actual`;
+        document.getElementById('inputPropina').value = '';
+        document.getElementById('inputRecibido').value = '';
+        document.getElementById('checkFactura').checked = false;
+        renderizarCarrito();
+    }
+
+    function renderizarCarrito() {
+        const contenedor = document.getElementById('listaCarrito');
+        contenedor.innerHTML = '';
+
+        if(carrito.length === 0) {
+            contenedor.innerHTML = `
+                <div class="text-center text-muted py-5">
+                    <i class="fa-solid fa-cart-shopping fa-2x mb-2 opacity-50"></i>
+                    <p class="small fw-bold">La orden está vacía.</p>
+                </div>
+            `;
+            calcularTotales();
+            return;
+        }
+
+        carrito.forEach(item => {
+            const subtotalItem = item.precio * item.cantidad;
+            contenedor.insertAdjacentHTML('beforeend', `
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                    <div style="max-width: 50%;">
+                        <h6 class="fw-bold mb-0 small text-dark">${item.nombre}</h6>
+                        <span class="text-muted" style="font-size: 0.75rem;">$${item.precio.toFixed(2)} c/u</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <button class="btn btn-sm btn-light border py-0 px-1 rounded" onclick="cambiarCantidad(${item.id}, -1)">-</button>
+                        <span class="fw-bold small">${item.cantidad}</span>
+                        <button class="btn btn-sm btn-light border py-0 px-1 rounded" onclick="cambiarCantidad(${item.id}, 1)">+</button>
+                        <span class="fw-bold small text-success ms-1">$${subtotalItem.toFixed(2)}</span>
+                    </div>
+                </div>
+            `);
+        });
+
+        calcularTotales();
+    }
+
+    function calcularTotales() {
+        let subtotal = carrito.reduce((acc, i) => acc + (i.precio * i.cantidad), 0);
+        let propina = parseFloat(document.getElementById('inputPropina').value) || 0;
+        let total = subtotal + propina;
+
+        document.getElementById('txtSubtotal').innerText = `$${subtotal.toFixed(2)}`;
+        document.getElementById('txtTotal').innerText = `$${total.toFixed(2)}`;
+
+        const metodo = document.getElementById('metodoPago').value;
+        const inputRecibido = document.getElementById('inputRecibido');
+        const divRecibido = document.getElementById('divRecibido');
+        const divCambio = document.getElementById('divCambio');
+
+        if (metodo === 'Efectivo') {
+            divRecibido.style.display = 'block';
+            divCambio.style.visibility = 'visible';
+            let recibido = parseFloat(inputRecibido.value) || 0;
+            let cambio = recibido - total;
+            document.getElementById('txtCambio').innerText = `$${(cambio > 0 ? cambio : 0).toFixed(2)}`;
+        } else {
+            divRecibido.style.display = 'none';
+            divCambio.style.visibility = 'hidden';
+            inputRecibido.value = '';
+        }
+    }
+
+    async function cobrarOrden() {
+        if(carrito.length === 0) {
+            alert("No hay productos para cobrar.");
+            return;
+        }
+
+        // Bloquear el botón mientras procesa
+        const btnCobrar = document.getElementById('btnProcesarCobro');
+        btnCobrar.disabled = true;
+        btnCobrar.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Procesando...';
+
+        const subtotal = carrito.reduce((acc, i) => acc + (i.precio * i.cantidad), 0);
+        const propina = parseFloat(document.getElementById('inputPropina').value) || 0;
+        const totalVenta = subtotal + propina;
+        const metodoPago = document.getElementById('metodoPago').value;
+        const requiereFactura = document.getElementById('checkFactura').checked;
+
+        const datosOrden = {
+            id_orden: ordenActualId, // Envía null si es venta rápida
+            total: totalVenta,
+            metodo_pago: metodoPago,
+            facturacion: requiereFactura,
+            productos: carrito
+        };
+
+        try {
+            // Mandar los datos para registro en Base de Datos PostgreSQL
+            const response = await fetch('api/caja/procesar_pago.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(datosOrden)
+            });
+            
+            const result = await response.json();
+
+            if (result.status === 'success') {
+                // Abre el ticket usando el ID real que la base de datos acaba de generar
+                window.open('api/caja/generar_ticket.php?id=' + result.id_orden, '_blank');
+                
+                alert(requiereFactura ? "¡Venta guardada! Procediendo a facturación..." : "¡Venta cobrada y guardada en el sistema!");
+                vaciarCarrito();
+                cargarMesasPendientes();
+            } else {
+                alert("Error al guardar la venta: " + (result.message || 'Error desconocido'));
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Error de conexión con el servidor.");
+        } finally {
+            // Restaurar estado del botón
+            btnCobrar.disabled = false;
+            btnCobrar.innerHTML = '<i class="fa-solid fa-cash-register me-2"></i> Confirmar y Cobrar';
+        }
+    }
+</script>
+</body>
+</html>

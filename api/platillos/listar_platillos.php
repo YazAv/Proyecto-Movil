@@ -1,35 +1,36 @@
 <?php
+header('Access-Control-Allow-Origin: *');
+header('Content-Type: application/json');
+
 require_once '../../config/conexion.php';
 
-if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-    http_response_code(405);
-    echo json_encode(["status" => "error", "message" => "Método no permitido"]);
-    exit();
-}
-
-$db = new Database();
-$conn = $db->getConnection();
-
 try {
-    $stmt = $conn->prepare("
-        SELECT p.id, p.nombre, p.descripcion, p.precio, p.tiempo_estimado_min,
-               c.nombre AS categoria, k.nombre AS estacion_kds
-        FROM productos p
-        JOIN categorias c ON p.categoria_id = c.id
-        JOIN kds_estaciones k ON p.estacion_kds_id = k.id
-        WHERE p.disponible = 1
-        ORDER BY c.orden ASC, p.nombre ASC
-    ");
-    $stmt->execute();
-    $productos = $stmt->fetchAll();
+    $db = new Database();
+    $conn = $db->getConnection();
 
-    http_response_code(200);
-    echo json_encode([
-        "status" => "success",
-        "total" => count($productos),
-        "data" => $productos
-    ]);
+    $stmt = $conn->prepare("
+        SELECT p.id_producto AS id, 
+               p.nombre, 
+               p.descripcion, 
+               p.precio, 
+               COALESCE(p.categoria_id, p.id_categoria) AS categoria_id, 
+               p.estacion_kds_id,
+               c.nombre AS categoria, 
+               COALESCE(k.nombre, 'Cocina Principal') AS estacion_kds
+        FROM productos p
+        LEFT JOIN categorias c ON (c.id_categoria = p.categoria_id OR c.id_categoria = p.id_categoria)
+        LEFT JOIN kds_estaciones k ON (k.id_estacion = p.estacion_kds_id OR k.id = p.estacion_kds_id)
+        WHERE p.disponible = 1 OR p.activo = true
+        ORDER BY p.id_producto ASC
+    ");
+    
+    $stmt->execute();
+    $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    echo json_encode($productos);
+
 } catch (PDOException $e) {
     http_response_code(500);
-    echo json_encode(["status" => "error", "message" => "Error: " . $e->getMessage()]);
+    echo json_encode(["status" => "error", "message" => "Error al listar: " . $e->getMessage()]);
 }
+?>

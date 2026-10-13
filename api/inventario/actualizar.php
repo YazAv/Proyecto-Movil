@@ -1,71 +1,63 @@
 <?php
-require_once '../../config/conexion.php';
+ob_start();
+ini_set('display_errors', 0);
+error_reporting(E_ALL);
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST' && $_SERVER['REQUEST_METHOD'] !== 'PUT') {
-    http_response_code(405);
-    echo json_encode(["status" => "error", "message" => "Método no permitido"]);
-    exit();
-}
-
-$input = json_decode(file_get_contents("php://input"), true);
-
-if (empty($input['id'])) {
-    http_response_code(400);
-    echo json_encode(["status" => "error", "message" => "El campo 'id' es obligatorio"]);
-    exit();
-}
-
-$id = (int)$input['id'];
-
-$db = new Database();
-$conn = $db->getConnection();
+header('Content-Type: application/json; charset=utf-8');
 
 try {
-    $stmtInsumo = $conn->prepare("SELECT * FROM insumos WHERE id = ?");
-    $stmtInsumo->execute([$id]);
-    $actual = $stmtInsumo->fetch();
+    $path_db = dirname(__FILE__) . '/../../config/conexion.php';
 
-    if (!$actual) {
-        http_response_code(404);
-        echo json_encode(["status" => "error", "message" => "Insumo no encontrado."]);
-        exit();
+    if (!file_exists($path_db)) {
+        $path_db = $_SERVER['DOCUMENT_ROOT'] . '/restaurante_app/config/conexion.php';
     }
 
-    $codigo = array_key_exists('codigo', $input) ? trim($input['codigo']) : $actual['codigo'];
-    $nombre = isset($input['nombre']) ? trim($input['nombre']) : $actual['nombre'];
-    $unidad_medida = isset($input['unidad_medida']) ? trim($input['unidad_medida']) : $actual['unidad_medida'];
-    $stock_minimo = isset($input['stock_minimo']) ? (float)$input['stock_minimo'] : (float)$actual['stock_minimo'];
-    $costo_unitario = isset($input['costo_unitario']) ? (float)$input['costo_unitario'] : (float)$actual['costo_unitario'];
-    $ultimo_costo = isset($input['ultimo_costo']) ? (float)$input['ultimo_costo'] : (float)$actual['ultimo_costo'];
-
-    $unidades_validas = ['kg', 'gr', 'lt', 'ml', 'pz'];
-    if (!in_array($unidad_medida, $unidades_validas)) {
-        http_response_code(422);
-        echo json_encode(["status" => "error", "message" => "Unidad de medida no válida"]);
-        exit();
+    if (!file_exists($path_db)) {
+        throw new Exception("No se encontró conexion.php");
     }
 
-    $stmtUpdate = $conn->prepare("
+    require_once $path_db;
+
+    $pdo = isset($db) ? $db : (isset($conn) ? $conn : (isset($conexion) ? $conexion : null));
+
+    if (!$pdo) {
+        throw new Exception("No se detectó una variable de conexión válida en conexion.php");
+    }
+
+    $data = json_decode(file_get_contents("php://input"), true);
+
+    if (empty($data['id_insumo']) || empty($data['nombre'])) {
+        ob_end_clean();
+        http_response_code(400);
+        echo json_encode(['status' => 'error', 'message' => 'Campos obligatorios incompletos']);
+        exit;
+    }
+
+    $stmt = $pdo->prepare("
         UPDATE insumos 
-        SET codigo = ?, nombre = ?, unidad_medida = ?, stock_minimo = ?, costo_unitario = ?, ultimo_costo = ?
-        WHERE id = ?
+        SET nombre         = :nombre,
+            unidad_medida = :unidad_medida,
+            stock_actual  = :stock_actual,
+            stock_minimo  = :stock_minimo,
+            costo_unitario = :costo_unitario
+        WHERE id_insumo   = :id_insumo
     ");
-    $stmtUpdate->execute([$codigo, $nombre, $unidad_medida, $stock_minimo, $costo_unitario, $ultimo_costo, $id]);
 
-    http_response_code(200);
-    echo json_encode([
-        "status" => "success",
-        "message" => "Insumo actualizado exitosamente",
-        "data" => [
-            "id" => $id,
-            "codigo" => $codigo,
-            "nombre" => $nombre,
-            "unidad_medida" => $unidad_medida,
-            "stock_minimo" => $stock_minimo,
-            "costo_unitario" => $costo_unitario
-        ]
+    $stmt->execute([
+        ':id_insumo'      => intval($data['id_insumo']),
+        ':nombre'         => trim($data['nombre']),
+        ':unidad_medida'  => trim($data['unidad_medida']),
+        ':stock_actual'   => floatval($data['stock_actual']),
+        ':stock_minimo'   => floatval($data['stock_minimo']),
+        ':costo_unitario' => floatval($data['costo_unitario'])
     ]);
-} catch (PDOException $e) {
+
+    ob_end_clean();
+    echo json_encode(['status' => 'success', 'message' => 'Insumo actualizado']);
+
+} catch (Exception $e) {
+    ob_end_clean();
     http_response_code(500);
-    echo json_encode(["status" => "error", "message" => "Error al actualizar insumo: " . $e->getMessage()]);
+    echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
 }
+?>

@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SazónTrack - Reloj Checador POS</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- CSS Dependencies -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Librería Lector QR (jsQR) -->
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+
+    <style>
+        :root {
+            --bg-main: #FDFCF8;
+            --bg-card: #F3F0E9;
+            --accent: #E3DBCC;
+            --text-dark: #1E1E1E;
+            --brand-primary: #2C2C2C;
+            --brand-success: #15803D;
+            --brand-danger: #DC2626;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-main); 
+            color: var(--text-dark); 
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .page-wrapper {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+
+        .checador-container {
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        .card-custom { 
+            background-color: var(--bg-card); 
+            border: 1px solid var(--accent); 
+            border-radius: 24px; 
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            border-radius: 20px;
+            overflow: hidden;
+            background-color: #000;
+            aspect-ratio: 1 / 1;
+            border: 2px solid var(--accent);
+        }
+
+        #videoPreview {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1); /* Corregir espejo visual en la vista previa */
+        }
+
+        .status-badge {
+            font-size: 0.85rem;
+            font-weight: 700;
+            border-radius: 10px;
+            padding: 8px 12px;
+            transition: all 0.2s ease;
+        }
+        .status-scanning {
+            background-color: #E2E8F0;
+            color: #334155;
+            border: 1px solid #CBD5E1;
+        }
+        .status-detected {
+            background-color: #DCFCE7;
+            color: #15803D;
+            border: 1px solid #86EFAC;
+            animation: pulse 0.5s infinite alternate;
+        }
+
+        @keyframes pulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.02); }
+        }
+
+        .btn-tipo-registro {
+            padding: 0.85rem 1.2rem;
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 1rem;
+            transition: all 0.25s ease;
+        }
+        .btn-tipo-registro.active-entrada {
+            background-color: #15803D !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 14px rgba(21, 128, 61, 0.35);
+        }
+        .btn-tipo-registro.active-salida {
+            background-color: #DC2626 !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 14px rgba(220, 38, 38, 0.35);
+        }
+
+        .clock-display {
+            font-size: 3.2rem;
+            font-weight: 800;
+            letter-spacing: -1.5px;
+            line-height: 1;
+            color: var(--brand-primary);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-wrapper">
+        <div class="checador-container">
+            <!-- ÁREA DE NOTIFICACIONES -->
+            <div id="alertContainer"></div>
+<body>
+    <!-- BOTÓN FLOTANTE PARA VOLVER AL DASHBOARD -->
+    <a href="index.html" class="btn btn-light shadow-sm fw-bold position-absolute m-4" style="top: 0; left: 0; border-radius: 20px; font-size: 0.85rem; z-index: 1050;">
+        <i class="fa-solid fa-arrow-left me-2"></i> Volver a SazónTrack
+    </a>
+    
+    <!-- Resto de tu código del reloj checador (el contenedor centrado) -->
+    <div class="container d-flex justify-content-center align-items-center vh-100">
+     
+            <div class="card card-custom p-4 p-md-5 shadow-lg text-center">
+                <small class="text-uppercase text-muted fw-bold d-block mb-1" style="font-size: 0.8rem; letter-spacing: 2px;">SazónTrack POS</small>
+                <h2 class="h3 fw-bold mb-4"><i class="fa-solid fa-clock me-2"></i>Reloj Checador</h2>
+                
+                <!-- RELOJ DIGITAL EN VIVO -->
+                <div class="bg-white rounded-4 p-3 border mb-4 shadow-sm">
+                    <div class="clock-display mb-1" id="relojDigital">00:00:00</div>
+                    <small class="text-muted text-uppercase fw-semibold" id="fechaDigital">Cargando fecha...</small>
+                </div>
+
+                <!-- PASO 1: SELECCIONAR TIPO DE REGISTRO -->
+                <label class="form-label fw-bold small text-muted text-uppercase d-block text-start mb-2">1. Selecciona el Tipo de Registro</label>
+                <div class="d-flex gap-2 mb-4">
+                    <button type="button" class="btn btn-outline-success flex-fill btn-tipo-registro active-entrada" id="btnEntrada" onclick="seleccionarTipo('ENTRADA')">
+                        <i class="fa-solid fa-right-to-bracket me-2"></i>ENTRADA
+                    </button>
+                    <button type="button" class="btn btn-outline-danger flex-fill btn-tipo-registro" id="btnSalida" onclick="seleccionarTipo('SALIDA')">
+                        <i class="fa-solid fa-right-from-bracket me-2"></i>SALIDA
+                    </button>
+                </div>
+                
+
+                <!-- PASO 2: CÁMARA E INDICADOR DE ESTADO EN TIEMPO REAL -->
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <label class="form-label fw-bold small text-muted text-uppercase mb-0">2. Muestra tu QR</label>
+                    <div id="indicadorEscaner" class="status-badge status-scanning">
+                        <i class="fa-solid fa-circle-notch fa-spin me-1"></i> Buscando QR...
+                    </div>
+                </div>
+
+                <div class="video-container shadow-sm">
+                    <video id="videoPreview" playsinline muted></video>
+                    <canvas id="hiddenCanvas" style="display: none;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOOTSTRAP JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- JS RELOJ Y ESCÁNER ULTRARRÁPIDO -->
+    <script>
+        let tipoActual = 'ENTRADA';
+        let procesandoCodigo = false;
+        let videoStream = null;
+        let video = null;
+        let canvas = null;
+        let ctx = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            iniciarReloj();
+            iniciarCamaraPC();
+        });
+
+        function iniciarReloj() {
+            function actualizar() {
+                const ahora = new Date();
+                const horas = String(ahora.getHours()).padStart(2, '0');
+                const minutos = String(ahora.getMinutes()).padStart(2, '0');
+                const segundos = String(ahora.getSeconds()).padStart(2, '0');
+                
+                document.getElementById('relojDigital').innerText = `${horas}:${minutos}:${segundos}`;
+                const opcionesFecha = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                document.getElementById('fechaDigital').innerText = ahora.toLocaleDateString('es-MX', opcionesFecha);
+            }
+            actualizar();
+            setInterval(actualizar, 1000);
+        }
+
+        function seleccionarTipo(tipo) {
+            tipoActual = tipo;
+            const btnEntrada = document.getElementById('btnEntrada');
+            const btnSalida = document.getElementById('btnSalida');
+
+            if (tipo === 'ENTRADA') {
+                btnEntrada.className = 'btn btn-outline-success flex-fill btn-tipo-registro active-entrada';
+                btnSalida.className = 'btn btn-outline-danger flex-fill btn-tipo-registro';
+            } else {
+                btnEntrada.className = 'btn btn-outline-success flex-fill btn-tipo-registro';
+                btnSalida.className = 'btn btn-outline-danger flex-fill btn-tipo-registro active-salida';
+            }
+        }
+
+        async function obtenerDeviceIdCamaraPC() {
+            try {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoDevices = devices.filter(d => d.kind === 'videoinput');
+
+                const camaraPC = videoDevices.find(d => {
+                    const name = (d.label || '').toLowerCase();
+                    return (name.includes('integrated') || name.includes('surface') || name.includes('webcam') || name.includes('internal') || name.includes('front')) && !name.includes('virtual') && !name.includes('windows virtual');
+                });
+
+                return camaraPC ? camaraPC.deviceId : (videoDevices[0] ? videoDevices[0].deviceId : null);
+            } catch (e) {
+                return null;
+            }
+        }
+
+        async function iniciarCamaraPC() {
+            video = document.getElementById('videoPreview');
+            canvas = document.getElementById('hiddenCanvas');
+            ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+            if (videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+            }
+
+            const deviceIdTarget = await obtenerDeviceIdCamaraPC();
+
+            const constraints = {
+                video: deviceIdTarget 
+                    ? { deviceId: { exact: deviceIdTarget }, width: { ideal: 480 }, height: { ideal: 480 }, frameRate: { ideal: 30 } }
+                    : { facingMode: "user", width: { ideal: 480 }, height: { ideal: 480 }, frameRate: { ideal: 30 } }
+            };
+
+            try {
+                videoStream = await navigator.mediaDevices.getUserMedia(constraints);
+                video.srcObject = videoStream;
+                video.setAttribute("playsinline", true);
+                await video.play();
+
+                requestAnimationFrame(escanearFrame);
+            } catch (err) {
+                console.error("Error al activar la cámara:", err);
+                mostrarAlerta("❌ No se pudo activar la cámara de la PC.", "danger");
+            }
+        }
+
+        // Bucle de escaneo ultrarrápido directo
+        function escanearFrame() {
+            if (video && video.readyState === video.HAVE_ENOUGH_DATA) {
+                canvas.width = 400; // Lienzo ligero optimizado
+                canvas.height = 400;
+
+                // 1. Escaneo invertido (espejo) optimizado para cámara frontal
+                ctx.save();
+                ctx.scale(-1, 1);
+                ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
+                ctx.restore();
+
+                let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                let code = jsQR(imageData.data, imageData.width, imageData.height, {
+                    inversionAttempts: "dontInvert"
+                });
+
+                // 2. Escaneo normal secundario
+                if (!code) {
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    code = jsQR(imageData.data, imageData.width, imageData.height, {
+                        inversionAttempts: "dontInvert"
+                    });
+                }
+
+                if (code && code.data && !procesandoCodigo) {
+                    actualizarIndicador(true);
+                    procesarMarcaje(code.data);
+                } else if (!procesandoCodigo) {
+                    actualizarIndicador(false);
+                }
+            }
+            requestAnimationFrame(escanearFrame);
+        }
+
+        function actualizarIndicador(detectado) {
+            const ind = document.getElementById('indicadorEscaner');
+            if (detectado) {
+                ind.className = 'status-badge status-detected';
+                ind.innerHTML = '<i class="fa-solid fa-check-circle me-1"></i> ¡CÓDIGO DETECTADO!';
+            } else {
+                ind.className = 'status-badge status-scanning';
+                ind.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin me-1"></i> Buscando QR...';
+            }
+        }
+
+        async function procesarMarcaje(codigoQr) {
+            procesandoCodigo = true;
+
+            try {
+                const res = await fetch('api/asistencia/registrar.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        codigo_qr: codigoQr.trim(),
+                        tipo: tipoActual
+                    })
+                });
+
+                const textResp = await res.text();
+                let data;
+                try {
+                    data = JSON.parse(textResp);
+                } catch (e) {
+                    console.error('Error parseo JSON:', textResp);
+                    mostrarAlerta('❌ Error de respuesta del servidor.', 'danger');
+                    return;
+                }
+
+                if (data.status === 'success') {
+                    mostrarAlerta(`✅ ¡ REGISTRADO! ${data.nombre} (${tipoActual}) - ${data.hora}`, 'success');
+                } else {
+                    mostrarAlerta(`⚠️ ${data.message || 'Código QR no reconocido.'}`, 'warning');
+                }
+            } catch (err) {
+                console.error('Error al registrar:', err);
+                mostrarAlerta('❌ Error de conexión al registrar asistencia.', 'danger');
+            } finally {
+                // Pausa reducida a 1 segundo para reactivar la detección inmediatamente
+                setTimeout(() => { 
+                    procesandoCodigo = false; 
+                    actualizarIndicador(false);
+                }, 1000);
+            }
+        }
+
+        function mostrarAlerta(msg, tipo) {
+            document.getElementById('alertContainer').innerHTML = `
+                <div class="alert alert-${tipo} alert-dismissible fade show shadow-sm rounded-4 py-3 mb-3 text-center" role="alert">
+                    <h5 class="alert-heading fw-bold mb-0">${msg}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>`;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
