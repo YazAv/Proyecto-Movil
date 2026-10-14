@@ -291,45 +291,51 @@
     }
 
     async function cargarHistorialTurnos() {
-        try {
-            const response = await fetch('api/caja/listar_historial_turnos.php');
-            const historial = await response.json();
-            const tbody = document.getElementById('tablaTurnos');
-            tbody.innerHTML = '';
-
-            if(!historial || historial.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-muted">No hay cortes de caja registrados.</td></tr>';
-                return;
-            }
-
-            historial.forEach(t => {
-                let dif = parseFloat(t.dif);
-                let badgeDif = dif === 0 ? '<span class="text-success fw-bold">$0.00</span>' : 
-                               (dif > 0 ? `<span class="text-primary fw-bold">+$${dif.toFixed(2)} (Sobrante)</span>` : 
-                                            `<span class="text-danger fw-bold">-$${Math.abs(dif).toFixed(2)} (Faltante)</span>`);
-                
-                let calculado = parseFloat(t.declarado) - dif;
-
-                tbody.insertAdjacentHTML('beforeend', `
-                    <tr>
-                        <td class="fw-bold">#${t.id_turno}</td>
-                        <td>${t.apertura}</td>
-                        <td>${t.cierre || '-'}</td>
-                        <td>$${parseFloat(t.fondo).toFixed(2)}</td>
-                        <td>$${calculado.toFixed(2)}</td>
-                        <td class="fw-bold">$${parseFloat(t.declarado).toFixed(2)}</td>
-                        <td>${badgeDif}</td>
-                        <td><span class="badge bg-secondary">${t.estado}</span></td>
-                        <td class="text-end">
-                            <button class="btn btn-sm btn-outline-dark rounded-3" onclick="imprimirCorte(${t.id_turno})"><i class="fa-solid fa-print"></i></button>
-                        </td>
-                    </tr>
-                `);
-            });
-        } catch (e) {
-            console.error("Error al cargar historial:", e);
+    try {
+        const response = await fetch('api/caja/listar_historial_turnos.php');
+        
+        if (!response.ok) {
+            throw new Error("No se pudo conectar con el servidor (Error " + response.status + ")");
         }
+
+        const historial = await response.json();
+        const tbody = document.getElementById('tablaTurnos');
+        tbody.innerHTML = '';
+
+        if (!historial || historial.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-muted">No hay cortes de caja registrados todavía. Realiza un cierre de turno para ver el historial.</td></tr>';
+            return;
+        }
+
+        historial.forEach(t => {
+            let dif = parseFloat(t.dif);
+            let badgeDif = dif === 0 ? '<span class="text-success fw-bold">$0.00</span>' : 
+                           (dif > 0 ? `<span class="text-primary fw-bold">+$${dif.toFixed(2)} (Sobrante)</span>` : 
+                                        `<span class="text-danger fw-bold">-$${Math.abs(dif).toFixed(2)} (Faltante)</span>`);
+            
+            let calculado = parseFloat(t.declarado) - dif;
+
+            tbody.insertAdjacentHTML('beforeend', `
+                <tr>
+                    <td class="fw-bold">#${t.id_turno}</td>
+                    <td>${t.apertura}</td>
+                    <td>${t.cierre}</td>
+                    <td>$${parseFloat(t.fondo).toFixed(2)}</td>
+                    <td>$${calculado.toFixed(2)}</td>
+                    <td class="fw-bold">$${parseFloat(t.declarado).toFixed(2)}</td>
+                    <td>${badgeDif}</td>
+                    <td><span class="badge bg-secondary">Cerrado</span></td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-outline-dark rounded-3" onclick="imprimirCorte(${t.id_turno})"><i class="fa-solid fa-print"></i></button>
+                    </td>
+                </tr>
+            `);
+        });
+    } catch (e) {
+        console.error("Error al cargar historial:", e);
+        document.getElementById('tablaTurnos').innerHTML = '<tr><td colspan="9" class="text-center py-4 text-danger">Error al conectar con la API de historial.</td></tr>';
     }
+}
 
     async function abrirTurno() {
         const fondo = parseFloat(document.getElementById('inputFondoAbrir').value) || 0;
