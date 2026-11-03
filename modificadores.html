@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SazónTrack - Gestión de Modificadores</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Italianno&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-offwhite: #FDFCF8;
+            --bg-ivory: #F3F0E9;
+            --color-nude: #E3DBCC;
+            --text-dark: #2A2621;
+            --text-muted: #736B60;
+            --sidebar-width: 250px;
+            --transition-smooth: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        body { background-color: var(--bg-ivory); color: var(--text-dark); font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; min-height: 100vh; }
+
+        /* === Sidebar === */
+        .sidebar { width: var(--sidebar-width); background: var(--bg-offwhite); border-right: 1px solid var(--color-nude); height: 100vh; position: fixed; top: 0; left: 0; display: flex; flex-direction: column; padding: 1.4rem 1rem; z-index: 100; }
+        .brand-header { display: flex; align-items: center; gap: 12px; padding-bottom: 1.2rem; border-bottom: 1px solid var(--color-nude); margin-bottom: 1rem; }
+        .brand-avatar { width: 42px; height: 42px; background: var(--text-dark); color: var(--bg-offwhite); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .brand-title { font-family: 'Italianno', cursive; font-size: 2.1rem; margin: 0; line-height: 0.8; }
+        .brand-sub { font-size: 0.72rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .sidebar-nav .nav-link { color: var(--text-muted); font-weight: 600; font-size: 0.88rem; padding: 12px 16px; border-radius: 12px; display: flex; align-items: center; gap: 12px; margin-bottom: 6px; text-decoration: none; transition: var(--transition-smooth); }
+        .sidebar-nav .nav-link:hover { background: rgba(227, 219, 204, 0.4); color: var(--text-dark); transform: translateX(4px); }
+        .sidebar-nav .nav-link.active { background: var(--text-dark); color: var(--bg-offwhite); box-shadow: 0 6px 16px rgba(42,38,33,0.2); }
+        .nav-category { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); font-weight: 800; margin: 1.5rem 0 0.5rem 0.8rem; }
+
+        .main-wrapper { margin-left: var(--sidebar-width); padding: 2.5rem; }
+
+        /* === Animaciones === */
+        @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-entrada { animation: fadeSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+        .delay-1 { animation-delay: 0.1s; } .delay-2 { animation-delay: 0.2s; }
+
+        /* === Listas y Cards === */
+        .group-card { background: #fff; border: 1px solid rgba(227, 219, 204, 0.8); border-radius: 16px; padding: 1.2rem; cursor: pointer; transition: var(--transition-smooth); margin-bottom: 1rem; position: relative;}
+        .group-card:hover { transform: translateX(5px); border-color: var(--text-dark); box-shadow: 0 8px 20px rgba(42,38,33,0.06); }
+        .group-card.active { background: var(--text-dark); color: #fff; border-color: var(--text-dark); box-shadow: 0 10px 25px rgba(42,38,33,0.15); }
+        .group-card.active .text-muted { color: rgba(255,255,255,0.7) !important; }
+
+        .panel-derecho { background: #fff; border: 1px solid var(--color-nude); border-radius: 20px; padding: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.02); min-height: 500px; }
+        
+        .table-custom { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
+        .table-custom thead th { border: none; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; padding: 0 1rem 0.5rem 1rem; font-weight: 800; }
+        .table-custom tbody tr { background: var(--bg-offwhite); border-radius: 12px; transition: var(--transition-smooth); }
+        .table-custom tbody tr:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(42,38,33,0.05); }
+        .table-custom td { padding: 1rem; border: none; vertical-align: middle; }
+        .table-custom td:first-child { border-top-left-radius: 12px; border-bottom-left-radius: 12px; }
+        .table-custom td:last-child { border-top-right-radius: 12px; border-bottom-right-radius: 12px; }
+
+        .badge-obligatorio { background: #fee2e2; color: #dc2626; padding: 4px 10px; border-radius: 8px; font-size: 0.7rem; font-weight: 800; }
+        .badge-opcional { background: #e0f2fe; color: #0284c7; padding: 4px 10px; border-radius: 8px; font-size: 0.7rem; font-weight: 800; }
+        
+        .modal-content { border-radius: 20px; border: none; }
+        .modal-header { background: var(--bg-offwhite); border-bottom: 1px solid var(--color-nude); border-radius: 20px 20px 0 0; }
+        .form-control, .form-select { border-radius: 10px; padding: 10px 14px; border-color: var(--color-nude); background-color: var(--bg-offwhite); font-weight: 600; }
+        
+        .btn-accion-grupo { opacity: 0; transition: var(--transition-smooth); }
+        .group-card:hover .btn-accion-grupo { opacity: 1; }
+    </style>
+</head>
+<body>
+
+<aside class="sidebar">
+    <div class="sidebar-scrollable">
+        <div class="brand-header">
+            <div class="brand-avatar"><i class="fa-solid fa-calculator"></i></div>
+            <div>
+                <h2 class="brand-title">SazónTrack</h2>
+                <span class="brand-sub">Admin POS</span>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-category">Almacén y Menú</div>
+            <a href="inventario.html" class="nav-link"><i class="fa-solid fa-boxes-stacked"></i> Inventario</a>
+            <a href="recetas.html" class="nav-link"><i class="fa-solid fa-book-open"></i> Escandallos</a>
+            <a href="modificadores.html" class="nav-link active"><i class="fa-solid fa-code-branch"></i> Modificadores</a>
+            
+            <div class="nav-category">Operación</div>
+            <a href="index.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+            <a href="caja.html" class="nav-link"><i class="fa-solid fa-cash-register"></i> Caja POS</a>
+        </nav>
+    </div>
+</aside>
+
+<main class="main-wrapper">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3 animate-entrada">
+        <div>
+            <h4 class="fw-800 m-0"><i class="fa-solid fa-code-branch me-2 text-muted"></i>Gestión de Modificadores</h4>
+            <small class="text-muted fw-bold">Configura opciones extra, términos y notas de preparación para tus platillos</small>
+        </div>
+        <div>
+            <button class="btn btn-dark rounded-pill fw-bold px-4 shadow-sm" onclick="abrirModalGrupo()">
+                <i class="fa-solid fa-plus me-2"></i> Nuevo Grupo
+            </button>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Columna Izquierda: Grupos Dinámicos -->
+        <div class="col-md-4 animate-entrada delay-1">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-800 m-0 text-dark">Grupos Activos</h6>
+                <span class="badge bg-secondary rounded-pill" id="totalGrupos">0</span>
+            </div>
+            
+            <div id="contenedorGrupos">
+                <p class="text-muted small">Cargando grupos...</p>
+            </div>
+        </div>
+
+        <!-- Columna Derecha: Detalle y Opciones -->
+        <div class="col-md-8 animate-entrada delay-2">
+            <div class="panel-derecho" id="panelDetalle">
+                <div class="text-center py-5 text-muted">
+                    <i class="fa-solid fa-hand-pointer fa-2x mb-3 opacity-50"></i>
+                    <p class="fw-bold">Selecciona un grupo a la izquierda para ver sus opciones.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Modal: Nuevo Grupo -->
+<div class="modal fade" id="modalGrupo" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-800">Crear Grupo de Modificadores</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-muted small">Nombre del Grupo</label>
+                    <input type="text" id="nombreGrupo" class="form-control" placeholder="Ej. Término, Extras, Salsas">
+                </div>
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="esObligatorio">
+                    <label class="form-check-label fw-bold text-muted small" for="esObligatorio">¿Es de selección obligatoria en caja?</label>
+                </div>
+            </div>
+            <div class="modal-footer border-0 p-4 pt-0">
+                <button type="button" class="btn btn-outline-secondary rounded-pill fw-bold px-4" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-dark rounded-pill fw-bold px-4" onclick="guardarGrupo()">Guardar Grupo</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Nueva Opción -->
+<div class="modal fade" id="modalOpcion" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-800">Añadir Opción</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <input type="hidden" id="grupoIdSeleccionado">
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-muted small">Nombre de la Opción</label>
+                    <input type="text" id="nombreOpcion" class="form-control" placeholder="Ej. Medio, Extra Tocino, Sin Cebolla">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-muted small">Costo Extra ($)</label>
+                    <input type="number" id="precioOpcion" class="form-control" placeholder="0.00" step="0.01" min="0" value="0.00">
+                </div>
+            </div>
+            <div class="modal-footer border-0 p-4 pt-0">
+                <button type="button" class="btn btn-outline-secondary rounded-pill fw-bold px-4" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-dark rounded-pill fw-bold px-4" onclick="guardarOpcion()">Añadir Opción</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    let grupoActivoId = null;
+    const modalGrupoInst = new bootstrap.Modal(document.getElementById('modalGrupo'));
+    const modalOpcionInst = new bootstrap.Modal(document.getElementById('modalOpcion'));
+
+    document.addEventListener('DOMContentLoaded', cargarGrupos);
+
+    async function cargarGrupos() {
+        try {
+            const resp = await fetch('api/modificadores/index.php?accion=listar_grupos');
+            const data = await resp.json();
+            const grupos = data.data || [];
+            
+            document.getElementById('totalGrupos').innerText = grupos.length;
+            const contenedor = document.getElementById('contenedorGrupos');
+            contenedor.innerHTML = '';
+
+            if (grupos.length === 0) {
+                contenedor.innerHTML = `<p class="text-muted small">No hay grupos creados.</p>`;
+                return;
+            }
+
+            grupos.forEach((g, index) => {
+                const esOblig = g.obligatorio == 1 || g.obligatorio === true;
+                const badge = esOblig ? '<span class="badge-obligatorio"><i class="fa-solid fa-asterisk me-1"></i>Obligatorio</span>' : '<span class="badge-opcional">Opcional</span>';
+                
+                if (index === 0 && !grupoActivoId) {
+                    seleccionarGrupo(g.id_grupo, g.nombre, esOblig);
+                }
+
+                contenedor.insertAdjacentHTML('beforeend', `
+                    <div class="group-card ${grupoActivoId == g.id_grupo ? 'active' : ''}" onclick="seleccionarGrupo(${g.id_grupo}, '${g.nombre}', ${esOblig}, event)">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="fw-800 mb-1">${g.nombre}</h6>
+                                <small class="text-muted fw-semibold">ID Grupo: #${g.id_grupo}</small>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                ${badge}
+                                <button class="btn btn-sm btn-link text-danger p-0 btn-accion-grupo" onclick="eliminarGrupo(${g.id_grupo}, event)" title="Eliminar Grupo"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                `);
+            });
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    async function seleccionarGrupo(id, nombre, obligatorio, event) {
+        if(event && event.target.closest('button')) return; // Evita seleccionar si hacemos click en eliminar
+
+        grupoActivoId = id;
+        document.querySelectorAll('.group-card').forEach(c => c.classList.remove('active'));
+        if(event) event.currentTarget.classList.add('active');
+
+        const panel = document.getElementById('panelDetalle');
+        panel.innerHTML = `<div class="text-center py-5"><div class="spinner-border text-dark"></div></div>`;
+
+        try {
+            const resp = await fetch(`api/modificadores/index.php?accion=listar_opciones&id_grupo=${id}`);
+            const data = await resp.json();
+            const opciones = data.data || [];
+
+            let badgeHtml = obligatorio ? '<span class="text-danger fw-bold"><i class="fa-solid fa-asterisk me-1"></i>Selección Obligatoria en Caja</span>' : '<span class="text-primary fw-bold">Selección Opcional</span>';
+
+            let filasHtml = '';
+            if (opciones.length === 0) {
+                filasHtml = `<tr><td colspan="3" class="text-center py-4 text-muted">No hay opciones registradas en este grupo.</td></tr>`;
+            } else {
+                opciones.forEach(o => {
+                    filasHtml += `
+                        <tr>
+                            <td class="fw-bold text-dark">${o.nombre}</td>
+                            <td class="fw-bold text-success">$${parseFloat(o.precio_extra).toFixed(2)}</td>
+                            <td class="text-end">
+                                <button class="btn btn-sm btn-outline-danger rounded-pill fw-bold" onclick="eliminarOpcion(${o.id_opcion})"><i class="fa-solid fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+
+            panel.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
+                    <div>
+                        <h5 class="fw-800 text-dark m-0">${nombre}</h5>
+                        <small>${badgeHtml}</small>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold m-0 text-muted text-uppercase" style="font-size: 0.8rem; letter-spacing: 1px;">Opciones Configuradas</h6>
+                    <button class="btn btn-sm btn-dark rounded-pill fw-bold px-3" onclick="abrirModalOpcion(${id})"><i class="fa-solid fa-plus me-1"></i> Añadir Opción</button>
+                </div>
+
+                <table class="table-custom">
+                    <thead>
+                        <tr>
+                            <th style="width: 50%">Nombre de la Opción</th>
+                            <th style="width: 30%">Cobro Extra ($)</th>
+                            <th style="width: 20%" class="text-end">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${filasHtml}
+                    </tbody>
+                </table>
+            `;
+
+        } catch (error) {
+            console.error(error);
+            panel.innerHTML = `<p class="text-danger text-center">Error al cargar opciones.</p>`;
+        }
+    }
+
+    function abrirModalGrupo() {
+        document.getElementById('nombreGrupo').value = '';
+        document.getElementById('esObligatorio').checked = false;
+        modalGrupoInst.show();
+    }
+
+    async function guardarGrupo() {
+        const nombre = document.getElementById('nombreGrupo').value;
+        const obligatorio = document.getElementById('esObligatorio').checked;
+
+        if (!nombre) { alert("El nombre del grupo es obligatorio"); return; }
+
+        try {
+            const resp = await fetch('api/modificadores/index.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ accion: 'crear_grupo', nombre, obligatorio })
+            });
+            const res = await resp.json();
+            if (res.status === 'success') {
+                modalGrupoInst.hide();
+                grupoActivoId = res.id_grupo; // Seleccionar el nuevo
+                cargarGrupos();
+            } else {
+                alert(res.message);
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    function abrirModalOpcion(idGrupo) {
+        document.getElementById('grupoIdSeleccionado').value = idGrupo;
+        document.getElementById('nombreOpcion').value = '';
+        document.getElementById('precioOpcion').value = '0.00';
+        modalOpcionInst.show();
+    }
+
+    async function guardarOpcion() {
+        const id_grupo = document.getElementById('grupoIdSeleccionado').value;
+        const nombre = document.getElementById('nombreOpcion').value;
+        const precio_extra = document.getElementById('precioOpcion').value;
+
+        if (!nombre) { alert("El nombre de la opción es obligatorio"); return; }
+
+        try {
+            const resp = await fetch('api/modificadores/index.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ accion: 'crear_opcion', id_grupo, nombre, precio_extra })
+            });
+            const res = await resp.json();
+            if (res.status === 'success') {
+                modalOpcionInst.hide();
+                seleccionarGrupo(id_grupo, document.querySelector('.group-card.active h6').innerText, document.querySelector('.group-card.active .badge-obligatorio') != null);
+            } else {
+                alert(res.message);
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    // === NUEVAS FUNCIONES DE ELIMINACIÓN ===
+    async function eliminarGrupo(id, event) {
+        event.stopPropagation(); // Evitar que se seleccione el grupo
+        if(!confirm('¿Estás seguro de eliminar este grupo? Se borrarán todas sus opciones.')) return;
+        
+        try {
+            const resp = await fetch('api/modificadores/index.php', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ accion: 'eliminar_grupo', id_grupo: id })
+            });
+            const res = await resp.json();
+            if(res.status === 'success') {
+                grupoActivoId = null;
+                document.getElementById('panelDetalle').innerHTML = '<div class="text-center py-5 text-muted"><p class="fw-bold">Selecciona un grupo a la izquierda.</p></div>';
+                cargarGrupos();
+            } else {
+                alert(res.message);
+            }
+        } catch (error) { console.error(error); }
+    }
+
+    async function eliminarOpcion(id) {
+        if(!confirm('¿Eliminar esta opción?')) return;
+        
+        try {
+            const resp = await fetch('api/modificadores/index.php', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ accion: 'eliminar_opcion', id_opcion: id })
+            });
+            const res = await resp.json();
+            if(res.status === 'success') {
+                const nombreActivo = document.querySelector('.group-card.active h6').innerText;
+                const esOblig = document.querySelector('.group-card.active .badge-obligatorio') != null;
+                seleccionarGrupo(grupoActivoId, nombreActivo, esOblig);
+            } else {
+                alert(res.message);
+            }
+        } catch (error) { console.error(error); }
+    }
+</script>
+</body>
+</html>

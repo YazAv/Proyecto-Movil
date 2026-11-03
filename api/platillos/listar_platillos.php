@@ -8,6 +8,7 @@ try {
     $db = new Database();
     $conn = $db->getConnection();
 
+    // Consulta optimizada para traer siempre el nombre actual de la categoría relacionada
     $stmt = $conn->prepare("
         SELECT p.id_producto AS id, 
                p.nombre, 
@@ -18,7 +19,7 @@ try {
                c.nombre AS categoria, 
                COALESCE(k.nombre, 'Cocina Principal') AS estacion_kds
         FROM productos p
-        LEFT JOIN categorias c ON (c.id_categoria = p.categoria_id OR c.id_categoria = p.id_categoria)
+        INNER JOIN categorias c ON (c.id_categoria = p.categoria_id OR c.id_categoria = p.id_categoria)
         LEFT JOIN kds_estaciones k ON (k.id_estacion = p.estacion_kds_id OR k.id = p.estacion_kds_id)
         WHERE p.disponible = 1 OR p.activo = true
         ORDER BY p.id_producto ASC

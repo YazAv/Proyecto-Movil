@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SazónTrack - Histórico de Comandas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Italianno&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Librería para exportar a Excel nativo (.xlsx) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <style>
+        :root {
+            --bg-offwhite: #FDFCF8;
+            --bg-ivory: #F3F0E9;
+            --color-nude: #E3DBCC;
+            --text-dark: #2A2621;
+            --text-muted: #736B60;
+            --sidebar-width: 250px;
+            --transition-smooth: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        body {
+            background-color: var(--bg-ivory);
+            color: var(--text-dark);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        /* === Estilos del Sidebar === */
+        .sidebar {
+            width: var(--sidebar-width); background: var(--bg-offwhite);
+            border-right: 1px solid var(--color-nude); height: 100vh;
+            position: fixed; top: 0; left: 0; display: flex; flex-direction: column;
+            padding: 1.4rem 1rem; z-index: 100;
+        }
+        .brand-header {
+            display: flex; align-items: center; gap: 12px; padding-bottom: 1.2rem;
+            border-bottom: 1px solid var(--color-nude); margin-bottom: 1rem;
+        }
+        .brand-avatar {
+            width: 42px; height: 42px; background: var(--text-dark); color: var(--bg-offwhite);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 10px rgba(42,38,33,0.2);
+        }
+        .brand-title { font-family: 'Italianno', cursive; font-size: 2.1rem; margin: 0; line-height: 0.8; }
+        .brand-sub { font-size: 0.72rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        .nav-category { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); font-weight: 800; margin: 1.5rem 0 0.5rem 0.8rem; }
+        .sidebar-nav .nav-link {
+            color: var(--text-muted); font-weight: 600; font-size: 0.88rem; padding: 12px 16px;
+            border-radius: 12px; display: flex; align-items: center; gap: 12px; margin-bottom: 6px; text-decoration: none;
+            transition: var(--transition-smooth);
+        }
+        .sidebar-nav .nav-link:hover { background: rgba(227, 219, 204, 0.4); color: var(--text-dark); transform: translateX(4px); }
+        .sidebar-nav .nav-link.active { background: var(--text-dark); color: var(--bg-offwhite); box-shadow: 0 6px 16px rgba(42,38,33,0.2); }
+
+        .main-wrapper { margin-left: var(--sidebar-width); padding: 2.5rem; }
+
+        /* === Animaciones Elegantes === */
+        @keyframes fadeSlideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-entrada { animation: fadeSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+
+        /* === Tarjetas (KPIs) === */
+        .summary-card {
+            background: #fff; border: 1px solid rgba(227, 219, 204, 0.6); border-radius: 20px;
+            padding: 1.8rem; transition: var(--transition-smooth); position: relative; overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+        }
+        .summary-card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
+            background: var(--text-dark); opacity: 0; transition: var(--transition-smooth);
+        }
+        .summary-card:hover { transform: translateY(-6px); box-shadow: 0 16px 32px rgba(42,38,33,0.08); border-color: transparent; }
+        .summary-card:hover::before { opacity: 1; }
+        
+        .card-dark { background: var(--text-dark); color: white; border: none; }
+        .card-dark::before { background: var(--color-nude); }
+        .card-dark .text-muted { color: rgba(255,255,255,0.6) !important; }
+
+        /* === Filtros === */
+        .filter-panel {
+            background: #fff; border: 1px solid rgba(227, 219, 204, 0.5); border-radius: 20px;
+            padding: 1.5rem 2rem; box-shadow: 0 8px 24px rgba(42,38,33,0.03);
+        }
+        .form-control, .form-select { 
+            border-radius: 12px; padding: 12px 16px; border: 1px solid var(--color-nude); 
+            background-color: var(--bg-offwhite); font-weight: 500; transition: var(--transition-smooth); 
+        }
+        .form-control:focus, .form-select:focus { 
+            border-color: var(--text-dark); box-shadow: 0 0 0 4px rgba(42,38,33,0.08); background-color: #fff;
+        }
+
+        /* === Tabla Estilo Lista Separada === */
+        .table-container { margin-top: 1rem; }
+        .table-custom { width: 100%; border-collapse: separate; border-spacing: 0 12px; }
+        .table-custom thead th { 
+            border: none; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; 
+            letter-spacing: 1.5px; padding: 0 1rem 0.5rem 1rem; font-weight: 800;
+        }
+        
+        .table-custom tbody tr { 
+            background: #fff; box-shadow: 0 2px 8px rgba(42,38,33,0.03); 
+            transition: var(--transition-smooth); opacity: 0; animation: fadeSlideUp 0.5s ease forwards;
+        }
+        .table-custom tbody tr:hover { 
+            transform: translateY(-3px) scale(1.005); 
+            box-shadow: 0 12px 24px rgba(42,38,33,0.08); position: relative; z-index: 2;
+        }
+        .table-custom td { padding: 1.2rem 1rem; border: none; vertical-align: middle; border-top: 1px solid transparent; border-bottom: 1px solid transparent; }
+        .table-custom td:first-child { border-top-left-radius: 16px; border-bottom-left-radius: 16px; border-left: 1px solid transparent; }
+        .table-custom td:last-child { border-top-right-radius: 16px; border-bottom-right-radius: 16px; border-right: 1px solid transparent; }
+        .table-custom tbody tr:hover td { border-color: rgba(227, 219, 204, 0.4); }
+
+        .badge-estado { font-weight: 800; padding: 0.5em 1em; border-radius: 10px; font-size: 0.72rem; letter-spacing: 0.5px; }
+        
+        .btn-ver { 
+            background: var(--bg-ivory); color: var(--text-dark); border: none; 
+            border-radius: 10px; padding: 8px 16px; font-weight: 700; transition: var(--transition-smooth);
+        }
+        .btn-ver:hover { background: var(--text-dark); color: #fff; transform: scale(1.05); }
+
+        /* Estilo Botón Excel */
+        .btn-excel {
+            background-color: #107c41; color: white; border: none; transition: var(--transition-smooth);
+        }
+        .btn-excel:hover { background-color: #0b5e31; color: white; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(16, 124, 65, 0.3); }
+
+        .spinner-custom {
+            width: 40px; height: 40px; border: 4px solid var(--color-nude);
+            border-top-color: var(--text-dark); border-radius: 50%;
+            animation: spin 1s linear infinite; margin: 2rem auto;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Ocultar elementos al imprimir en papel/PDF */
+        @media print {
+            .sidebar, .filter-panel, .d-flex.gap-2, .btn-ver { display: none !important; }
+            .main-wrapper { margin-left: 0; padding: 0; }
+            .table-custom tbody tr { box-shadow: none; border-bottom: 1px solid #ddd; }
+            body { background: #fff; }
+        }
+    </style>
+</head>
+<body>
+
+<aside class="sidebar">
+    <div class="sidebar-scrollable">
+        <div class="brand-header">
+            <div class="brand-avatar"><i class="fa-solid fa-calculator"></i></div>
+            <div>
+                <h2 class="brand-title">SazónTrack</h2>
+                <span class="brand-sub">Admin POS</span>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-category">Principal</div>
+            <a href="index.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+            <a href="caja.html" class="nav-link"><i class="fa-solid fa-cash-register"></i> Caja POS</a>
+            <a href="turno.html" class="nav-link"><i class="fa-solid fa-vault"></i> Turnos y Cortes</a>
+            <a href="historial_comandas.html" class="nav-link active"><i class="fa-solid fa-receipt"></i> Historial Comandas</a>
+            <a href="mesas.html" class="nav-link"><i class="fa-solid fa-utensils"></i> Mapa Mesas</a>
+
+            <div class="nav-category">Recursos Humanos</div>
+            <a href="asistencia.html" class="nav-link"><i class="fa-solid fa-clock"></i> Reloj Checador</a>
+            <a href="reporte_asistencia.html" class="nav-link"><i class="fa-solid fa-file-invoice-dollar"></i> Asistencias y Nómina</a>
+        </nav>
+    </div>
+</aside>
+
+<main class="main-wrapper">
+    <!-- Header con Botones de Exportación -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3 bg-white p-4 rounded-4 border-0 shadow-sm animate-entrada">
+        <div>
+            <h4 class="fw-800 m-0"><i class="fa-solid fa-receipt me-2 text-dark opacity-75"></i>Histórico de Comandas</h4>
+            <small class="text-muted fw-bold">Auditoría, revisión y estatus de todas las órdenes del sistema</small>
+        </div>
+        <div class="d-flex gap-2">
+            <button onclick="exportarExcel()" class="btn btn-excel rounded-pill fw-bold btn-sm px-4 py-2 shadow-sm">
+                <i class="fa-solid fa-file-excel me-2"></i> Excel
+            </button>
+            <button onclick="window.print()" class="btn btn-dark rounded-pill fw-bold btn-sm px-4 py-2 shadow-sm transition-smooth">
+                <i class="fa-solid fa-print me-2"></i> Imprimir
+            </button>
+        </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4 animate-entrada delay-1">
+            <div class="summary-card">
+                <small class="text-muted fw-bold letter-spacing-1">TOTAL ÓRDENES</small>
+                <h2 class="fw-800 m-0 mt-2" id="kpiOrdenes">0</h2>
+            </div>
+        </div>
+        <div class="col-md-4 animate-entrada delay-2">
+            <div class="summary-card card-dark">
+                <small class="text-muted fw-bold letter-spacing-1">INGRESOS (PAGADAS)</small>
+                <h2 class="fw-800 m-0 mt-2 text-success" id="kpiIngresos">$0.00</h2>
+            </div>
+        </div>
+        <div class="col-md-4 animate-entrada delay-3">
+            <div class="summary-card">
+                <small class="text-muted fw-bold letter-spacing-1">CANCELADAS / MERMA</small>
+                <h2 class="fw-800 m-0 mt-2 text-danger" id="kpiCanceladas">0</h2>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filter-panel animate-entrada delay-2 mb-4">
+        <h6 class="fw-800 mb-3 text-dark small text-uppercase letter-spacing-1"><i class="fa-solid fa-sliders me-2"></i> Filtros de Búsqueda</h6>
+        <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small fw-bold text-muted">Desde</label>
+                <input type="date" id="fechaInicio" class="form-control">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-bold text-muted">Hasta</label>
+                <input type="date" id="fechaFin" class="form-control">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small fw-bold text-muted">Estado de Comanda</label>
+                <select id="selectEstado" class="form-select fw-bold">
+                    <option value="todas">Todos los Estados</option>
+                    <option value="pagada">✅ Pagadas (Cerradas)</option>
+                    <option value="abierta">🕒 Abiertas / En Turno</option>
+                    <option value="cancelada">❌ Canceladas</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-dark w-100 fw-bold py-3 rounded-3 shadow-sm" onclick="cargarHistorial()">
+                    <i class="fa-solid fa-search me-1"></i> Buscar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla -->
+    <div class="table-container animate-entrada delay-3">
+        <table class="table-custom">
+            <thead>
+                <tr>
+                    <th style="width: 10%">Folio</th>
+                    <th style="width: 20%">Fecha y Hora</th>
+                    <th style="width: 15%">Mesa / Tipo</th>
+                    <th style="width: 20%">Atendió</th>
+                    <th style="width: 15%">Total</th>
+                    <th style="width: 10%">Estado</th>
+                    <th style="width: 10%" class="text-center">Acción</th>
+                </tr>
+            </thead>
+            <tbody id="tablaHistorialBody">
+                <!-- El spinner de carga se insertará aquí mediante JS -->
+            </tbody>
+        </table>
+    </div>
+</main>
+
+<script>
+    // Variable global para almacenar los datos actuales de la tabla para Excel
+    let datosComandasGlobal = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const hoy = new Date().toISOString().split('T')[0];
+        document.getElementById('fechaInicio').value = hoy;
+        document.getElementById('fechaFin').value = hoy;
+        cargarHistorial();
+    });
+
+    async function cargarHistorial() {
+        const fInicio = document.getElementById('fechaInicio').value;
+        const fFin = document.getElementById('fechaFin').value;
+        const estado = document.getElementById('selectEstado').value;
+        const tbody = document.getElementById('tablaHistorialBody');
+
+        tbody.innerHTML = `<tr><td colspan="7"><div class="spinner-custom"></div><p class="text-center text-muted fw-bold mt-2">Buscando comandas...</p></td></tr>`;
+
+        try {
+            const resp = await fetch(`api/comandas/historial.php?fecha_inicio=${fInicio}&fecha_fin=${fFin}&estado=${estado}`);
+            const data = await resp.json();
+            
+            // Guardamos los datos en la variable global para poder exportarlos luego
+            datosComandasGlobal = data.data || [];
+            
+            setTimeout(() => {
+                renderizarTabla(datosComandasGlobal);
+            }, 300);
+
+        } catch (error) {
+            console.error(error);
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4 fw-bold"><i class="fa-solid fa-triangle-exclamation me-2"></i>Error de conexión.</td></tr>`;
+            datosComandasGlobal = [];
+        }
+    }
+
+    function renderizarTabla(comandas) {
+        const tbody = document.getElementById('tablaHistorialBody');
+        tbody.innerHTML = '';
+
+        let totalOrdenes = 0;
+        let ingresosPagadas = 0;
+        let totalCanceladas = 0;
+
+        if (comandas.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-5 text-muted fw-bold"><i class="fa-solid fa-inbox fa-2x mb-3 d-block opacity-50"></i>No hay comandas en este rango de fechas.</td></tr>`;
+            actualizarKPIs(0, 0, 0);
+            return;
+        }
+
+        comandas.forEach((c, index) => {
+            totalOrdenes++;
+            const total = parseFloat(c.total);
+
+            let badgeClass = 'bg-secondary';
+            let estadoTxt = (c.estado || '').toUpperCase();
+            let iconClass = '';
+            
+            if (estadoTxt === 'PAGADA' || estadoTxt === 'CERRADA') {
+                badgeClass = 'bg-success-subtle text-success';
+                iconClass = '<i class="fa-solid fa-check-circle me-1"></i>';
+                ingresosPagadas += total;
+            } else if (estadoTxt === 'ABIERTA' || estadoTxt === 'PENDIENTE') {
+                badgeClass = 'bg-warning-subtle text-warning-emphasis';
+                iconClass = '<i class="fa-solid fa-clock me-1"></i>';
+            } else if (estadoTxt === 'CANCELADA') {
+                badgeClass = 'bg-danger-subtle text-danger';
+                iconClass = '<i class="fa-solid fa-xmark-circle me-1"></i>';
+                totalCanceladas++;
+            }
+
+            const animationDelay = Math.min(index * 0.08, 1); 
+
+            tbody.insertAdjacentHTML('beforeend', `
+                <tr style="animation-delay: ${animationDelay}s">
+                    <td class="fw-800 text-dark fs-6">#${c.folio}</td>
+                    <td>
+                        <span class="d-block fw-bold text-dark">${c.fecha_apertura ? c.fecha_apertura.split(' ')[0] : ''}</span>
+                        <span class="text-muted font-monospace small"><i class="fa-regular fa-clock me-1"></i>${c.fecha_apertura ? c.fecha_apertura.split(' ')[1] : ''}</span>
+                    </td>
+                    <td class="fw-800 text-dark"><i class="fa-solid fa-utensils me-2 text-muted"></i>${c.mesa}</td>
+                    <td class="fw-semibold text-muted"><i class="fa-solid fa-user me-2 opacity-50"></i>${c.mesero}</td>
+                    <td class="fw-900 text-dark fs-6">$${total.toFixed(2)}</td>
+                    <td><span class="badge badge-estado ${badgeClass}">${iconClass}${estadoTxt}</span></td>
+                    <td class="text-center">
+                        <button class="btn-ver" onclick="alert('Ticket detallado del Folio #${c.folio}')">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </td>
+                </tr>
+            `);
+        });
+
+        actualizarKPIs(totalOrdenes, ingresosPagadas, totalCanceladas);
+    }
+
+    function actualizarKPIs(ordenes, ingresos, canceladas) {
+        document.getElementById('kpiOrdenes').innerText = ordenes;
+        document.getElementById('kpiIngresos').innerText = `$${ingresos.toFixed(2)}`;
+        document.getElementById('kpiCanceladas').innerText = canceladas;
+    }
+
+    // === FUNCIÓN PARA EXPORTAR A EXCEL (.xlsx) ===
+    function exportarExcel() {
+        if (datosComandasGlobal.length === 0) {
+            alert("No hay comandas para exportar en este periodo.");
+            return;
+        }
+
+        // 1. Mapear y limpiar los datos para que el Excel luzca profesional
+        const datosLimpios = datosComandasGlobal.map(c => ({
+            "Folio de Comanda": c.folio,
+            "Fecha y Hora de Apertura": c.fecha_apertura,
+            "Fecha y Hora de Cierre": c.fecha_cierre || 'En turno',
+            "Mesa / Tipo de Servicio": c.mesa,
+            "Atendido por": c.mesero,
+            "Estado": (c.estado || '').toUpperCase(),
+            "Total Generado (MXN)": parseFloat(c.total)
+        }));
+
+        // 2. Crear una hoja de trabajo (Worksheet) a partir del JSON
+        const worksheet = XLSX.utils.json_to_sheet(datosLimpios);
+
+        // Ajustar el ancho de las columnas en Excel
+        const wscols = [
+            {wch: 18}, // Folio
+            {wch: 25}, // Apertura
+            {wch: 25}, // Cierre
+            {wch: 25}, // Mesa
+            {wch: 25}, // Atendido
+            {wch: 15}, // Estado
+            {wch: 20}  // Total
+        ];
+        worksheet['!cols'] = wscols;
+
+        // 3. Crear un nuevo libro de trabajo (Workbook) y añadir la hoja
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Historial Comandas");
+
+        // 4. Descargar el archivo
+        const fechaActual = new Date().toISOString().split('T')[0];
+        XLSX.writeFile(workbook, `Reporte_Comandas_SazonTrack_${fechaActual}.xlsx`);
+    }
+</script>
+</body>
+</html>

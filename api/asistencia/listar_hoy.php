@@ -1,41 +1,39 @@
 <?php
-error_reporting(0);
-ini_set('display_errors', 0);
-date_default_timezone_set('America/Mexico_City');
-header("Content-Type: application/json; charset=UTF-8");
+// api/asistencia/listar_hoy.php
+header('Content-Type: application/json; charset=utf-8');
 
-require_once "../../config/conexion.php";
+if (file_exists(__DIR__ . '/../../config/conexion.php')) {
+    require_once __DIR__ . '/../../config/conexion.php';
+} elseif (file_exists(__DIR__ . '/../conexion.php')) {
+    require_once __DIR__ . '/../conexion.php';
+}
+
+if (!isset($conn) && class_exists('Database')) {
+    $db = new Database();
+    $conn = $db->getConnection();
+}
 
 try {
-    $db = new Database();
-    if (method_exists($db, 'getConexion')) { $conexion = $db->getConexion(); }
-    elseif (method_exists($db, 'conectar')) { $conexion = $db->conectar(); }
-    elseif (method_exists($db, 'getConnection')) { $conexion = $db->getConnection(); }
-    elseif (property_exists($db, 'pdo')) { $conexion = $db->pdo; }
-    elseif (property_exists($db, 'conexion')) { $conexion = $db->conexion; }
-    else { $conexion = $db; }
+    $stmt = $conn->query("
+        SELECT a.id, a.id_empleado, a.tipo, a.metodo,
+               TO_CHAR(a.fecha_hora, 'HH24:MI:SS') AS hora,
+               TO_CHAR(a.fecha_hora, 'DD/MM/YYYY') AS fecha,
+               (e.nombre || ' ' || CASE WHEN e.apellido = '-' THEN '' ELSE e.apellido END) AS empleado,
+               e.puesto
+        FROM asistencias a
+        JOIN empleados e ON a.id_empleado = e.id_empleado
+        WHERE DATE(a.fecha_hora) = CURRENT_DATE
+        ORDER BY a.fecha_hora DESC
+    ");
+    $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    $conexion->exec("SET TIME ZONE 'America/Mexico_City'");
-
-    // Obtener los registros ordenados del más reciente al más antiguo
-    $query = "SELECT 
-                a.id_asistencia,
-                COALESCE(a.id_empleado, a.usuario_id) AS id_empleado,
-                COALESCE(e.nombre, 'Empleado') AS nombre,
-                COALESCE(e.apellido, '') AS apellido,
-                COALESCE(e.puesto, 'Personal') AS puesto,
-                a.tipo,
-                TO_CHAR(a.hora, 'HH24:MI:SS') AS hora
-              FROM asistencias a
-              LEFT JOIN empleados e ON (a.id_empleado = e.id_empleado OR a.usuario_id = e.id_empleado)
-              ORDER BY a.id_asistencia DESC
-              LIMIT 50";
-
-    $stmt = $conexion->prepare($query);
-    $stmt->execute();
-    $registros = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    echo json_encode(["status" => "success", "data" => $registros ? $registros : []]);
+    echo json_encode([
+        'status' => 'success',
+        'success' => true,
+        'data' => $datos,
+        'asistencias' => $datos
+    ]);
 } catch (Exception $e) {
-    echo json_encode(["status" => "error", "message" => $e->getMessage(), "data" => []]);
+    echo json_encode(['status' => 'error', 'data' => [], 'message' => $e->getMessage()]);
 }
+?>

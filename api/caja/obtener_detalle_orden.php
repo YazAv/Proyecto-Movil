@@ -10,12 +10,13 @@ if ($orden_id <= 0) {
 }
 
 try {
+
     $sql = "SELECT 
                 od.cantidad,
                 p.nombre AS producto,
                 od.precio_unitario,
                 (od.cantidad * od.precio_unitario) AS importe
-            FROM orden_detalles od
+            FROM detalle_orden od
             JOIN productos p ON p.id_producto = od.id_producto
             WHERE od.id_orden = :orden_id";
 

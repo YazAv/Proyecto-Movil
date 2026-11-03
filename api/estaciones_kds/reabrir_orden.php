@@ -1,48 +1,53 @@
 <?php
-require_once '../../config/conexion.php';
-
+// api/estaciones_kds/reabrir_orden.php
 header('Content-Type: application/json');
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(["status" => "error", "message" => "Método no permitido"]);
-    exit();
+if (file_exists(__DIR__ . '/../../config/conexion.php')) {
+    require_once __DIR__ . '/../../config/conexion.php';
+} elseif (file_exists(__DIR__ . '/../conexion.php')) {
+    require_once __DIR__ . '/../conexion.php';
 }
 
-$input = json_decode(file_get_contents("php://input"), true);
-$orden_id = (int)($input['orden_id'] ?? 0);
-$estacion = trim($input['estacion'] ?? 'cocina');
-
-if ($orden_id <= 0) {
-    http_response_code(400);
-    echo json_encode(["status" => "error", "message" => "ID de orden no válido."]);
-    exit();
+if (!isset($conn) && class_exists('Database')) {
+    $db = new Database();
+    $conn = $db->getConnection();
 }
-
-$db = new Database();
-$conn = $db->getConnection();
 
 try {
-    // Regresa el estado de los ítems despachados a 'en_preparacion'
-    $stmt = $conn->prepare("
-        UPDATE orden_detalles od
-        SET estado_preparacion = 'en_preparacion'
-        FROM productos p
-        JOIN categorias c ON c.id = p.categoria_id
-        WHERE od.producto_id = p.id
-          AND od.orden_id = :orden_id
-          AND LOWER(c.estacion) = :estacion
-    ");
+    $data = json_decode(file_get_contents("php://input"), true);
+    if (!$data) {
+        $data = $_POST;
+    }
 
-    $stmt->execute([
-        ':orden_id' => $orden_id,
-        ':estacion' => strtolower($estacion)
+    $orden_id = intval($data['orden_id'] ?? ($data['id_orden'] ?? 0));
+    $detalle_id = intval($data['detalle_id'] ?? ($data['id_detalle'] ?? 0));
+
+    if ($detalle_id > 0) {
+        $stmt = $conn->prepare("
+            UPDATE orden_detalles 
+            SET estado_preparacion = 'pendiente', estado_kds = 'PENDIENTE', actualizado_en = CURRENT_TIMESTAMP 
+            WHERE id_detalle = ?
+        ");
+        $stmt->execute([$detalle_id]);
+    } elseif ($orden_id > 0) {
+        $stmt = $conn->prepare("
+            UPDATE orden_detalles 
+            SET estado_preparacion = 'pendiente', estado_kds = 'PENDIENTE', actualizado_en = CURRENT_TIMESTAMP 
+            WHERE orden_id = ? AND estado_kds != 'CANCELADO'
+        ");
+        $stmt->execute([$orden_id]);
+    } else {
+        throw new Exception("No se especificó la orden o platillo a reabrir.");
+    }
+
+    echo json_encode([
+        'status' => 'success',
+        'success' => true,
+        'message' => 'Comanda devuelta a preparación activa.'
     ]);
 
-    http_response_code(200);
-    echo json_encode(["status" => "success", "message" => "Comanda restaurada a la pantalla activa."]);
-
-} catch (PDOException $e) {
+} catch (Exception $e) {
     http_response_code(500);
-    echo json_encode(["status" => "error", "message" => "Error BD: " . $e->getMessage()]);
+    echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
 }
+?>

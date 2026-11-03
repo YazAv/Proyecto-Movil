@@ -3,12 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SazónTrack - Caja POS Avanzada</title>
-    <!-- Google Fonts -->
+    <title>SazónTrack - Caja POS</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Italianno&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- CSS Dependencies -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -17,638 +15,555 @@
             --bg-offwhite: #FDFCF8;
             --bg-ivory: #F3F0E9;
             --color-nude: #E3DBCC;
-            --color-nude-hover: #D5C7B3;
             --text-dark: #2A2621;
             --text-muted: #736B60;
-            --card-shadow: rgba(42, 38, 33, 0.08);
-            --sidebar-width: 260px;
+            --sidebar-width: 240px;
+            --ticket-width: 360px;
+            --transition-smooth: all 0.2s ease-in-out;
         }
 
-        body {
-            background-color: var(--bg-ivory);
-            color: var(--text-dark);
-            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-            min-height: 100vh;
-            margin: 0;
-            overflow-x: hidden;
-        }
+        body { background-color: var(--bg-ivory); color: var(--text-dark); font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; min-height: 100vh; overflow: hidden; }
 
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: var(--color-nude-hover); border-radius: 10px; }
-
-        /* ==================== SIDEBAR ==================== */
-        .sidebar {
-            width: var(--sidebar-width);
-            background: var(--bg-offwhite);
-            border-right: 1px solid var(--color-nude);
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
-            display: flex;
-            flex-direction: column;
-            padding: 1.5rem 1rem;
-            z-index: 100;
-        }
-        .sidebar-scrollable { overflow-y: auto; flex-grow: 1; padding-right: 5px; }
+        /* === 1. SIDEBAR IZQUIERDO === */
+        .sidebar { width: var(--sidebar-width); background: var(--bg-offwhite); height: 100vh; position: fixed; top: 0; left: 0; display: flex; flex-direction: column; padding: 1.5rem 1rem; z-index: 100; overflow-y: auto; }
+        .brand-header { display: flex; align-items: center; gap: 12px; padding-bottom: 1rem; border-bottom: 1px solid var(--color-nude); margin-bottom: 1rem; }
+        .brand-avatar { width: 40px; height: 40px; background: var(--text-dark); color: var(--bg-offwhite); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .brand-title { font-family: 'Italianno', cursive; font-size: 2.2rem; margin: 0; line-height: 0.8; }
+        .brand-sub { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; }
         
-        .brand-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding-bottom: 1.2rem;
-            border-bottom: 1px solid var(--color-nude);
-            margin-bottom: 1rem;
-        }
-        .brand-avatar {
-            width: 44px;
-            height: 44px;
-            background: var(--text-dark);
-            color: var(--bg-offwhite);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-        }
-        .brand-title {
-            font-family: 'Italianno', cursive, serif;
-            font-size: 2.2rem;
-            color: var(--text-dark);
-            line-height: 0.8;
-            margin: 0;
-        }
-        .brand-sub { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
+        .nav-category { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); font-weight: 800; margin: 1.2rem 0 0.5rem 0.8rem; }
+        .sidebar-nav .nav-link { color: var(--text-muted); font-weight: 600; font-size: 0.85rem; padding: 10px 14px; border-radius: 12px; display: flex; align-items: center; gap: 10px; margin-bottom: 4px; text-decoration: none; transition: var(--transition-smooth); }
+        .sidebar-nav .nav-link:hover { background: rgba(227, 219, 204, 0.4); color: var(--text-dark); }
+        .sidebar-nav .nav-link.active { background: var(--text-dark); color: var(--bg-offwhite); box-shadow: 0 4px 10px rgba(42,38,33,0.15); }
 
-        .nav-category {
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-muted);
-            font-weight: 700;
-            margin: 1.2rem 0 0.4rem 0.8rem;
-        }
-        .sidebar-nav .nav-link {
-            color: var(--text-muted);
-            font-weight: 600;
-            font-size: 0.9rem;
-            padding: 10px 14px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 4px;
-            transition: all 0.15s ease;
-            text-decoration: none;
-        }
-        .sidebar-nav .nav-link:hover { background: var(--bg-ivory); color: var(--text-dark); }
-        .sidebar-nav .nav-link.active {
-            background: var(--text-dark);
-            color: var(--bg-offwhite);
-            box-shadow: 0 4px 12px rgba(42, 38, 33, 0.12);
-        }
+        /* === 2. PANEL CENTRAL (MENÚ) === */
+        .pos-layout { margin-left: var(--sidebar-width); margin-right: var(--ticket-width); padding: 1.5rem; height: 100vh; display: flex; flex-direction: column; }
+        
+        .top-bar-caja { background: #fff; border-radius: 16px; padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
+        
+        .cat-btn { background: #fff; border: none; color: var(--text-muted); padding: 10px 20px; border-radius: 30px; font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: var(--transition-smooth); box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+        .cat-btn.active { background: var(--text-dark); color: #fff; }
 
-        /* ==================== MAIN CONTENT ==================== */
-        .main-wrapper {
-            margin-left: var(--sidebar-width);
-            padding: 1.5rem 2.5rem;
-        }
+        .search-box { background: #fff; border-radius: 12px; padding: 5px 15px; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); margin-bottom: 1.5rem; }
+        .search-box input { border: none; outline: none; width: 100%; padding: 8px 0; font-weight: 500; }
 
-        .card-custom {
-            background: var(--bg-offwhite);
-            border: 1px solid var(--color-nude);
-            border-radius: 20px;
-            box-shadow: 0 4px 15px rgba(42, 38, 33, 0.03);
-        }
+        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; overflow-y: auto; padding-bottom: 2rem; align-content: start; }
+        .product-card { background: #fff; border-radius: 16px; padding: 1.2rem; transition: var(--transition-smooth); position: relative; border: 1px solid transparent; }
+        .product-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(42,38,33,0.06); border-color: var(--color-nude); }
+        
+        .btn-add-prod { background: var(--text-dark); color: white; border: none; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; position: absolute; bottom: 1.2rem; right: 1.2rem; cursor: pointer; transition: transform 0.2s; }
+        .btn-add-prod:hover { transform: scale(1.1); background: #000; }
 
-        .pos-grid-card {
-            background: var(--bg-offwhite);
-            border: 1px solid var(--color-nude);
-            border-radius: 16px;
-            padding: 1rem;
-            cursor: pointer;
-            transition: all 0.15s ease;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-        .pos-grid-card:hover {
-            transform: translateY(-3px);
-            border-color: var(--text-dark);
-            box-shadow: 0 6px 15px var(--card-shadow);
-        }
-        .pos-price {
-            font-weight: 800;
-            color: #10B981;
-            font-size: 1.1rem;
-        }
+        /* === 3. PANEL DERECHO (TICKET) === */
+        .ticket-area { width: var(--ticket-width); background: #fff; height: 100vh; position: fixed; top: 0; right: 0; display: flex; flex-direction: column; box-shadow: -4px 0 20px rgba(0,0,0,0.03); z-index: 100; border-radius: 20px 0 0 20px; }
+        
+        .ticket-header { padding: 1.5rem; border-bottom: 1px solid var(--color-nude); }
+        .ticket-items { flex-grow: 1; overflow-y: auto; padding: 1rem; background: var(--bg-offwhite); }
+        .ticket-footer { padding: 1.5rem; border-top: 1px solid var(--color-nude); background: #fff; }
+
+        .t-item { background: #fff; border-radius: 12px; padding: 12px; margin-bottom: 10px; border: 1px solid var(--color-nude); position: relative; }
+        .t-item-name { font-weight: 800; font-size: 0.9rem; line-height: 1.2; color: var(--text-dark); }
+        .t-item-price { font-weight: 800; font-size: 0.95rem; color: #107c41; }
+        .t-item-mods { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; margin-top: 6px; padding-left: 8px; border-left: 2px solid var(--color-nude); }
+        .t-item-del { color: #dc2626; cursor: pointer; font-size: 0.9rem; opacity: 0.5; transition: var(--transition-smooth); }
+        .t-item-del:hover { opacity: 1; transform: scale(1.1); }
+
+        .calc-box { background: var(--bg-offwhite); border: 1px solid var(--color-nude); border-radius: 12px; padding: 15px; margin-bottom: 15px; }
+        .propina-btn { background: #fff; border: 1px solid var(--color-nude); color: var(--text-muted); font-weight: 700; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; }
+        .propina-btn.active { background: var(--text-dark); color: #fff; border-color: var(--text-dark); }
+        
+        .total-row { font-size: 1.4rem; font-weight: 900; color: var(--text-dark); display: flex; justify-content: space-between; align-items: center; border-bottom: 2px dashed var(--color-nude); padding-bottom: 10px; margin-bottom: 15px; }
+
+        /* === 4. MODAL MODIFICADORES === */
+        .modal-content-custom { border-radius: 20px; border: none; box-shadow: 0 20px 40px rgba(0,0,0,0.15); background-color: var(--bg-offwhite); overflow: hidden; }
+        .mod-group-title { background: var(--bg-ivory); padding: 10px 15px; border-radius: 10px; font-weight: 800; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; display: flex; justify-content: space-between; }
+        .mod-option { background: #fff; border: 1px solid var(--color-nude); border-radius: 12px; padding: 12px 15px; margin-bottom: 8px; cursor: pointer; transition: var(--transition-smooth); display: flex; justify-content: space-between; align-items: center; }
+        .mod-option:hover { border-color: var(--text-dark); }
+        .mod-option.selected { border-color: var(--text-dark); background: var(--text-dark); color: #fff; }
+        .mod-option.selected .text-muted { color: rgba(255,255,255,0.7) !important; }
+        .mod-option input[type="radio"], .mod-option input[type="checkbox"] { display: none; }
     </style>
 </head>
 <body>
 
-<!-- SIDEBAR -->
+<!-- 1. SIDEBAR IZQUIERDO -->
 <aside class="sidebar">
-    <div class="sidebar-scrollable">
-        <div class="brand-header">
-            <div class="brand-avatar"><i class="fa-solid fa-concierge-bell"></i></div>
-            <div>
-                <h2 class="brand-title">SazónTrack</h2>
-                <span class="brand-sub">Panel de Control</span>
-            </div>
+    <div class="brand-header">
+        <div class="brand-avatar"><i class="fa-solid fa-calculator"></i></div>
+        <div>
+            <h2 class="brand-title">SazónTrack</h2>
+            <span class="brand-sub">Caja</span>
         </div>
-
-        <nav class="sidebar-nav">
-            <div class="nav-category">Principal</div>
-            <a href="index.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
-            <a href="caja.html" class="nav-link active"><i class="fa-solid fa-cash-register"></i> Caja POS</a>
-            <a href="mesas.html" class="nav-link"><i class="fa-solid fa-utensils"></i> Mapa Mesas</a>
-            
-            <div class="nav-category">Recursos Humanos</div>
-            <a href="asistencia.html" class="nav-link"><i class="fa-solid fa-clock"></i> Reloj Checador</a>
-            <a href="empleados.html" class="nav-link"><i class="fa-solid fa-users"></i> Empleados</a>
-
-            <div class="nav-category">Administración</div>
-            <a href="productos.html" class="nav-link"><i class="fa-solid fa-book-open"></i> Catálogo Menú</a>
-            <a href="inventario.html" class="nav-link"><i class="fa-solid fa-boxes-stacked"></i> Inventario</a>
-        </nav>
     </div>
+    <nav class="sidebar-nav">
+        <div class="nav-category">Principal</div>
+        <a href="index.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+        <a href="caja.html" class="nav-link active"><i class="fa-solid fa-cash-register"></i> Caja POS</a>
+        <a href="turno.html" class="nav-link"><i class="fa-solid fa-vault"></i> Turnos y Cortes</a>
+        <a href="mesas.html" class="nav-link"><i class="fa-solid fa-utensils"></i> Mapa Mesas</a>
+
+        <div class="nav-category">Recursos Humanos</div>
+        <a href="asistencia.html" class="nav-link"><i class="fa-solid fa-clock"></i> Reloj Checador</a>
+        <a href="empleados.html" class="nav-link"><i class="fa-solid fa-users"></i> Empleados</a>
+
+        <div class="nav-category">Administración</div>
+        <a href="recetas.html" class="nav-link"><i class="fa-solid fa-book-open"></i> Catálogo Menú</a>
+        <a href="inventario.html" class="nav-link"><i class="fa-solid fa-boxes-stacked"></i> Inventario</a>
+        <a href="modificadores.html" class="nav-link"><i class="fa-solid fa-code-branch"></i> Modificadores</a>
+    </nav>
 </aside>
 
-<!-- MAIN CONTENT -->
-<main class="main-wrapper">
-    
-    <!-- PESTAÑAS SUPERIORES Y CONTROL DE TURNO -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <div class="btn-group bg-white p-1 border rounded-pill shadow-sm">
-            <button class="btn btn-dark rounded-pill px-4 btn-sm fw-bold" id="tabVentaBtn" onclick="cambiarModo('venta')"><i class="fa-solid fa-utensils me-2"></i>Menú</button>
-            <button class="btn btn-light rounded-pill px-4 btn-sm fw-bold text-muted" id="tabMesasBtn" onclick="cambiarModo('mesas')"><i class="fa-solid fa-chair me-2"></i>Mesas Pendientes</button>
-        </div>
-        
-        <div class="d-flex gap-3 align-items-center">
-            <div class="input-group" style="max-width: 280px;" id="contenedorBuscador">
-                <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-search text-muted"></i></span>
-                <input type="text" id="buscarPos" class="form-control border-start-0" placeholder="Buscar platillo...">
-            </div>
-            
-        
-            </button>
+<!-- 2. PANEL CENTRAL (CATÁLOGO) -->
+<main class="pos-layout">
+    <div class="top-bar-caja">
+        <h4 class="fw-800 m-0"><i class="fa-solid fa-cash-register me-2 opacity-75"></i> Caja</h4>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-dark rounded-pill fw-bold btn-sm px-3"><i class="fa-solid fa-money-bill-transfer me-1"></i> Entradas / Retiros</button>
+            <button class="btn btn-dark rounded-pill fw-bold btn-sm px-3"><i class="fa-solid fa-file-invoice-dollar me-1"></i> Corte de Caja</button>
         </div>
     </div>
 
-    <div class="row g-4">
-        <!-- COLUMNA IZQUIERDA: CATÁLOGO O MESAS -->
-        <div class="col-lg-7 col-xl-8">
-            <div id="vistaMenu">
-                <div class="d-flex gap-2 overflow-auto pb-2 mb-3" id="categoriasFiltroPos">
-                    <button class="btn btn-dark btn-sm rounded-pill px-3 active" onclick="filtrarPosCat('todos')">Todas</button>
-                </div>
-                <div class="row row-cols-2 row-cols-md-3 g-3 overflow-y-auto" style="max-height: 70vh;" id="gridProductosPos">
-                    <!-- Inyectado por JS -->
-                </div>
-            </div>
+    <div class="d-flex gap-3 mb-4">
+        <button class="cat-btn active"><i class="fa-solid fa-lock me-2"></i>Venta Rapida</button>
+        <button class="cat-btn"><i class="fa-solid fa-utensils me-2"></i>Cuentas de Mesas Abiertas <span class="badge bg-danger rounded-pill ms-1">0</span></button>
+    </div>
 
-            <div id="vistaMesas" style="display: none;">
-                <h5 class="fw-bold mb-3"><i class="fa-solid fa-receipt me-2 text-warning"></i>Cuentas por Cobrar</h5>
-                <div class="row row-cols-1 row-cols-md-2 g-3 overflow-y-auto" style="max-height: 70vh;" id="gridMesasPendientes">
-                    <!-- Inyectado por JS -->
-                </div>
-            </div>
-        </div>
+    <div class="search-box">
+        <i class="fa-solid fa-search text-muted"></i>
+        <input type="text" placeholder="Buscar platillo, bebida o postre..." id="buscadorMenu">
+    </div>
 
-        <!-- COLUMNA DERECHA: CAJA Y COBRO AVANZADO -->
-        <div class="col-lg-5 col-xl-4">
-            <div class="card-custom p-4 d-flex flex-column" style="height: 85vh;">
-                <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
-                    <h5 class="fw-bold m-0" id="tituloTicket"><i class="fa-solid fa-receipt me-2"></i>Orden Actual</h5>
-                    <button class="btn btn-outline-danger btn-sm rounded-3" onclick="vaciarCarrito()"><i class="fa-solid fa-trash"></i></button>
-                </div>
-
-                <!-- Lista de Items en el Ticket -->
-                <div class="flex-grow-1 overflow-y-auto pe-1 mb-3" id="listaCarrito">
-                    <div class="text-center text-muted py-5">
-                        <i class="fa-solid fa-cart-shopping fa-2x mb-2 opacity-50"></i>
-                        <p class="small fw-bold">La orden está vacía.</p>
-                    </div>
-                </div>
-
-                <!-- Resumen de Totales y Opciones de Pago -->
-                <div class="border-top pt-3">
-                    
-                    <!-- Subtotal y Propina -->
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="text-muted fw-semibold small">Subtotal</span>
-                        <span class="fw-bold" id="txtSubtotal">$0.00</span>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <span class="text-muted fw-semibold small">Propina (Opcional)</span>
-                        <div class="input-group input-group-sm" style="width: 100px;">
-                            <span class="input-group-text">$</span>
-                            <input type="number" id="inputPropina" class="form-control text-end" value="0" min="0" oninput="calcularTotales()">
-                        </div>
-                    </div>
-
-                    <!-- Total a Pagar -->
-                    <div class="d-flex justify-content-between align-items-center mb-3 p-2 bg-light rounded-3 border">
-                        <span class="fw-bold text-dark">TOTAL A PAGAR</span>
-                        <span class="fs-4 fw-800 text-success" id="txtTotal">$0.00</span>
-                    </div>
-
-                    <!-- Controles de Cobro -->
-                    <div class="row g-2 mb-3">
-                        <div class="col-6">
-                            <label class="form-label small fw-bold text-muted mb-1">Método</label>
-                            <select id="metodoPago" class="form-select form-select-sm rounded-3" onchange="calcularTotales()">
-                                <option value="Efectivo">Efectivo</option>
-                                <option value="Tarjeta">Tarjeta</option>
-                                <option value="Transferencia">Transferencia</option>
-                            </select>
-                        </div>
-                        <div class="col-6" id="divRecibido">
-                            <label class="form-label small fw-bold text-muted mb-1">Recibido</label>
-                            <div class="input-group input-group-sm">
-                                <span class="input-group-text">$</span>
-                                <input type="number" id="inputRecibido" class="form-control text-end" placeholder="0.00" oninput="calcularTotales()">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Cambio y Facturación -->
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="checkFactura">
-                            <label class="form-check-label small fw-bold text-muted" for="checkFactura">Requiere Factura</label>
-                        </div>
-                        <div class="text-end" id="divCambio">
-                            <span class="small text-muted fw-bold">Cambio: </span>
-                            <span class="fw-bold text-primary" id="txtCambio">$0.00</span>
-                        </div>
-                    </div>
-
-                    <button id="btnProcesarCobro" class="btn btn-dark w-100 rounded-3 fw-bold py-2 shadow-sm fs-6" onclick="cobrarOrden()">
-                        <i class="fa-solid fa-cash-register me-2"></i> Confirmar y Cobrar
-                    </button>
-                </div>
-            </div>
-        </div>
+    <!-- Grid de Productos -->
+    <div class="products-grid" id="productosGrid">
+        <!-- Generado dinámicamente -->
     </div>
 </main>
 
-<!-- MODAL: CONTROL DE TURNOS Y ARQUEOS -->
-<div class="modal fade" id="modalTurno" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 rounded-4 shadow-lg">
-            <div class="modal-header border-bottom-0 pb-0">
-                <h5 class="modal-title fw-bold"><i class="fa-solid fa-vault text-warning me-2"></i>Control de Turno</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body pt-3">
-                <div class="alert alert-light border mb-4">
-                    <p class="mb-1 small fw-bold text-muted">Estado actual: <span class="badge bg-success">Turno Abierto</span></p>
-                    <p class="mb-0 small text-muted">Apertura: Hoy 08:30 AM | Fondo inicial: $500.00</p>
-                </div>
+<!-- 3. PANEL DERECHO (TICKET Y COBRO) -->
+<aside class="ticket-area">
+    <div class="ticket-header">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="badge bg-dark fw-bold text-uppercase letter-spacing-1">Venta Mostrador</span>
+            <button class="btn btn-sm btn-outline-danger rounded-pill fw-bold" onclick="limpiarTicket()"><i class="fa-solid fa-trash-can me-1"></i> Limpiar</button>
+        </div>
+        <h4 class="fw-800 m-0">Nueva Orden</h4>
+        <small class="text-muted fw-semibold">Agrega productos o selecciona una mesa abierta.</small>
+    </div>
 
-                <div class="mb-3">
-                    <label class="form-label fw-bold small">Efectivo declarado en caja (Arqueo)</label>
-                    <div class="input-group">
-                        <span class="input-group-text">$</span>
-                        <input type="number" class="form-control" placeholder="0.00">
+    <div class="ticket-items" id="ticketItems">
+        <div class="text-center py-5 text-muted opacity-50 mt-5">
+            <i class="fa-solid fa-receipt fa-3x mb-3"></i>
+            <p class="fw-bold">El ticket está vacío</p>
+        </div>
+    </div>
+
+    <div class="ticket-footer">
+        <!-- Calculadora de Propinas y Descuentos -->
+        <div class="calc-box">
+            <div class="row g-2 mb-3">
+                <div class="col-6">
+                    <small class="fw-bold text-muted d-block mb-1">Descuento ($)</small>
+                    <input type="number" class="form-control form-control-sm fw-bold border-nude" id="inputDescuento" value="0" oninput="calcularTotales()" min="0">
+                </div>
+                <div class="col-6 text-end">
+                    <small class="fw-bold text-muted d-block mb-1">Propina Sugerida</small>
+                    <div class="btn-group w-100">
+                        <button class="btn propina-btn active" onclick="setPropina(0, this)">0%</button>
+                        <button class="btn propina-btn" onclick="setPropina(10, this)">10%</button>
+                        <button class="btn propina-btn" onclick="setPropina(15, this)">15%</button>
                     </div>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label fw-bold small">Observaciones / Gastos extras</label>
-                    <textarea class="form-control" rows="2" placeholder="Ej. Pago de garrafones de agua..."></textarea>
+            </div>
+            <div class="d-flex justify-content-between fw-semibold text-muted small mb-1">
+                <span>Subtotal:</span> <span id="txtSubtotal">$0.00</span>
+            </div>
+            <div class="d-flex justify-content-between fw-bold text-success small mb-2">
+                <span>Propina:</span> <span id="txtPropina">$0.00</span>
+            </div>
+            <div class="total-row">
+                <span class="fs-6 text-muted text-uppercase">Total a Cobrar:</span> 
+                <span id="txtTotal">$0.00</span>
+            </div>
+
+            <!-- Pagos -->
+            <div class="row g-2 align-items-end mb-3">
+                <div class="col-6">
+                    <small class="fw-bold text-muted d-block mb-1">Método de Pago</small>
+                    <select class="form-select form-select-sm fw-bold border-nude" id="selectMetodoPago">
+                        <option value="Efectivo">💵 Efectivo</option>
+                        <option value="Tarjeta">💳 Tarjeta</option>
+                        <option value="Transferencia">📲 Transferencia</option>
+                    </select>
+                </div>
+                <div class="col-6">
+                    <small class="fw-bold text-muted d-block mb-1">Monto Recibido</small>
+                    <input type="number" class="form-control form-control-sm fw-bold border-nude" id="inputRecibido" placeholder="0.00" oninput="calcularCambio()">
                 </div>
             </div>
-            <div class="modal-footer border-top-0 pt-0">
-                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-danger rounded-pill px-4" data-bs-dismiss="modal" onclick="alert('Corte de caja registrado con éxito. Ticket de cierre imprimiendo...')">Cerrar Turno e Imprimir</button>
+            <div class="d-flex justify-content-between align-items-center p-2 rounded-2 fw-bold" style="background-color: #dcfce7; color: #16a34a;">
+                <span>Cambio a devolver:</span> <span id="txtCambio" class="fs-5">$0.00</span>
+            </div>
+        </div>
+        <button class="btn btn-dark w-100 fw-bold py-3 fs-6 rounded-3 shadow-sm" onclick="procesarCobro()"><i class="fa-solid fa-print me-2"></i> COBRAR E IMPRIMIR TICKET</button>
+    </div>
+</aside>
+
+<!-- ========================================== -->
+<!-- 4. MODAL: PERSONALIZAR PLATILLO (MODIFICADORES) -->
+<!-- ========================================== -->
+<div class="modal fade" id="modalModificadoresCaja" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content modal-content-custom">
+            <div class="modal-header bg-dark text-white border-0 p-4 pb-3">
+                <div>
+                    <h5 class="modal-title fw-800 m-0" id="modProductName">Personalizar Platillo</h5>
+                    <small class="text-white-50 fw-semibold" id="modProductPrice">$0.00</small>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0" id="modCuerpoContenido">
+                <!-- Se inyecta vía JS -->
+            </div>
+            <div class="modal-footer border-0 p-4 bg-white shadow-lg">
+                <button type="button" class="btn btn-dark w-100 fw-bold py-3 rounded-3 fs-6" onclick="confirmarModificadores()">
+                    Añadir al Ticket <span id="btnModalTotal" class="ms-2 badge bg-white text-dark rounded-pill">$0.00</span>
+                </button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- BOOTSTRAP JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    let productosPos = [];
-    let mesasPendientes = [];
-    let carrito = [];
-    let categoriaSeleccionada = 'todos';
-    let ordenActualId = null;
+    
+    // ==========================================
+    // BASE DE DATOS SIMULADA (Sustituir con FETCH en producción)
+    // ==========================================
+    const dbProductos = [
+        { id: 1, nombre: "Filete de rib eyes", precio: 450.00, tag: "Menú", tiene_mods: true },
+        { id: 2, nombre: "Flan", precio: 90.00, tag: "Postre", tiene_mods: false },
+        { id: 3, nombre: "Hamburguesa Clásica", precio: 125.00, tag: "Menú", tiene_mods: true },
+        { id: 4, nombre: "tacos", precio: 70.00, tag: "Menú", tiene_mods: false },
+        { id: 5, nombre: "Tacos al Pastor", precio: 45.00, tag: "Menú", tiene_mods: false },
+        { id: 6, nombre: "expreso", precio: 90.00, tag: "Menú", tiene_mods: false },
+        { id: 7, nombre: "Margarita de Limón", precio: 90.00, tag: "Bebida", tiene_mods: false },
+        { id: 8, nombre: "Martini", precio: 40.00, tag: "Bebida", tiene_mods: false }
+    ];
 
-    document.addEventListener("DOMContentLoaded", () => {
-        cargarDatosPos();
-        cargarMesasPendientes();
-        const inputBuscar = document.getElementById('buscarPos');
-        if(inputBuscar) {
-            inputBuscar.addEventListener('input', renderizarGridPos);
-        }
+    // Modificadores vinculados
+    const dbMods = {
+        1: [ // Rib Eye
+            { id_grupo: 1, nombre: "Términos de la Carne", obligatorio: true, opciones: [
+                { id_opcion: 1, nombre: "Rojo / Inglés", precio_extra: 0 }, 
+                { id_opcion: 2, nombre: "Medio", precio_extra: 0 }, 
+                { id_opcion: 3, nombre: "3/4", precio_extra: 0 }, 
+                { id_opcion: 4, nombre: "Bien Cocido", precio_extra: 0 }
+            ]}
+        ],
+        3: [ // Hamburguesa
+            { id_grupo: 2, nombre: "Agregar Extras", obligatorio: false, opciones: [
+                { id_opcion: 5, nombre: "Extra Tocino", precio_extra: 15.00 }, 
+                { id_opcion: 6, nombre: "Doble Queso", precio_extra: 20.00 },
+                { id_opcion: 7, nombre: "Papas a la francesa", precio_extra: 35.00 }
+            ]},
+            { id_grupo: 3, nombre: "Exclusiones (Sin)", obligatorio: false, opciones: [
+                { id_opcion: 8, nombre: "Sin Cebolla", precio_extra: 0 },
+                { id_opcion: 9, nombre: "Sin Jitomate", precio_extra: 0 }
+            ]}
+        ]
+    };
+
+    // ==========================================
+    // VARIABLES DE ESTADO GLOBALES
+    // ==========================================
+    let carrito = [];
+    let productoPendiente = null;
+    let propinaPorcentaje = 0;
+    const modalModificadoresInst = new bootstrap.Modal(document.getElementById('modalModificadoresCaja'));
+
+    // ==========================================
+    // 1. INICIALIZAR Y RENDERIZAR MENÚ
+    // ==========================================
+    document.addEventListener('DOMContentLoaded', () => {
+        renderizarProductos();
     });
 
-    function cambiarModo(modo) {
-        const btnVenta = document.getElementById('tabVentaBtn');
-        const btnMesas = document.getElementById('tabMesasBtn');
-        const vistaMenu = document.getElementById('vistaMenu');
-        const vistaMesas = document.getElementById('vistaMesas');
-        const buscador = document.getElementById('contenedorBuscador');
+    function renderizarProductos() {
+        const grid = document.getElementById('productosGrid');
+        grid.innerHTML = '';
+        dbProductos.forEach(p => {
+            grid.insertAdjacentHTML('beforeend', `
+                <div class="product-card">
+                    <small class="text-muted fw-bold d-block mb-1" style="font-size: 0.7rem;">${p.tag}</small>
+                    <div class="fw-800 text-dark mb-3" style="font-size: 0.95rem; line-height: 1.2;">${p.nombre}</div>
+                    <div class="fw-bold text-success">$${p.precio.toFixed(2)}</div>
+                    <button class="btn-add-prod" onclick="interceptarProducto(${p.id})"><i class="fa-solid fa-plus"></i></button>
+                </div>
+            `);
+        });
+    }
 
-        if(modo === 'venta') {
-            btnVenta.className = "btn btn-dark rounded-pill px-4 btn-sm fw-bold";
-            btnMesas.className = "btn btn-light rounded-pill px-4 btn-sm fw-bold text-muted";
-            vistaMenu.style.display = "block";
-            vistaMesas.style.display = "none";
-            buscador.style.display = "flex";
+    // ==========================================
+    // 2. MOTOR DE MODIFICADORES (INTERCEPTOR)
+    // ==========================================
+    function interceptarProducto(id) {
+        const prod = dbProductos.find(p => p.id === id);
+        if (!prod) return;
+
+        // Validamos si tiene modificadores en la BD
+        if (prod.tiene_mods && dbMods[prod.id]) {
+            // Retenemos el producto y abrimos modal
+            productoPendiente = { 
+                id: prod.id, nombre: prod.nombre, precio_base: prod.precio, precio_final: prod.precio, modificadores: [] 
+            };
+            construirModalModificadores(dbMods[prod.id]);
+            actualizarTotalModal();
+            modalModificadoresInst.show();
         } else {
-            btnMesas.className = "btn btn-dark rounded-pill px-4 btn-sm fw-bold";
-            btnVenta.className = "btn btn-light rounded-pill px-4 btn-sm fw-bold text-muted";
-            vistaMesas.style.display = "block";
-            vistaMenu.style.display = "none";
-            buscador.style.display = "none";
-            cargarMesasPendientes();
+            // Si no tiene, se va directo al ticket
+            agregarAlTicket({ ...prod, precio_final: prod.precio, modificadores: [] });
         }
     }
 
-    async function cargarDatosPos() {
-        try {
-            const response = await fetch('api/productos/listar.php');
-            if(!response.ok) {
-                const responseAlt = await fetch('api/categorias/listar.php');
-                const dataAlt = await responseAlt.json();
-                productosPos = Array.isArray(dataAlt) ? dataAlt : (dataAlt.data || []);
-            } else {
-                const data = await response.json();
-                productosPos = Array.isArray(data) ? data : (data.data || []);
-            }
-            renderizarGridPos();
-            generarFiltrosCategorias();
-        } catch (e) {
-            console.error("Error al cargar productos", e);
-            document.getElementById('gridProductosPos').innerHTML = '<div class="col-12 text-center text-danger py-4"><small>Error al cargar el catálogo.</small></div>';
-        }
-    }
-
-    async function cargarMesasPendientes() {
-        const grid = document.getElementById('gridMesasPendientes');
-        grid.innerHTML = '<div class="col-12 text-center py-4 text-muted"><i class="fa-solid fa-spinner fa-spin me-2"></i>Buscando mesas abiertas...</div>';
+    function construirModalModificadores(grupos) {
+        document.getElementById('modProductName').innerText = productoPendiente.nombre;
+        document.getElementById('modProductPrice').innerText = `$${productoPendiente.precio_base.toFixed(2)}`;
         
-        try {
-            const response = await fetch('api/comandas/listar_mesas_pendientes.php');
-            const data = await response.json();
-            mesasPendientes = Array.isArray(data) ? data : (data.data || []);
-            
-            grid.innerHTML = '';
-            if(mesasPendientes.length === 0) {
-                grid.innerHTML = '<div class="col-12 text-center text-muted py-5"><i class="fa-solid fa-circle-check fa-2x mb-2 text-success"></i><p class="small fw-bold">No hay mesas pendientes.</p></div>';
-                return;
-            }
+        const contenedor = document.getElementById('modCuerpoContenido');
+        contenedor.innerHTML = '';
 
-            mesasPendientes.forEach(m => {
-                grid.insertAdjacentHTML('beforeend', `
-                    <div class="col">
-                        <div class="pos-grid-card border-warning-subtle" onclick="cargarCuentaMesa(${m.id_orden}, '${m.nombre_mesa}')">
-                            <div>
-                                <span class="badge bg-warning text-dark rounded-pill mb-1 fw-bold"><i class="fa-solid fa-chair me-1"></i>${m.nombre_mesa}</span>
-                                <h6 class="fw-bold mb-1 text-dark small">Orden #${m.id_orden}</h6>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-end mt-3 pt-2 border-top">
-                                <span class="pos-price">$${parseFloat(m.total).toFixed(2)}</span>
-                                <button class="btn btn-sm btn-dark rounded-3 px-2 py-1" style="font-size: 0.75rem;">Cobrar</button>
+        grupos.forEach(grupo => {
+            const esRadio = grupo.obligatorio; 
+            const inputType = esRadio ? 'radio' : 'checkbox';
+            const badgeReq = esRadio ? '<span class="text-danger small fw-bold">*Obligatorio</span>' : '<span class="text-primary small fw-bold opacity-75">Opcional</span>';
+            
+            let opcionesHtml = '';
+            grupo.opciones.forEach(op => {
+                const precioTxt = op.precio_extra > 0 ? `+$${op.precio_extra.toFixed(2)}` : '';
+                opcionesHtml += `
+                    <label class="mod-option w-100">
+                        <div class="d-flex align-items-center gap-2 fw-bold text-dark">
+                            <input type="${inputType}" name="grupo_${grupo.id_grupo}" value="${op.id_opcion}" 
+                                   data-nombre="${op.nombre}" data-precio="${op.precio_extra}" 
+                                   onchange="toggleModOption(this); actualizarTotalModal()">
+                            <span>${op.nombre}</span>
+                        </div>
+                        <span class="text-muted fw-bold small">${precioTxt}</span>
+                    </label>
+                `;
+            });
+
+            contenedor.insertAdjacentHTML('beforeend', `
+                <div class="p-4 border-bottom border-nude bg-white" data-req="${grupo.obligatorio}">
+                    <div class="mod-group-title"><span>${grupo.nombre}</span>${badgeReq}</div>
+                    ${opcionesHtml}
+                </div>
+            `);
+        });
+    }
+
+    function toggleModOption(input) {
+        if(input.type === 'radio') {
+            document.querySelectorAll(`input[name="${input.name}"]`).forEach(inp => inp.closest('.mod-option').classList.remove('selected'));
+        }
+        if(input.checked) input.closest('.mod-option').classList.add('selected');
+        else input.closest('.mod-option').classList.remove('selected');
+    }
+
+    function actualizarTotalModal() {
+        let total = productoPendiente.precio_base;
+        document.querySelectorAll('#modCuerpoContenido input:checked').forEach(inp => {
+            total += parseFloat(inp.getAttribute('data-precio') || 0);
+        });
+        document.getElementById('btnModalTotal').innerText = `$${total.toFixed(2)}`;
+    }
+
+    function confirmarModificadores() {
+        let faltaObligatorio = false;
+        document.querySelectorAll('#modCuerpoContenido [data-req="true"]').forEach(groupDiv => {
+            if (groupDiv.querySelectorAll('input:checked').length === 0) {
+                faltaObligatorio = true;
+                groupDiv.style.borderLeft = "4px solid #dc2626";
+            } else {
+                groupDiv.style.borderLeft = "none";
+            }
+        });
+
+        if (faltaObligatorio) { alert("Selecciona las opciones obligatorias (marcadas en rojo)."); return; }
+
+        let costoMods = 0;
+        productoPendiente.modificadores = [];
+        document.querySelectorAll('#modCuerpoContenido input:checked').forEach(inp => {
+            const pMod = parseFloat(inp.getAttribute('data-precio'));
+            costoMods += pMod;
+            productoPendiente.modificadores.push({ nombre: inp.getAttribute('data-nombre'), precio: pMod });
+        });
+
+        productoPendiente.precio_final = productoPendiente.precio_base + costoMods;
+        agregarAlTicket(productoPendiente);
+        modalModificadoresInst.hide();
+    }
+
+    // ==========================================
+    // 3. CARRITO, TICKET Y CÁLCULOS
+    // ==========================================
+    function agregarAlTicket(producto) {
+        carrito.push({ uuid: Date.now() + Math.random(), ...producto });
+        renderizarTicket();
+    }
+
+    function eliminarDelTicket(uuid) {
+        carrito = carrito.filter(item => item.uuid !== uuid);
+        renderizarTicket();
+    }
+
+    function limpiarTicket() {
+        if(carrito.length > 0 && confirm('¿Borrar todo el ticket?')) {
+            carrito = [];
+            renderizarTicket();
+        }
+    }
+
+    function renderizarTicket() {
+        const contenedor = document.getElementById('ticketItems');
+        contenedor.innerHTML = '';
+
+        if (carrito.length === 0) {
+            contenedor.innerHTML = `<div class="text-center py-5 text-muted opacity-50 mt-5"><i class="fa-solid fa-receipt fa-3x mb-3"></i><p class="fw-bold">El ticket está vacío</p></div>`;
+        } else {
+            carrito.forEach(item => {
+                let modsHtml = '';
+                if(item.modificadores.length > 0) {
+                    modsHtml = '<div class="t-item-mods">';
+                    item.modificadores.forEach(m => {
+                        const ex = m.precio > 0 ? ` (+$${m.precio.toFixed(2)})` : '';
+                        modsHtml += `<div>> ${m.nombre}${ex}</div>`;
+                    });
+                    modsHtml += '</div>';
+                }
+
+                contenedor.insertAdjacentHTML('beforeend', `
+                    <div class="t-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="t-item-name">1x ${item.nombre}</div>
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="t-item-price">$${item.precio_final.toFixed(2)}</span>
+                                <i class="fa-solid fa-xmark t-item-del" onclick="eliminarDelTicket(${item.uuid})"></i>
                             </div>
                         </div>
+                        ${modsHtml}
                     </div>
                 `);
             });
-        } catch(e) {
-            grid.innerHTML = '<div class="col-12 text-center text-danger py-4"><small>Error de conexión.</small></div>';
         }
+        calcularTotales();
     }
 
-    function cargarCuentaMesa(idOrden, nombreMesa) {
-        const mesaObj = mesasPendientes.find(m => m.id_orden == idOrden);
-        if(!mesaObj) return;
-
-        ordenActualId = idOrden;
-        document.getElementById('tituloTicket').innerHTML = `<i class="fa-solid fa-chair me-2 text-warning"></i>${nombreMesa}`;
-        
-        carrito = mesaObj.productos ? mesaObj.productos.map(p => ({
-            id: p.producto_id,
-            nombre: p.nombre_producto,
-            precio: parseFloat(p.precio_unitario),
-            cantidad: parseInt(p.cantidad)
-        })) : [];
-
-        renderizarCarrito();
-    }
-
-    function generarFiltrosCategorias() {
-        const contenedor = document.getElementById('categoriasFiltroPos');
-        const categoriasUnicas = [...new Set(productosPos.map(p => p.categoria || 'General'))];
-        
-        categoriasUnicas.forEach(cat => {
-            contenedor.insertAdjacentHTML('beforeend', `
-                <button class="btn btn-outline-dark btn-sm rounded-pill px-3" onclick="filtrarPosCat('${cat}')">${cat}</button>
-            `);
-        });
-    }
-
-    function filtrarPosCat(cat) {
-        categoriaSeleccionada = cat;
-        renderizarGridPos();
-    }
-
-    function renderizarGridPos() {
-        const grid = document.getElementById('gridProductosPos');
-        grid.innerHTML = '';
-        const inputBuscar = document.getElementById('buscarPos');
-        const textoBusqueda = inputBuscar ? inputBuscar.value.toLowerCase() : '';
-
-        const filtrados = productosPos.filter(p => {
-            const coincideTexto = p.nombre.toLowerCase().includes(textoBusqueda);
-            const coincideCat = (categoriaSeleccionada === 'todos') || (p.categoria === categoriaSeleccionada);
-            return coincideTexto && coincideCat;
-        });
-
-        if (filtrados.length === 0) {
-            grid.innerHTML = '<div class="col-12 text-center text-muted py-4"><small>No hay platillos disponibles.</small></div>';
-            return;
-        }
-
-        filtrados.forEach(prod => {
-            grid.insertAdjacentHTML('beforeend', `
-                <div class="col">
-                    <div class="pos-grid-card" onclick="agregarAlCarrito(${prod.id_producto || prod.id})">
-                        <div>
-                            <span class="badge bg-dark text-white rounded-pill mb-1" style="font-size: 0.6rem;">${prod.categoria || 'General'}</span>
-                            <h6 class="fw-bold mb-1 text-dark" style="font-size: 0.95rem; line-height: 1.1;">${prod.nombre}</h6>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-end mt-2">
-                            <span class="pos-price">$${parseFloat(prod.precio).toFixed(2)}</span>
-                            <span class="btn btn-sm btn-light rounded-circle shadow-sm" style="width: 26px; height: 26px; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-plus text-dark" style="font-size: 0.7rem;"></i></span>
-                        </div>
-                    </div>
-                </div>
-            `);
-        });
-    }
-
-    function agregarAlCarrito(id) {
-        const prod = productosPos.find(p => (p.id_producto == id || p.id == id));
-        if(!prod) return;
-
-        const prodId = prod.id_producto || prod.id;
-        const existe = carrito.find(item => item.id == prodId);
-        
-        if (existe) {
-            existe.cantidad++;
-        } else {
-            carrito.push({
-                id: prodId,
-                nombre: prod.nombre,
-                precio: parseFloat(prod.precio),
-                cantidad: 1
-            });
-        }
-        renderizarCarrito();
-    }
-
-    function cambiarCantidad(id, delta) {
-        const item = carrito.find(i => i.id == id);
-        if(!item) return;
-        item.cantidad += delta;
-        if(item.cantidad <= 0) {
-            carrito = carrito.filter(i => i.id != id);
-        }
-        renderizarCarrito();
-    }
-
-    function vaciarCarrito() {
-        carrito = [];
-        ordenActualId = null;
-        document.getElementById('tituloTicket').innerHTML = `<i class="fa-solid fa-receipt me-2"></i>Orden Actual`;
-        document.getElementById('inputPropina').value = '';
-        document.getElementById('inputRecibido').value = '';
-        document.getElementById('checkFactura').checked = false;
-        renderizarCarrito();
-    }
-
-    function renderizarCarrito() {
-        const contenedor = document.getElementById('listaCarrito');
-        contenedor.innerHTML = '';
-
-        if(carrito.length === 0) {
-            contenedor.innerHTML = `
-                <div class="text-center text-muted py-5">
-                    <i class="fa-solid fa-cart-shopping fa-2x mb-2 opacity-50"></i>
-                    <p class="small fw-bold">La orden está vacía.</p>
-                </div>
-            `;
-            calcularTotales();
-            return;
-        }
-
-        carrito.forEach(item => {
-            const subtotalItem = item.precio * item.cantidad;
-            contenedor.insertAdjacentHTML('beforeend', `
-                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
-                    <div style="max-width: 50%;">
-                        <h6 class="fw-bold mb-0 small text-dark">${item.nombre}</h6>
-                        <span class="text-muted" style="font-size: 0.75rem;">$${item.precio.toFixed(2)} c/u</span>
-                    </div>
-                    <div class="d-flex align-items-center gap-2">
-                        <button class="btn btn-sm btn-light border py-0 px-1 rounded" onclick="cambiarCantidad(${item.id}, -1)">-</button>
-                        <span class="fw-bold small">${item.cantidad}</span>
-                        <button class="btn btn-sm btn-light border py-0 px-1 rounded" onclick="cambiarCantidad(${item.id}, 1)">+</button>
-                        <span class="fw-bold small text-success ms-1">$${subtotalItem.toFixed(2)}</span>
-                    </div>
-                </div>
-            `);
-        });
-
+    // Cálculos de Propina, Descuento y Cambio
+    function setPropina(porcentaje, btnElement) {
+        propinaPorcentaje = porcentaje;
+        document.querySelectorAll('.propina-btn').forEach(b => b.classList.remove('active'));
+        btnElement.classList.add('active');
         calcularTotales();
     }
 
     function calcularTotales() {
-        let subtotal = carrito.reduce((acc, i) => acc + (i.precio * i.cantidad), 0);
-        let propina = parseFloat(document.getElementById('inputPropina').value) || 0;
-        let total = subtotal + propina;
+        let subtotal = carrito.reduce((sum, item) => sum + item.precio_final, 0);
+        let descuento = parseFloat(document.getElementById('inputDescuento').value) || 0;
+        
+        let subtotalConDesc = subtotal - descuento;
+        if(subtotalConDesc < 0) subtotalConDesc = 0;
+
+        let propina = subtotalConDesc * (propinaPorcentaje / 100);
+        let totalCobrar = subtotalConDesc + propina;
 
         document.getElementById('txtSubtotal').innerText = `$${subtotal.toFixed(2)}`;
-        document.getElementById('txtTotal').innerText = `$${total.toFixed(2)}`;
+        document.getElementById('txtPropina').innerText = `$${propina.toFixed(2)}`;
+        document.getElementById('txtTotal').innerText = `$${totalCobrar.toFixed(2)}`;
+        document.getElementById('txtTotal').setAttribute('data-val', totalCobrar); // Para calcular cambio
+        calcularCambio();
+    }
 
-        const metodo = document.getElementById('metodoPago').value;
-        const inputRecibido = document.getElementById('inputRecibido');
-        const divRecibido = document.getElementById('divRecibido');
-        const divCambio = document.getElementById('divCambio');
-
-        if (metodo === 'Efectivo') {
-            divRecibido.style.display = 'block';
-            divCambio.style.visibility = 'visible';
-            let recibido = parseFloat(inputRecibido.value) || 0;
-            let cambio = recibido - total;
-            document.getElementById('txtCambio').innerText = `$${(cambio > 0 ? cambio : 0).toFixed(2)}`;
+    function calcularCambio() {
+        const total = parseFloat(document.getElementById('txtTotal').getAttribute('data-val')) || 0;
+        const recibido = parseFloat(document.getElementById('inputRecibido').value) || 0;
+        const cambio = recibido - total;
+        
+        const txtCambio = document.getElementById('txtCambio');
+        if (recibido > 0 && cambio >= 0) {
+            txtCambio.innerText = `$${cambio.toFixed(2)}`;
+            txtCambio.style.color = '#16a34a';
         } else {
-            divRecibido.style.display = 'none';
-            divCambio.style.visibility = 'hidden';
-            inputRecibido.value = '';
+            txtCambio.innerText = `$0.00`;
+            txtCambio.style.color = '#736B60';
         }
     }
 
-    async function cobrarOrden() {
-        if(carrito.length === 0) {
-            alert("No hay productos para cobrar.");
-            return;
-        }
+    async function procesarCobro() {
+        if (carrito.length === 0) { alert("El ticket está vacío"); return; }
+        const total = parseFloat(document.getElementById('txtTotal').getAttribute('data-val')) || 0;
+        const recibido = parseFloat(document.getElementById('inputRecibido').value) || 0;
+        
+        if(recibido < total) { alert("El monto recibido es menor al total a cobrar."); return; }
 
-        // Bloquear el botón mientras procesa
-        const btnCobrar = document.getElementById('btnProcesarCobro');
-        btnCobrar.disabled = true;
-        btnCobrar.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Procesando...';
-
-        const subtotal = carrito.reduce((acc, i) => acc + (i.precio * i.cantidad), 0);
-        const propina = parseFloat(document.getElementById('inputPropina').value) || 0;
-        const totalVenta = subtotal + propina;
-        const metodoPago = document.getElementById('metodoPago').value;
-        const requiereFactura = document.getElementById('checkFactura').checked;
-
-        const datosOrden = {
-            id_orden: ordenActualId, // Envía null si es venta rápida
-            total: totalVenta,
-            metodo_pago: metodoPago,
-            facturacion: requiereFactura,
-            productos: carrito
-        };
+        const ventanaTicket = window.open('about:blank', '_blank');
+        const botonCobrar = document.querySelector('.ticket-footer > button');
+        botonCobrar.disabled = true;
 
         try {
-            // Mandar los datos para registro en Base de Datos PostgreSQL
-            const response = await fetch('api/caja/procesar_pago.php', {
+            const subtotal = carrito.reduce((sum, item) => sum + item.precio_final, 0);
+            const descuento = parseFloat(document.getElementById('inputDescuento').value) || 0;
+            const propina = Math.max(0, subtotal - descuento) * (propinaPorcentaje / 100);
+            const respuesta = await fetch('api/caja/procesar_pago.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(datosOrden)
+                body: JSON.stringify({
+                    metodo_pago: document.getElementById('selectMetodoPago').value,
+                    descuento,
+                    propina,
+                    monto_recibido: recibido,
+                    productos: carrito.map(item => ({
+                        id_producto: item.id,
+                        cantidad: 1,
+                        precio: item.precio_final,
+                        notas: item.modificadores.map(mod => mod.nombre).join(', ')
+                    }))
+                })
             });
-            
-            const result = await response.json();
+            const resultado = await respuesta.json();
 
-            if (result.status === 'success') {
-                // Abre el ticket usando el ID real que la base de datos acaba de generar
-                window.open('api/caja/generar_ticket.php?id=' + result.id_orden, '_blank');
-                
-                alert(requiereFactura ? "¡Venta guardada! Procediendo a facturación..." : "¡Venta cobrada y guardada en el sistema!");
-                vaciarCarrito();
-                cargarMesasPendientes();
-            } else {
-                alert("Error al guardar la venta: " + (result.message || 'Error desconocido'));
+            if (!respuesta.ok || resultado.success !== true || !resultado.id_orden) {
+                throw new Error(resultado.message || 'No se pudo procesar el cobro.');
             }
+
+            const urlTicket = `api/caja/generar_ticket.php?id=${encodeURIComponent(resultado.id_orden)}`;
+            if (ventanaTicket) {
+                ventanaTicket.location.href = urlTicket;
+            } else {
+                window.location.href = urlTicket;
+            }
+
+            carrito = [];
+            document.getElementById('inputDescuento').value = 0;
+            document.getElementById('inputRecibido').value = '';
+            propinaPorcentaje = 0;
+            document.querySelectorAll('.propina-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector('.propina-btn').classList.add('active');
+            renderizarTicket();
         } catch (error) {
-            console.error(error);
-            alert("Error de conexión con el servidor.");
+            if (ventanaTicket) ventanaTicket.close();
+            alert(error.message || 'Ocurrió un error al procesar el cobro.');
         } finally {
-            // Restaurar estado del botón
-            btnCobrar.disabled = false;
-            btnCobrar.innerHTML = '<i class="fa-solid fa-cash-register me-2"></i> Confirmar y Cobrar';
+            botonCobrar.disabled = false;
         }
     }
+</script>
+<script src="http://localhost:3000/socket.io/socket.io.js"></script>
+
+<!-- Conexión universal basada en la IP del host actual -->
+<script src="http://10.0.10.25:3000/socket.io/socket.io.js"></script>
+<script>
+    const socket = io("http://10.0.10.25:3000");
 </script>
 </body>
 </html>

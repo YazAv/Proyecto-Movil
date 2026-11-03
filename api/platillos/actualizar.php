@@ -25,7 +25,7 @@ try {
     
     $estacion_kds_id = isset($_POST['estacion_kds_id']) ? intval($_POST['estacion_kds_id']) : 0;
 
-    // Validación flexible (si la estación KDS viene vacía por defecto le asignamos 1)
+    // Validación flexible
     if ($id === 0 || $nombre === '' || $categoria_id === 0 || $precio <= 0) {
         http_response_code(400);
         echo json_encode([
@@ -40,6 +40,7 @@ try {
         $estacion_kds_id = 1; // Estación por defecto (Cocina Principal)
     }
 
+    // Actualizamos ambas columnas simultáneamente para no romper los triggers de la BD
     $query = "UPDATE productos 
               SET nombre = :nombre, 
                   descripcion = :descripcion, 

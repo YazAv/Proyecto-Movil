@@ -4,725 +4,570 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SazónTrack - Gestión de Empleados</title>
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- CSS Dependencies -->
+    <link href="https://fonts.googleapis.com/css2?family=Italianno&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- QR Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <style>
         :root {
-            --bg-main: #FDFCF8;
-            --bg-card: #F3F0E9;
-            --accent: #E3DBCC;
-            --text-dark: #1E1E1E;
-            --brand-primary: #2C2C2C;
-            --brand-success: #15803D;
-            --brand-danger: #DC2626;
+            --bg-offwhite: #FDFCF8;
+            --bg-ivory: #F3F0E9;
+            --color-nude: #E3DBCC;
+            --color-nude-hover: #D5C7B3;
+            --text-dark: #2A2621;
+            --text-muted: #736B60;
+            --sidebar-width: 260px;
         }
 
-        body { 
-            background-color: var(--bg-main); 
-            color: var(--text-dark); 
-            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-            -webkit-font-smoothing: antialiased;
+        body {
+            background-color: var(--bg-ivory);
+            color: var(--text-dark);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            min-height: 100vh;
+            margin: 0;
         }
 
-        .card-custom { 
-            background-color: var(--bg-card); 
-            border: 1px solid var(--accent); 
-            border-radius: 16px; 
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg-offwhite);
+            border-right: 1px solid var(--color-nude);
+            height: 100vh;
+            position: fixed;
+            top: 0; left: 0;
+            display: flex; flex-direction: column;
+            padding: 1.5rem 1rem;
+            z-index: 100;
         }
+        .sidebar-scrollable { overflow-y: auto; flex-grow: 1; padding-right: 5px; }
+        .brand-header {
+            display: flex; align-items: center; gap: 12px;
+            padding-bottom: 1.2rem; border-bottom: 1px solid var(--color-nude); margin-bottom: 1rem;
+        }
+        .brand-avatar {
+            width: 44px; height: 44px; background: var(--text-dark); color: var(--bg-offwhite);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+        }
+        .brand-title { font-family: 'Italianno', cursive; font-size: 2.2rem; margin: 0; line-height: 0.8; }
+        .brand-sub { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
 
-        .kpi-card { 
-            background: #ffffff; 
-            border: 1px solid var(--accent); 
-            border-radius: 16px; 
-            transition: all 0.25s ease; 
+        .nav-category { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); font-weight: 700; margin: 1.2rem 0 0.4rem 0.8rem; }
+        .sidebar-nav .nav-link {
+            color: var(--text-muted); font-weight: 600; font-size: 0.9rem; padding: 10px 14px;
+            border-radius: 12px; display: flex; align-items: center; gap: 12px; margin-bottom: 4px; text-decoration: none;
+            transition: all 0.15s ease;
         }
-        .kpi-card:hover { 
-            transform: translateY(-3px); 
-            box-shadow: 0 10px 20px -5px rgba(0,0,0,0.06);
-        }
-        
-        /* Badges por Rol */
-        .badge-admin { background-color: #2C2C2C; color: #fff; }
-        .badge-cajero { background-color: #8C7A6B; color: #fff; }
-        .badge-mesero { background-color: #6c757d; color: #fff; }
-        .badge-cocina { background-color: #d97706; color: #fff; }
-        .badge-barra { background-color: #2563eb; color: #fff; }
+        .sidebar-nav .nav-link:hover { background: var(--bg-ivory); color: var(--text-dark); }
+        .sidebar-nav .nav-link.active { background: var(--text-dark); color: var(--bg-offwhite); box-shadow: 0 4px 12px rgba(42, 38, 33, 0.12); }
 
-        /* Fila Clickeable */
-        .fila-empleado { cursor: pointer; transition: background-color 0.2s ease; }
-        .fila-empleado:hover { background-color: #e9e4d9 !important; }
-
-        /* Estilo y Animación de Despliegue */
-        .detalle-row { background-color: #faf8f5; display: none; }
-        .detalle-container {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.4s cubic-bezier(0, 1, 0, 1), opacity 0.3s ease;
-            opacity: 0;
+        .main-wrapper { margin-left: var(--sidebar-width); padding: 2rem 2.5rem; }
+        .card-custom { background: var(--bg-offwhite); border: 1px solid var(--color-nude); border-radius: 20px; box-shadow: 0 4px 15px rgba(42,38,33,0.03); }
+        .stat-card { background: #fff; border-radius: 16px; padding: 1.2rem 1.5rem; border: 1px solid var(--color-nude); }
+        .avatar-circle {
+            width: 40px; height: 40px; border-radius: 50%; background: var(--bg-ivory);
+            color: var(--text-dark); font-weight: 700; display: flex; align-items: center; justify-content: center;
+            border: 1px solid var(--color-nude);
         }
-        .detalle-row.active .detalle-container {
-            max-height: 800px;
-            opacity: 1;
-            transition: max-height 0.5s ease-in-out, opacity 0.4s ease-in-out;
-        }
-        .avatar-placeholder {
-            width: 85px;
-            height: 85px;
-            border-radius: 50%;
-            background-color: #e3dbcc;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            color: #555;
-            border: 2px solid #8c7a6b;
-        }
-
-        .form-control, .form-select {
-            border-radius: 10px;
-            border: 1px solid var(--accent);
-            padding: 0.55rem 0.85rem;
-        }
-        .form-control:focus, .form-select:focus {
-            border-color: var(--brand-primary);
-            box-shadow: 0 0 0 3px rgba(44, 44, 44, 0.1);
-        }
-
-        /* Estilos de Impresión */
-        @media print {
-            body * { visibility: hidden; }
-            #modalQR, #modalQR * { visibility: visible; }
-            #modalQR { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; }
-            .modal-dialog { margin: 40px auto !important; }
-            .modal-content { border: none !important; box-shadow: none !important; }
-            .btn, .btn-close { display: none !important; }
+        .pin-badge {
+            min-width: 65px;
+            display: inline-block;
+            text-align: center;
+            letter-spacing: 2px;
         }
     </style>
 </head>
-<body class="p-3 p-md-4">
+<body>
 
-    <div class="container-fluid">
-        <!-- ÁREA DE NOTIFICACIONES -->
-        <div id="alertContainer"></div>
-
-        <!-- ENCABEZADO -->
-        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+<!-- SIDEBAR -->
+<aside class="sidebar">
+    <div class="sidebar-scrollable">
+        <div class="brand-header">
+            <div class="brand-avatar"><i class="fa-solid fa-concierge-bell"></i></div>
             <div>
-                <h2 class="h3 mb-0 fw-800"><i class="fa-solid fa-users me-2"></i>Gestión de Empleados</h2>
-                <small class="text-muted">Selecciona cualquier empleado para desplegar su ficha técnica o generar su QR</small>
-            </div>
-            <div class="d-flex gap-2">
-                <!-- AGREGA ESTO AQUÍ: -->
-                <a href="index.html" class="btn btn-outline-dark rounded-3 fw-semibold">
-                    <i class="fa-solid fa-arrow-left me-2"></i> Regresar
-                </a>
-                <button class="btn btn-dark rounded-3 fw-semibold">
-                    <i class="fa-solid fa-user-plus me-1"></i> Nuevo Empleado
-                </button>
+                <h2 class="brand-title">SazónTrack</h2>
+                <span class="brand-sub">Panel de Control</span>
             </div>
         </div>
+        <nav class="sidebar-nav">
+            <div class="nav-category">Principal</div>
+            <a href="index.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+            <a href="caja.html" class="nav-link"><i class="fa-solid fa-cash-register"></i> Caja POS</a>
+            <a href="turno.html" class="nav-link"><i class="fa-solid fa-vault"></i> Turnos y Cortes</a>
+            <a href="mesas.html" class="nav-link"><i class="fa-solid fa-utensils"></i> Mapa Mesas</a>
+            
+            <div class="nav-category">Recursos Humanos</div>
+            <a href="asistencia.html" class="nav-link"><i class="fa-solid fa-clock"></i> Reloj Checador</a>
+            <a href="empleados.html" class="nav-link active"><i class="fa-solid fa-users"></i> Empleados</a>
 
-        <!-- TARJETAS MÉTRICAS (KPIs) -->
-        <div class="row g-3 mb-4">
-            <div class="col-12 col-md-4">
-                <div class="kpi-card p-3 d-flex align-items-center justify-content-between shadow-sm">
-                    <div>
-                        <small class="text-muted text-uppercase fw-bold">Total Personal</small>
-                        <h3 class="mb-0 fw-bold" id="kpiTotal">0</h3>
-                    </div>
-                    <div class="bg-light p-3 rounded-circle text-dark">
-                        <i class="fa-solid fa-users-gear fa-xl"></i>
-                    </div>
+            <div class="nav-category">Administración</div>
+            <a href="productos.html" class="nav-link"><i class="fa-solid fa-book-open"></i> Catálogo Menú</a>
+            <a href="inventario.html" class="nav-link"><i class="fa-solid fa-boxes-stacked"></i> Inventario</a>
+        </nav>
+    </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="main-wrapper">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold m-0 text-dark">Directorio de Empleados</h3>
+            <p class="text-muted small m-0">Gestión de personal, envío automático de QR por WhatsApp y control de PIN de acceso.</p>
+        </div>
+        <button class="btn btn-dark rounded-pill px-4 fw-bold shadow-sm" onclick="abrirModalNuevo()">
+            <i class="fa-solid fa-user-plus me-2"></i> Nuevo Empleado
+        </button>
+    </div>
+
+    <!-- TARJETAS DE RESUMEN -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="stat-card d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small fw-bold text-uppercase">Total Personal Activo</span>
+                    <h3 class="fw-800 m-0 mt-1" id="statTotal">0</h3>
                 </div>
-            </div>
-            <div class="col-12 col-md-4">
-                <div class="kpi-card p-3 d-flex align-items-center justify-content-between shadow-sm">
-                    <div>
-                        <small class="text-muted text-uppercase fw-bold">Empleados Activos</small>
-                        <h3 class="mb-0 fw-bold text-success" id="kpiActivos">0</h3>
-                    </div>
-                    <div class="bg-light p-3 rounded-circle text-success">
-                        <i class="fa-solid fa-user-check fa-xl"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="col-12 col-md-4">
-                <div class="kpi-card p-3 d-flex align-items-center justify-content-between shadow-sm">
-                    <div>
-                        <small class="text-muted text-uppercase fw-bold">Puestos Registrados</small>
-                        <h3 class="mb-0 fw-bold text-primary" id="kpiRoles">5</h3>
-                    </div>
-                    <div class="bg-light p-3 rounded-circle text-primary">
-                        <i class="fa-solid fa-id-badge fa-xl"></i>
-                    </div>
-                </div>
+                <div class="fs-2 text-dark opacity-50"><i class="fa-solid fa-users"></i></div>
             </div>
         </div>
-
-        <!-- FILTROS -->
-        <div class="card card-custom p-3 shadow-sm mb-4">
-            <div class="row g-2">
-                <div class="col-12 col-md-8">
-                    <div class="input-group">
-                        <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-                        <input type="text" id="inputBuscar" class="form-control border-start-0" placeholder="Buscar por nombre o teléfono..." onkeyup="filtrarTabla()">
-                    </div>
+        <div class="col-md-4">
+            <div class="stat-card d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small fw-bold text-uppercase">Operación (Meseros/Cocina)</span>
+                    <h3 class="fw-800 m-0 mt-1 text-primary" id="statOperacion">0</h3>
                 </div>
-                <div class="col-12 col-md-4">
-                    <select id="selectFiltroRol" class="form-select" onchange="filtrarTabla()">
-                        <option value="">Todos los Puestos</option>
-                        <option value="Administrador">Administrador</option>
-                        <option value="Cajero">Cajero</option>
-                        <option value="Mesero">Mesero</option>
-                        <option value="Cocina">Cocina</option>
-                        <option value="Barra">Barra</option>
-                    </select>
-                </div>
+                <div class="fs-2 text-primary opacity-50"><i class="fa-solid fa-utensils"></i></div>
             </div>
         </div>
-
-        <!-- TABLA PRINCIPAL DE EMPLEADOS -->
-        <div class="card card-custom p-3 shadow-sm overflow-hidden">
-            <div class="table-responsive">
-                <table class="table align-middle mb-0" id="tablaMain">
-                    <thead class="table-light">
-                        <tr>
-                            <th style="width: 40px;"></th>
-                            <th>ID</th>
-                            <th>Empleado</th>
-                            <th>Puesto</th>
-                            <th>Teléfono</th>
-                            <th>Salario/Hr</th>
-                            <th>Estado</th>
-                            <th class="text-center">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tablaEmpleados">
-                        <tr>
-                            <td colspan="8" class="text-center text-muted py-4"><i class="fa-solid fa-spinner fa-spin me-2"></i>Cargando datos...</td>
-                        </tr>
-                    </tbody>
-                </table>
+        <div class="col-md-4">
+            <div class="stat-card d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small fw-bold text-uppercase">Administración / Caja</span>
+                    <h3 class="fw-800 m-0 mt-1 text-success" id="statAdmin">0</h3>
+                </div>
+                <div class="fs-2 text-success opacity-50"><i class="fa-solid fa-user-shield"></i></div>
             </div>
         </div>
     </div>
 
-    <!-- MODAL REGISTRO / EDICIÓN -->
-    <div class="modal fade" id="modalEmpleado" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
-                <div class="modal-header border-0 pb-0">
-                    <h5 class="modal-title fw-bold" id="modalTitulo"><i class="fa-solid fa-user-pen me-2"></i>Empleado</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <form id="formEmpleado">
-                    <input type="hidden" id="id_empleado">
-                    <div class="modal-body">
-                        <div class="row g-3">
-                            <div class="col-6">
-                                <label class="form-label fw-semibold small">Nombre</label>
-                                <input type="text" id="nombre" class="form-control" required placeholder="Ej. Juan">
+    <!-- TABLA DE EMPLEADOS -->
+    <div class="card-custom p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold m-0"><i class="fa-solid fa-id-badge me-2 text-muted"></i>Plantilla Actual</h5>
+            <div class="input-group" style="max-width: 300px;">
+                <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-search text-muted"></i></span>
+                <input type="text" id="buscarEmpleado" class="form-control border-start-0" placeholder="Buscar por nombre o puesto..." oninput="filtrarEmpleados()">
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light text-muted small text-uppercase">
+                    <tr>
+                        <th>ID</th>
+                        <th>Empleado</th>
+                        <th>Puesto / Rol</th>
+                        <th>Teléfono</th>
+                        <th>Código QR</th>
+                        <th>PIN POS</th>
+                        <th>Salario / Hr</th>
+                        <th class="text-end">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaEmpleados">
+                    <tr>
+                        <td colspan="8" class="text-center py-4 text-muted">
+                            <i class="fa-solid fa-spinner fa-spin me-2"></i>Cargando empleados...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+
+<!-- MODAL: CREAR / EDITAR EMPLEADO -->
+<div class="modal fade" id="modalEmpleado" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold" id="tituloModalEmpleado">
+                    <i class="fa-solid fa-user-plus me-2"></i>Nuevo Empleado
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formEmpleado" onsubmit="guardarEmpleado(event)">
+                    <input type="hidden" id="id_empleado" value="">
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Nombre(s) *</label>
+                            <input type="text" id="nombre" class="form-control" placeholder="Ej. Carlos" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Apellidos *</label>
+                            <input type="text" id="apellido" class="form-control" placeholder="Ej. Mendoza" required>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Puesto / Rol en Sistema *</label>
+                            <select id="puesto" class="form-select" required>
+                                <option value="Mesero">Mesero</option>
+                                <option value="Cajero">Cajero</option>
+                                <option value="Cocina">Cocina (KDS)</option>
+                                <option value="Barra">Barra (KDS)</option>
+                                <option value="Administrador">Administrador</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Teléfono (WhatsApp) *</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-success text-white border-0"><i class="fa-brands fa-whatsapp"></i></span>
+                                <input type="text" id="telefono" class="form-control" placeholder="10 dígitos (Ej. 3481265883)" required>
                             </div>
-                            <div class="col-6">
-                                <label class="form-label fw-semibold small">Apellido</label>
-                                <input type="text" id="apellido" class="form-control" required placeholder="Ej. Pérez">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <!-- CAMPO PIN OCULTO COMO CONTRASEÑA CON BOTÓN DE MOSTRAR -->
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">PIN de Acceso (4 dígitos) *</label>
+                            <div class="input-group">
+                                <input type="password" id="pin_acceso" class="form-control fw-bold text-center font-monospace" maxlength="6" value="1234" required>
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePinModal()" title="Mostrar / Ocultar PIN">
+                                    <i class="fa-solid fa-eye" id="iconoOjoModal"></i>
+                                </button>
                             </div>
-                            <div class="col-6">
-                                <label class="form-label fw-semibold small">Puesto / Rol</label>
-                                <select id="puesto" class="form-select" required>
-                                    <option value="Administrador">Administrador</option>
-                                    <option value="Cajero">Cajero</option>
-                                    <option value="Mesero" selected>Mesero</option>
-                                    <option value="Cocina">Cocina</option>
-                                    <option value="Barra">Barra</option>
-                                </select>
-                            </div>
-                            <div class="col-6">
-                                <label class="form-label fw-semibold small">Teléfono</label>
-                                <input type="tel" id="telefono" class="form-control" placeholder="3312345678">
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label fw-semibold small">Salario x Hora ($ MXN)</label>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Salario por Hora ($)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
                                 <input type="number" step="0.01" id="salario_por_hora" class="form-control" value="50.00">
                             </div>
                         </div>
                     </div>
-                    <div class="modal-footer border-0 pt-0">
-                        <button type="button" class="btn btn-secondary rounded-3" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" id="btnSubmit" class="btn btn-dark rounded-3">Guardar Cambios</button>
+
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="chkEnviarWa" checked>
+                        <label class="form-check-label small text-muted" for="chkEnviarWa">
+                            Enviar gafete QR y PIN automáticamente por <strong>WhatsApp</strong> al guardar
+                        </label>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" id="btnGuardarEmp" class="btn btn-dark rounded-pill px-4 fw-bold">
+                            <i class="fa-solid fa-floppy-disk me-2"></i>Guardar Empleado
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- MODAL CREDENCIAL QR CON ENVÍO AUTOMÁTICO VÍA BOT -->
-    <div class="modal fade" id="modalQR" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-sm modal-dialog-centered text-center">
-            <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
-                <div class="modal-body p-4">
-                    <div class="border rounded-4 p-4 bg-white shadow-sm" id="credencialImprimible">
-                        <small class="text-uppercase text-muted fw-bold d-block mb-1" style="font-size: 0.7rem; letter-spacing: 1px;">SazónTrack POS</small>
-                        <h5 id="qrNombre" class="fw-bold mb-1 text-dark"></h5>
-                        <span id="qrRol" class="badge bg-dark mb-3"></span>
-                        
-                        <div id="qrWrapper" class="p-3 bg-white border rounded-3 d-inline-block my-2">
-                            <div id="qrcode"></div>
-                        </div>
-                        
-                        <small class="text-muted font-monospace d-block fw-bold mt-2" id="qrCodigoText"></small>
-                    </div>
-
-                    <div class="d-flex flex-column gap-2 mt-3">
-                        <button class="btn btn-success btn-sm w-100 rounded-3 py-2 fw-bold" id="btnEnviarWA" onclick="enviarWhatsAppAuto()">
-                            <i class="fa-brands fa-whatsapp me-1"></i> Enviar QR por WhatsApp Bot
-                        </button>
-                        <button class="btn btn-dark btn-sm w-100 rounded-3 py-2 fw-semibold" onclick="descargarQR()">
-                            <i class="fa-solid fa-download me-1"></i> Descargar Imagen PNG
-                        </button>
-                        <button class="btn btn-outline-secondary btn-sm w-100 rounded-3 py-2 fw-semibold" onclick="window.print()">
-                            <i class="fa-solid fa-print me-1"></i> Imprimir Credencial
-                        </button>
-                    </div>
-                </div>
+<!-- MODAL: VER CÓDIGO QR -->
+<div class="modal fade" id="modalQr" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow text-center p-3">
+            <div class="modal-header border-0 pb-0">
+                <h6 class="modal-title fw-bold w-100" id="qrNombreEmpleado">Gafete QR</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <img id="qrImagen" src="" alt="QR Empleado" class="img-fluid border rounded-3 p-2 mb-2" style="width: 180px; height: 180px;">
+                <p class="fw-800 fs-5 m-0 text-dark" id="qrCodigoTexto">EMP-0</p>
+                <small class="text-muted d-block mb-3">Escanea este código en el Reloj Checador</small>
+                <button type="button" class="btn btn-success btn-sm rounded-pill w-100 fw-bold" id="btnReenviarQrWa">
+                    <i class="fa-brands fa-whatsapp me-1"></i> Enviar QR por WhatsApp
+                </button>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- BOOTSTRAP JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    let listaEmpleados = [];
 
-    <!-- JS SCRIPT -->
-    <script>
-        let listaEmpleados = [];
-        let currentQRData = { id: null, nombre: '', rol: '', codigoQR: '', telefono: '' };
+    document.addEventListener("DOMContentLoaded", () => {
+        cargarEmpleados();
+    });
 
-        document.addEventListener('DOMContentLoaded', () => {
-            cargarEmpleados();
+    // Función para mostrar/ocultar el PIN en el formulario Modal
+    function togglePinModal() {
+        const inputPin = document.getElementById('pin_acceso');
+        const icono = document.getElementById('iconoOjoModal');
+        if (inputPin.type === 'password') {
+            inputPin.type = 'text';
+            icono.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+            inputPin.type = 'password';
+            icono.classList.replace('fa-eye-slash', 'fa-eye');
+        }
+    }
 
-            // Guardar / Editar Empleado
-            document.getElementById('formEmpleado').addEventListener('submit', async (e) => {
-                e.preventDefault();
+    // Función para mostrar/ocultar el PIN de un empleado específico en la tabla
+    function togglePinTabla(id, pinReal) {
+        const span = document.getElementById(`pin-span-${id}`);
+        const icon = document.getElementById(`pin-icon-${id}`);
+        if (span.dataset.visible === 'false') {
+            span.innerText = pinReal;
+            span.dataset.visible = 'true';
+            icon.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+            span.innerText = '••••';
+            span.dataset.visible = 'false';
+            icon.classList.replace('fa-eye-slash', 'fa-eye');
+        }
+    }
 
-                const btnSubmit = document.getElementById('btnSubmit');
-                btnSubmit.disabled = true;
-                btnSubmit.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Guardando...';
+    async function cargarEmpleados() {
+        try {
+            const response = await fetch('api/empleados/index.php');
+            const res = await response.json();
+            listaEmpleados = Array.isArray(res) ? res : (res.data || []);
+            actualizarEstadisticas();
+            renderizarTabla(listaEmpleados);
+        } catch (error) {
+            console.error("Error al cargar empleados:", error);
+            document.getElementById('tablaEmpleados').innerHTML = `
+                <tr><td colspan="8" class="text-center text-danger py-4">Error al conectar con el servidor.</td></tr>
+            `;
+        }
+    }
 
-                const idEmpleado = document.getElementById('id_empleado').value;
-                const nombre = document.getElementById('nombre').value.trim();
-                const apellido = document.getElementById('apellido').value.trim();
-                const puesto = document.getElementById('puesto').value;
-                const telefono = document.getElementById('telefono').value.trim();
-                const salario = parseFloat(document.getElementById('salario_por_hora').value) || 0.00;
+    function actualizarEstadisticas() {
+        document.getElementById('statTotal').innerText = listaEmpleados.length;
+        const admin = listaEmpleados.filter(e => ['administrador', 'cajero'].includes((e.puesto || '').toLowerCase())).length;
+        document.getElementById('statAdmin').innerText = admin;
+        document.getElementById('statOperacion').innerText = listaEmpleados.length - admin;
+    }
 
-                const datos = {
-                    id_empleado: idEmpleado ? parseInt(idEmpleado) : null,
-                    nombre: nombre,
-                    apellido: apellido,
-                    puesto: puesto,
-                    telefono: telefono,
-                    salario_por_hora: salario
-                };
+    function renderizarTabla(datos) {
+        const tbody = document.getElementById('tablaEmpleados');
+        tbody.innerHTML = '';
 
-                try {
-                    const res = await fetch('api/empleados/index.php', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(datos)
-                    });
+        if (datos.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-muted">No hay empleados registrados.</td></tr>`;
+            return;
+        }
 
-                    const textResponse = await res.text();
-                    let data;
-                    try {
-                        data = JSON.parse(textResponse);
-                    } catch (err) {
-                        console.error('Respuesta no JSON:', textResponse);
-                        mostrarError('Error de respuesta del servidor PHP.');
-                        return;
-                    }
+        datos.forEach(emp => {
+            const iniciales = ((emp.nombre ? emp.nombre[0] : '') + (emp.apellido && emp.apellido !== '-' ? emp.apellido[0] : '')).toUpperCase();
+            const nombreCompleto = `${emp.nombre} ${emp.apellido !== '-' ? emp.apellido : ''}`.trim();
+            const qr = emp.codigo_qr || `EMP-${emp.id_empleado}`;
+            const pin = emp.pin_acceso || '1234';
 
-                    if (data.status === 'success') {
-                        mostrarExito(data.message);
-                        
-                        const modalEl = document.getElementById('modalEmpleado');
-                        const modal = bootstrap.Modal.getInstance(modalEl);
-                        if (modal) modal.hide();
-                        
-                        document.getElementById('formEmpleado').reset();
-                        await cargarEmpleados();
+            let colorBadge = 'bg-secondary';
+            const puestoLow = (emp.puesto || '').toLowerCase();
+            if (puestoLow.includes('admin')) colorBadge = 'bg-dark';
+            else if (puestoLow.includes('caj')) colorBadge = 'bg-success';
+            else if (puestoLow.includes('mes')) colorBadge = 'bg-primary';
+            else if (puestoLow.includes('coc') || puestoLow.includes('bar')) colorBadge = 'bg-warning text-dark';
 
-                        // Desplegar automáticamente el QR recién generado
-                        if (!idEmpleado && data.id_empleado) {
-                            const nombreCompleto = `${nombre} ${apellido}`;
-                            verQR(data.id_empleado, nombreCompleto, puesto, `EMP-${data.id_empleado}`, telefono);
-                        }
-                    } else {
-                        mostrarError('Error: ' + (data.message || 'No se pudo guardar'));
-                    }
-                } catch (error) {
-                    console.error('Error Fetch:', error);
-                    mostrarError('Error al conectar con el servidor.');
-                } finally {
-                    btnSubmit.disabled = false;
-                }
-            });
+            tbody.insertAdjacentHTML('beforeend', `
+                <tr>
+                    <td class="fw-bold">#${emp.id_empleado}</td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="avatar-circle">${iniciales}</div>
+                            <div>
+                                <div class="fw-bold text-dark">${nombreCompleto}</div>
+                                <small class="text-muted">Alta: ${emp.fecha_registro || 'Reciente'}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="badge ${colorBadge} rounded-pill px-3">${emp.puesto}</span></td>
+                    <td>${emp.telefono || '<span class="text-muted">-</span>'}</td>
+                    <td>
+                        <button class="btn btn-sm btn-light border fw-bold" onclick="mostrarQr('${nombreCompleto}', '${qr}', '${emp.telefono || ''}', '${emp.puesto}', '${pin}')">
+                            <i class="fa-solid fa-qrcode me-1"></i> ${qr}
+                        </button>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center gap-1">
+                            <span id="pin-span-${emp.id_empleado}" data-visible="false" class="badge bg-light text-dark border font-monospace pin-badge">••••</span>
+                            <button class="btn btn-sm btn-link text-muted p-0 ms-1" onclick="togglePinTabla(${emp.id_empleado}, '${pin}')" title="Mostrar/Ocultar PIN">
+                                <i id="pin-icon-${emp.id_empleado}" class="fa-solid fa-eye"></i>
+                            </button>
+                        </div>
+                    </td>
+                    <td class="fw-bold text-success">$${parseFloat(emp.salario_por_hora || 0).toFixed(2)}</td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-outline-success rounded-3 me-1" onclick="enviarQrWhatsAppFrontend('${emp.telefono || ''}', '${nombreCompleto}', '${emp.puesto}', '${qr}', '${pin}')" title="Enviar QR por WhatsApp">
+                            <i class="fa-brands fa-whatsapp"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-dark rounded-3 me-1" onclick="editarEmpleado(${emp.id_empleado})" title="Editar">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger rounded-3" onclick="eliminarEmpleado(${emp.id_empleado}, '${nombreCompleto}')" title="Dar de baja">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `);
         });
+    }
 
-        // Cargar empleados desde API
-        async function cargarEmpleados() {
-            const tbody = document.getElementById('tablaEmpleados');
-            tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4"><i class="fa-solid fa-spinner fa-spin me-2"></i>Cargando datos...</td></tr>';
-
-            try {
-                const res = await fetch('api/empleados/listar.php');
-                const result = await res.json();
-
-                if (result.status === 'success' && Array.isArray(result.data)) {
-                    listaEmpleados = result.data;
-                    actualizarMetricas();
-                    renderizarTabla(listaEmpleados);
-                } else {
-                    tbody.innerHTML = `<tr><td colspan="8" class="text-center text-warning py-4">${result.message || 'Error al obtener datos.'}</td></tr>`;
-                }
-            } catch (error) {
-                console.error('Error al consultar:', error);
-                tbody.innerHTML = '<tr><td colspan="8" class="text-center text-danger py-4">Error de conexión con la API.</td></tr>';
-            }
+    // Envío automático apoyándose en api/whatsapp/enviar.php o servidor Baileys local
+    async function enviarQrWhatsAppFrontend(telefono, nombre, puesto, qr, pin) {
+        const telLimpio = (telefono || '').replace(/\D/g, '');
+        if (!telLimpio) {
+            alert("El empleado no tiene un número de teléfono válido registrado.");
+            return;
         }
 
-        // Renderizar Tabla
-        function renderizarTabla(datos) {
-            const tbody = document.getElementById('tablaEmpleados');
-            tbody.innerHTML = '';
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qr)}`;
+        const mensaje = `¡Hola *${nombre}*! 👋 Bienvenido(a) a *SazónTrack*.\n\n📋 *Puesto:* ${puesto}\n🔑 *PIN de Acceso:* ${pin}\n🪪 *Código QR Checador:* ${qr}\n\nDescarga tu código QR de asistencia aquí:\n${qrUrl}`;
 
-            if (datos.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">No se encontraron empleados.</td></tr>';
+        try {
+            const resp = await fetch('api/whatsapp/enviar.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    telefono: telLimpio,
+                    numero: telLimpio,
+                    nombre: nombre,
+                    codigo_qr: qr,
+                    qrUrl: qrUrl,
+                    mensaje: mensaje
+                })
+            });
+            const data = await resp.json();
+            if (data.status === 'success' || data.success) {
+                console.log("QR enviado automáticamente por WhatsApp API.");
                 return;
             }
-
-            datos.forEach(emp => {
-                let badgeClass = 'badge-mesero';
-                if (emp.puesto === 'Administrador') badgeClass = 'badge-admin';
-                else if (emp.puesto === 'Cajero') badgeClass = 'badge-cajero';
-                else if (emp.puesto === 'Cocina') badgeClass = 'badge-cocina';
-                else if (emp.puesto === 'Barra') badgeClass = 'badge-barra';
-
-                const esActivo = emp.estado === 'Activo';
-                const qrValue = `EMP-${emp.id_empleado}`;
-
-                tbody.innerHTML += `
-                    <tr class="fila-empleado" onclick="toggleDetalle(${emp.id_empleado})">
-                        <td class="text-center text-muted"><i class="fa-solid fa-chevron-right chevron-icon" id="chevron-${emp.id_empleado}"></i></td>
-                        <td class="fw-bold">#${emp.id_empleado}</td>
-                        <td>
-                            <div class="fw-bold">${emp.nombre} ${emp.apellido}</div>
-                        </td>
-                        <td><span class="badge ${badgeClass}">${emp.puesto}</span></td>
-                        <td>${emp.telefono}</td>
-                        <td><span class="fw-semibold">$${parseFloat(emp.salario_por_hora).toFixed(2)}</span></td>
-                        <td>
-                            <span class="badge ${esActivo ? 'bg-success' : 'bg-secondary'}">${emp.estado}</span>
-                        </td>
-                        <td class="text-center" onclick="event.stopPropagation()">
-                            <div class="btn-group btn-group-sm" role="group">
-                                <button class="btn btn-outline-dark" onclick="abrirModalEditar(${emp.id_empleado})" title="Editar Empleado">
-                                    <i class="fa-solid fa-pen-to-square"></i> Editar
-                                </button>
-                                <button class="btn btn-outline-secondary" onclick="verQR(${emp.id_empleado}, '${emp.nombre} ${emp.apellido}', '${emp.puesto}', '${qrValue}', '${emp.telefono}')" title="Ver Credencial QR">
-                                    <i class="fa-solid fa-qrcode"></i> QR
-                                </button>
-                                <button class="btn ${esActivo ? 'btn-outline-warning' : 'btn-outline-success'}" onclick="cambiarEstado(${emp.id_empleado}, '${esActivo ? 'Inactivo' : 'Activo'}')" title="Cambiar Estado">
-                                    <i class="fa-solid ${esActivo ? 'fa-user-slash' : 'fa-user-check'}"></i>
-                                </button>
-                                <button class="btn btn-outline-danger" onclick="eliminarEmpleado(${emp.id_empleado}, '${emp.nombre} ${emp.apellido}')" title="Eliminar del Sistema">
-                                    <i class="fa-solid fa-trash-can"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    
-                    <tr class="detalle-row" id="row-detalle-${emp.id_empleado}">
-                        <td colspan="8" class="p-0">
-                            <div class="detalle-container p-4" id="container-detalle-${emp.id_empleado}">
-                                <div class="card card-body bg-white border-0 shadow-sm rounded-4">
-                                    <div class="row align-items-center">
-                                        <div class="col-auto text-center pe-md-4">
-                                            <div class="avatar-placeholder mx-auto mb-2">
-                                                <i class="fa-solid fa-user"></i>
-                                            </div>
-                                            <small class="badge bg-dark">${qrValue}</small>
-                                        </div>
-                                        <div class="col">
-                                            <div class="d-flex justify-content-between align-items-start">
-                                                <div>
-                                                    <h5 class="fw-bold text-dark mb-1">${emp.nombre} ${emp.apellido}</h5>
-                                                    <p class="text-muted small mb-3"><i class="fa-solid fa-briefcase me-1"></i>Puesto: ${emp.puesto}</p>
-                                                </div>
-                                                <button class="btn btn-sm btn-outline-danger rounded-3" onclick="eliminarEmpleado(${emp.id_empleado}, '${emp.nombre} ${emp.apellido}')">
-                                                    <i class="fa-solid fa-trash-can me-1"></i> Eliminar
-                                                </button>
-                                            </div>
-                                            
-                                            <div class="row g-3 small">
-                                                <div class="col-6 col-md-4">
-                                                    <span class="text-muted d-block">Teléfono:</span>
-                                                    <strong>${emp.telefono}</strong>
-                                                </div>
-                                                <div class="col-6 col-md-4">
-                                                    <span class="text-muted d-block">Salario x Hora:</span>
-                                                    <strong class="text-success">$${parseFloat(emp.salario_por_hora).toFixed(2)} MXN</strong>
-                                                </div>
-                                                <div class="col-6 col-md-4">
-                                                    <span class="text-muted d-block">Estado:</span>
-                                                    <strong class="${esActivo ? 'text-success' : 'text-danger'}">${emp.estado}</strong>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            });
+        } catch (e) {
+            console.warn("Servicio local WhatsApp no disponible, abriendo enlace directo Wa.me");
         }
 
-        function toggleDetalle(id) {
-            const rowDetalle = document.getElementById('row-detalle-' + id);
-            const chevron = document.getElementById('chevron-' + id);
+        // Respaldo automático por si el bot Node.js no está corriendo
+        const prefijo = telLimpio.length === 10 ? '521' + telLimpio : telLimpio;
+        window.open(`https://wa.me/${prefijo}?text=${encodeURIComponent(mensaje)}`, '_blank');
+    }
 
-            if (rowDetalle.classList.contains('active')) {
-                rowDetalle.classList.remove('active');
-                setTimeout(() => { rowDetalle.style.display = 'none'; }, 300);
-                if (chevron) chevron.className = 'fa-solid fa-chevron-right';
+    function filtrarEmpleados() {
+        const q = document.getElementById('buscarEmpleado').value.toLowerCase();
+        const filtrados = listaEmpleados.filter(e => 
+            `${e.nombre} ${e.apellido}`.toLowerCase().includes(q) ||
+            (e.puesto || '').toLowerCase().includes(q) ||
+            (e.codigo_qr || '').toLowerCase().includes(q)
+        );
+        renderizarTabla(filtrados);
+    }
+
+    function abrirModalNuevo() {
+        document.getElementById('formEmpleado').reset();
+        document.getElementById('id_empleado').value = '';
+        document.getElementById('pin_acceso').type = 'password';
+        document.getElementById('iconoOjoModal').className = 'fa-solid fa-eye';
+        document.getElementById('chkEnviarWa').checked = true;
+        document.getElementById('tituloModalEmpleado').innerHTML = '<i class="fa-solid fa-user-plus me-2"></i>Nuevo Empleado';
+        new bootstrap.Modal(document.getElementById('modalEmpleado')).show();
+    }
+
+    function editarEmpleado(id) {
+        const emp = listaEmpleados.find(e => e.id_empleado == id);
+        if (!emp) return;
+
+        document.getElementById('id_empleado').value = emp.id_empleado;
+        document.getElementById('nombre').value = emp.nombre;
+        document.getElementById('apellido').value = emp.apellido !== '-' ? emp.apellido : '';
+        document.getElementById('puesto').value = emp.puesto;
+        document.getElementById('telefono').value = emp.telefono || '';
+        document.getElementById('pin_acceso').value = emp.pin_acceso || '1234';
+        document.getElementById('pin_acceso').type = 'password';
+        document.getElementById('iconoOjoModal').className = 'fa-solid fa-eye';
+        document.getElementById('salario_por_hora').value = parseFloat(emp.salario_por_hora || 0).toFixed(2);
+
+        document.getElementById('tituloModalEmpleado').innerHTML = '<i class="fa-solid fa-user-pen me-2"></i>Editar Empleado #' + emp.id_empleado;
+        new bootstrap.Modal(document.getElementById('modalEmpleado')).show();
+    }
+
+    async function guardarEmpleado(e) {
+        e.preventDefault();
+        const btn = document.getElementById('btnGuardarEmp');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Guardando...';
+
+        const payload = {
+            id_empleado: document.getElementById('id_empleado').value,
+            nombre: document.getElementById('nombre').value,
+            apellido: document.getElementById('apellido').value,
+            puesto: document.getElementById('puesto').value,
+            telefono: document.getElementById('telefono').value,
+            pin_acceso: document.getElementById('pin_acceso').value,
+            salario_por_hora: document.getElementById('salario_por_hora').value
+        };
+
+        const enviarWa = document.getElementById('chkEnviarWa').checked;
+
+        try {
+            const response = await fetch('api/empleados/index.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const res = await response.json();
+
+            if (res.status === 'success') {
+                bootstrap.Modal.getInstance(document.getElementById('modalEmpleado')).hide();
+                await cargarEmpleados();
+
+                // Si el backend aún no lo envió por Baileys y está marcada la casilla, lo enviamos por api/whatsapp/enviar.php
+                if (enviarWa && payload.telefono && !res.wa_enviado) {
+                    const nombreCompleto = `${payload.nombre} ${payload.apellido}`.trim();
+                    enviarQrWhatsAppFrontend(payload.telefono, nombreCompleto, payload.puesto, res.codigo_qr, payload.pin_acceso);
+                }
+
+                alert(res.message);
             } else {
-                document.querySelectorAll('.detalle-row.active').forEach(r => {
-                    r.classList.remove('active');
-                    setTimeout(() => { r.style.display = 'none'; }, 300);
-                });
-                document.querySelectorAll('.chevron-icon').forEach(c => c.className = 'fa-solid fa-chevron-right');
-
-                rowDetalle.style.display = 'table-row';
-                setTimeout(() => { rowDetalle.classList.add('active'); }, 10);
-                if (chevron) chevron.className = 'fa-solid fa-chevron-down text-primary';
+                alert("Error: " + (res.message || "No se pudo guardar el empleado."));
             }
+        } catch (err) {
+            alert("Error de conexión con el servidor.");
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-floppy-disk me-2"></i>Guardar Empleado';
         }
+    }
 
-        function actualizarMetricas() {
-            document.getElementById('kpiTotal').innerText = listaEmpleados.length;
-            const activos = listaEmpleados.filter(e => e.estado === 'Activo').length;
-            document.getElementById('kpiActivos').innerText = activos;
-        }
+    async function eliminarEmpleado(id, nombre) {
+        if (!confirm(`¿Estás seguro de dar de baja a ${nombre}?`)) return;
 
-        function filtrarTabla() {
-            const texto = document.getElementById('inputBuscar').value.toLowerCase();
-            const rolSel = document.getElementById('selectFiltroRol').value;
-
-            const filtrados = listaEmpleados.filter(emp => {
-                const coincideTexto = (emp.nombre + ' ' + emp.apellido + ' ' + emp.telefono).toLowerCase().includes(texto);
-                const coincideRol = rolSel === '' || emp.puesto === rolSel;
-                return coincideTexto && coincideRol;
+        try {
+            const response = await fetch('api/empleados/index.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ accion: 'eliminar', id_empleado: id })
             });
-
-            renderizarTabla(filtrados);
-        }
-
-        function abrirModalCrear() {
-            document.getElementById('modalTitulo').innerHTML = '<i class="fa-solid fa-user-plus me-2"></i>Nuevo Empleado';
-            document.getElementById('id_empleado').value = '';
-            document.getElementById('formEmpleado').reset();
-            document.getElementById('btnSubmit').innerText = 'Guardar Empleado';
-            new bootstrap.Modal(document.getElementById('modalEmpleado')).show();
-        }
-
-        function abrirModalEditar(id) {
-            const emp = listaEmpleados.find(e => e.id_empleado == id);
-            if (!emp) return;
-
-            document.getElementById('modalTitulo').innerHTML = '<i class="fa-solid fa-user-pen me-2"></i>Editar Empleado #' + emp.id_empleado;
-            document.getElementById('id_empleado').value = emp.id_empleado;
-            document.getElementById('nombre').value = emp.nombre;
-            document.getElementById('apellido').value = emp.apellido;
-            document.getElementById('puesto').value = emp.puesto;
-            document.getElementById('telefono').value = emp.telefono !== 'N/A' ? emp.telefono : '';
-            document.getElementById('salario_por_hora').value = emp.salario_por_hora;
-            document.getElementById('btnSubmit').innerText = 'Actualizar Cambios';
-
-            new bootstrap.Modal(document.getElementById('modalEmpleado')).show();
-        }
-
-        async function cambiarEstado(id, nuevoEstado) {
-            if (!confirm(`¿Deseas cambiar el estado del empleado #${id} a ${nuevoEstado}?`)) return;
-
-            try {
-                const res = await fetch('api/empleados/index.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id_empleado: id, estado: nuevoEstado, accion: 'cambiar_estado' })
-                });
-
-                const data = await res.json();
-                if (data.status === 'success') {
-                    mostrarExito(`Empleado #${id} actualizado a ${nuevoEstado}.`);
-                    cargarEmpleados();
-                } else {
-                    mostrarError(data.message || 'No se pudo cambiar el estado.');
-                }
-            } catch (error) {
-                console.error(error);
-                mostrarError('Error de red al actualizar estado.');
+            const res = await response.json();
+            if (res.status === 'success') {
+                cargarEmpleados();
+            } else {
+                alert("Error: " + res.message);
             }
+        } catch (err) {
+            alert("Error al intentar dar de baja al empleado.");
         }
+    }
 
-        async function eliminarEmpleado(id, nombreCompleto) {
-            if (!confirm(`¿Está seguro de eliminar permanentemente a ${nombreCompleto} (ID: #${id})?`)) return;
+    function mostrarQr(nombre, codigo, telefono, puesto, pin) {
+        document.getElementById('qrNombreEmpleado').innerText = nombre;
+        document.getElementById('qrCodigoTexto').innerText = codigo;
+        document.getElementById('qrImagen').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(codigo)}`;
+        
+        const btnWa = document.getElementById('btnReenviarQrWa');
+        btnWa.onclick = () => enviarQrWhatsAppFrontend(telefono, nombre, puesto, codigo, pin);
 
-            try {
-                const res = await fetch('api/empleados/index.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id_empleado: id, accion: 'eliminar' })
-                });
-
-                const data = await res.json();
-                if (data.status === 'success') {
-                    mostrarExito(`El empleado ${nombreCompleto} fue eliminado.`);
-                    cargarEmpleados();
-                } else {
-                    mostrarError(data.message || 'No se pudo eliminar el empleado.');
-                }
-            } catch (error) {
-                console.error(error);
-                mostrarError('Error al procesar la baja del empleado.');
-            }
-        }
-
-        // Generar QR
-        function verQR(id, nombre, rol, qrCode, telefono) {
-            if (!id || id === 'undefined' || id === 'null') {
-                alert('Error: El empleado no tiene un ID válido asignado.');
-                return;
-            }
-
-            const codigoLimpio = `EMP-${id}`;
-            currentQRData = { id: id, nombre: nombre, rol: rol, codigoQR: codigoLimpio, telefono: telefono };
-
-            document.getElementById('qrNombre').innerText = nombre;
-            document.getElementById('qrRol').innerText = rol;
-            document.getElementById('qrCodigoText').innerText = codigoLimpio;
-
-            const qrContainer = document.getElementById('qrcode');
-            qrContainer.innerHTML = '';
-
-            new QRCode(qrContainer, { 
-                text: codigoLimpio, 
-                width: 190, 
-                height: 190,
-                colorDark : "#000000",
-                colorLight : "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H
-            });
-
-            new bootstrap.Modal(document.getElementById('modalQR')).show();
-        }
-
-        function descargarQR() {
-            const qrCanvas = document.querySelector('#qrcode canvas') || document.querySelector('#qrcode img');
-            if (!qrCanvas) return;
-
-            let imageURI = qrCanvas.tagName.toLowerCase() === 'img' ? qrCanvas.src : qrCanvas.toDataURL("image/png");
-
-            const link = document.createElement('a');
-            link.download = `Credencial_QR_${currentQRData.nombre.replace(/\s+/g, '_')}.png`;
-            link.href = imageURI;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        // Envío Automático por Bot de WhatsApp (Servidor Node.js activo)
-        async function enviarWhatsAppAuto() {
-            if (!currentQRData.telefono || currentQRData.telefono.trim() === '' || currentQRData.telefono === 'N/A') {
-                alert('El empleado no tiene un número de teléfono válido registrado en el sistema.');
-                return;
-            }
-
-            const btnWa = document.getElementById('btnEnviarWA');
-            const textoOriginal = btnWa.innerHTML;
-            btnWa.disabled = true;
-            btnWa.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Enviando automáticamente...';
-
-            const qrCanvas = document.querySelector('#qrcode canvas');
-            const qrBase64 = qrCanvas ? qrCanvas.toDataURL("image/png") : null;
-
-            const mensaje = `Hola *${currentQRData.nombre}*, bienvenido(a) a *SazónTrack POS*.\n\n` +
-                            `📌 *Puesto:* ${currentQRData.rol}\n` +
-                            `🔑 *Código de Marcaje:* ${currentQRData.codigoQR}\n\n` +
-                            `Te adjuntamos tu imagen de código QR personal. Muestra esta imagen frente a la cámara del reloj checador para registrar tu ENTRADA y SALIDA.`;
-
-            try {
-                const res = await fetch('api/whatsapp/enviar.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        telefono: currentQRData.telefono,
-                        mensaje: mensaje,
-                        qrBase64: qrBase64,
-                        nombre: currentQRData.nombre
-                    })
-                });
-
-                const textResponse = await res.text();
-                let data;
-                
-                try {
-                    data = JSON.parse(textResponse);
-                } catch (e) {
-                    console.error('Respuesta no JSON:', textResponse);
-                    mostrarError('❌ Error del servidor PHP. Asegúrate de tener "node assets/js/server-wa.js" activo.');
-                    return;
-                }
-
-                if (data.status === 'success') {
-                    mostrarExito(`✅ Credencial e imagen QR enviadas automáticamente a ${currentQRData.nombre} (${currentQRData.telefono}).`);
-                    const modalEl = document.getElementById('modalQR');
-                    const modal = bootstrap.Modal.getInstance(modalEl);
-                    if (modal) modal.hide();
-                } else {
-                    mostrarError(`⚠️ ${data.message}`);
-                }
-            } catch (err) {
-                console.error('Error al enviar mensaje:', err);
-                mostrarError('❌ Error de red al conectar con el servidor PHP.');
-            } finally {
-                btnWa.disabled = false;
-                btnWa.innerHTML = textoOriginal;
-            }
-        }
-
-        function mostrarExito(msg) {
-            document.getElementById('alertContainer').innerHTML = `
-                <div class="alert alert-success alert-dismissible fade show shadow-sm rounded-3" role="alert">
-                    <i class="fa-solid fa-check-circle me-2"></i>${msg}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>`;
-        }
-
-        function mostrarError(msg) {
-            document.getElementById('alertContainer').innerHTML = `
-                <div class="alert alert-danger alert-dismissible fade show shadow-sm rounded-3" role="alert">
-                    <i class="fa-solid fa-triangle-exclamation me-2"></i>${msg}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>`;
-        }
-    </script>
+        new bootstrap.Modal(document.getElementById('modalQr')).show();
+    }
+</script>
 </body>
 </html>

@@ -1,5 +1,6 @@
 <?php
 // api/caja/generar_ticket.php
+header('Content-Type: text/html; charset=utf-8');
 
 // 1. Conexión a la base de datos PostgreSQL
 if (file_exists(__DIR__ . '/../../config/conexion.php')) {
@@ -8,6 +9,16 @@ if (file_exists(__DIR__ . '/../../config/conexion.php')) {
     require_once __DIR__ . '/../conexion.php';
 } else {
     die("Error: No se encontró el archivo de conexión a la base de datos.");
+}
+
+// Asegurar instancia de conexión PDO si se maneja mediante clase Database
+if (!isset($conn) && class_exists('Database')) {
+    $db = new Database();
+    $conn = $db->getConnection();
+}
+
+if (!$conn) {
+    die("Error crítico: No se pudo establecer la conexión con la base de datos.");
 }
 
 // 2. Detección automática de FPDF
@@ -32,8 +43,8 @@ if (!$fpdf_encontrado) {
 
 define('MONEDA', '$');
 
-// 3. Capturar el ID de la URL (ej. ?id=39)
-$orden_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+// 3. Capturar el ID de la URL (soporta ?id=X o ?id_orden=X)
+$orden_id = isset($_GET['id']) ? intval($_GET['id']) : (isset($_GET['id_orden']) ? intval($_GET['id_orden']) : 0);
 
 if ($orden_id <= 0) {
     die("Error: No se proporcionó un ID de venta válido para imprimir.");
@@ -42,10 +53,10 @@ if ($orden_id <= 0) {
 // 4. Consultar los datos generales de la orden
 try {
     $stmtOrden = $conn->prepare("
-        SELECT o.folio, o.total, 
+        SELECT o.folio, o.total, o.subtotal, o.descuento, o.propina,
                TO_CHAR(o.creado_en, 'DD/MM/YYYY') AS fecha_venta,
                TO_CHAR(o.creado_en, 'HH24:MI') AS hora,
-               COALESCE(p.metodo_pago, 'Efectivo') AS metodo_pago,
+               COALESCE(o.metodo_pago, p.metodo_pago, 'Efectivo') AS metodo_pago,
                COALESCE(u.nombre, 'Cajero Principal') AS cajero
         FROM ordenes o 
         LEFT JOIN pagos p ON o.id_orden = p.id_orden
@@ -63,21 +74,19 @@ try {
     // 5. Consultar los detalles (platillos) de esta orden
     $articulos = [];
     try {
-        // Intento 1: Asumiendo que la PK de productos es id_producto
         $stmtDetalles = $conn->prepare("
-            SELECT pr.nombre AS producto, od.cantidad, od.precio_unitario, od.subtotal
-            FROM orden_detalles od
+            SELECT pr.nombre AS producto, od.cantidad, od.precio_unitario, od.subtotal, od.notas
+            FROM detalle_orden od
             JOIN productos pr ON od.producto_id = pr.id_producto
             WHERE od.orden_id = ?
         ");
         $stmtDetalles->execute([$orden_id]);
         $articulos = $stmtDetalles->fetchAll(PDO::FETCH_ASSOC);
     } catch (Exception $e) {
-        // Intento 2: Asumiendo que la PK de productos es simplemente id
         $stmtDetalles = $conn->prepare("
-            SELECT pr.nombre AS producto, od.cantidad, od.precio_unitario, od.subtotal
-            FROM orden_detalles od
-            JOIN productos pr ON od.producto_id = pr.id
+            SELECT pr.nombre AS producto, od.cantidad, od.precio_unitario, od.subtotal, od.notas
+            FROM detalle_orden od
+            JOIN productos pr ON od.producto_id = pr.id_producto
             WHERE od.orden_id = ?
         ");
         $stmtDetalles->execute([$orden_id]);
@@ -88,9 +97,10 @@ try {
     die("Error en la base de datos al buscar el ticket: " . $e->getMessage());
 }
 
+// Cálculos financieros corregidos
 $total = floatval($orden['total']);
-$iva = $total - ($total / 1.16); // Desglose de IVA
-$baseImponible = $total - $iva;
+$baseImponible = $total / 1.16; // Base sin IVA
+$iva = $total - $baseImponible; // Desglose de IVA
 
 // ==================== GENERACIÓN DEL TICKET PDF ====================
 $pdf = new FPDF('P', 'mm', array(80, 200));
@@ -112,7 +122,7 @@ $pdf->Ln(2);
 $pdf->SetFont('Arial', 'B', 8);
 $pdf->Cell(18, 5, mb_convert_encoding('Núm ticket: ', 'ISO-8859-1', 'UTF-8'), 0, 0, 'L');
 $pdf->SetFont('Arial', '', 8);
-$pdf->Cell(52, 5, $orden['folio'], 0, 1, 'L');
+$pdf->Cell(52, 5, $orden['folio'] ?? ('ORD-' . $orden_id), 0, 1, 'L');
 
 $pdf->Cell(35, 4, 'Fecha: ' . ($orden['fecha_venta'] ?? date('d/m/Y')), 0, 0, 'L');
 $pdf->Cell(35, 4, 'Hora: ' . ($orden['hora'] ?? date('H:i')), 0, 1, 'R');
@@ -152,6 +162,14 @@ if (!empty($articulos)) {
         $pdf->Cell(14, 4, MONEDA . number_format($precio, 2), 0, 0, 'C');
         $pdf->Cell(14, 4, MONEDA . number_format($importe, 2), 0, 1, 'R');
         
+        // Si hay notas del platillo
+        if (!empty($item['notas'])) {
+            $pdf->SetX(13);
+            $pdf->SetFont('Arial', 'I', 6);
+            $pdf->Cell(57, 3, mb_convert_encoding('Nota: ' . $item['notas'], 'ISO-8859-1', 'UTF-8'), 0, 1, 'L');
+            $pdf->SetFont('Arial', '', 7);
+        }
+
         if ($yFin > $pdf->GetY()) {
             $pdf->SetY($yFin);
         }
@@ -187,6 +205,6 @@ $pdf->Cell(70, 5, mb_convert_encoding('¡GRACIAS POR SU PREFERENCIA!', 'ISO-8859
 $pdf->SetFont('Arial', '', 7);
 $pdf->Cell(70, 4, 'Conserve su ticket. Vuelva pronto.', 0, 1, 'C');
 
-// Salida al navegador
+// Salida al navegador (abre el PDF directamente o permite imprimir)
 $pdf->Output('I', 'ticket_venta_' . $orden_id . '.pdf');
 ?>

@@ -1,43 +1,51 @@
 <?php
-require_once '../../config/conexion.php';
-
+// api/estaciones_kds/obtener_comandas.php
 header('Content-Type: application/json');
+
+if (file_exists(__DIR__ . '/../../config/conexion.php')) {
+    require_once __DIR__ . '/../../config/conexion.php';
+} elseif (file_exists(__DIR__ . '/../conexion.php')) {
+    require_once __DIR__ . '/../conexion.php';
+}
 
 $estacion = isset($_GET['estacion']) ? trim($_GET['estacion']) : 'cocina';
 $ver_historial = isset($_GET['historial']) && $_GET['historial'] === 'true';
 
-$db = new Database();
-$conn = $db->getConnection();
+// Soportar tanto la clase Database() como la variable $conn directa
+if (!isset($conn) && class_exists('Database')) {
+    $db = new Database();
+    $conn = $db->getConnection();
+}
 
 try {
-    // Si solicita historial, muestra las últimas 10 entregadas
+    // Filtrar entregados vs pendientes (insensible a mayúsculas/minúsculas)
     $condicionEstado = $ver_historial 
-        ? "od.estado_preparacion = 'entregado'"
-        : "(od.estado_preparacion IS NULL OR od.estado_preparacion != 'entregado')";
+        ? "LOWER(COALESCE(od.estado_preparacion, od.estado_kds, '')) IN ('entregado', 'listo')"
+        : "LOWER(COALESCE(od.estado_preparacion, od.estado_kds, 'pendiente')) NOT IN ('entregado', 'cancelado')";
 
     $query = "
         SELECT 
-            o.id AS orden_id,
-            m.numero_mesa,
-            a.nombre AS area_nombre,
-            o.creado_en AS hora_orden,
-            EXTRACT(EPOCH FROM (NOW() - o.creado_en))/60 AS minutos_transcurridos,
-            od.id AS detalle_id,
+            o.id_orden AS orden_id,
+            COALESCE(m.numero_mesa, 'Mostrador') AS numero_mesa,
+            COALESCE(a.nombre, 'Salón Principal') AS area_nombre,
+            TO_CHAR(o.creado_en, 'HH24:MI') AS hora_orden,
+            EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - o.creado_en))/60 AS minutos_transcurridos,
+            od.id_detalle AS detalle_id,
             p.nombre AS producto,
             od.cantidad,
-            o.notas AS notas,
-            od.estado_preparacion,
-            c.estacion
+            COALESCE(od.notas, '') AS notas,
+            LOWER(COALESCE(od.estado_preparacion, od.estado_kds, 'pendiente')) AS estado_preparacion,
+            COALESCE(c.estacion, 'cocina') AS estacion
         FROM ordenes o
-        JOIN mesas m ON m.id_mesa = o.id_mesa OR m.id = o.mesa_id
-        JOIN areas a ON a.id_area = m.id_area
-        JOIN orden_detalles od ON od.orden_id = o.id
-        JOIN productos p ON p.id = od.producto_id
-        JOIN categorias c ON c.id = p.categoria_id
-        WHERE o.estado NOT IN ('pagada', 'cancelada')
-          AND LOWER(c.estacion) = :estacion
+        LEFT JOIN mesas m ON m.id_mesa = o.id_mesa
+        LEFT JOIN areas a ON a.id_area = m.id_area
+        JOIN orden_detalles od ON od.orden_id = o.id_orden
+        JOIN productos p ON p.id_producto = od.producto_id
+        LEFT JOIN categorias c ON c.id_categoria = p.id_categoria
+        WHERE LOWER(o.estado) NOT IN ('pagada', 'cancelada')
+          AND LOWER(COALESCE(c.estacion, 'cocina')) = :estacion
           AND {$condicionEstado}
-        ORDER BY o.creado_en ASC, od.id ASC
+        ORDER BY o.creado_en ASC, od.id_detalle ASC
     ";
 
     $stmt = $conn->prepare($query);
@@ -49,12 +57,12 @@ try {
         $oid = $fila['orden_id'];
         if (!isset($comandas[$oid])) {
             $comandas[$oid] = [
-                'orden_id'             => $fila['orden_id'],
-                'numero_mesa'          => $fila['numero_mesa'],
-                'area_nombre'          => $fila['area_nombre'],
-                'hora_orden'           => $fila['hora_orden'],
-                'minutos_transcurridos'=> round((float)$fila['minutos_transcurridos']),
-                'detalles'             => []
+                'orden_id'              => $fila['orden_id'],
+                'numero_mesa'           => $fila['numero_mesa'],
+                'area_nombre'           => $fila['area_nombre'],
+                'hora_orden'            => $fila['hora_orden'],
+                'minutos_transcurridos' => max(0, round((float)$fila['minutos_transcurridos'])),
+                'detalles'              => []
             ];
         }
 
@@ -62,8 +70,8 @@ try {
             'detalle_id'         => $fila['detalle_id'],
             'producto'           => $fila['producto'],
             'cantidad'           => $fila['cantidad'],
-            'notas'              => $fila['notas'] ?? '',
-            'estado_preparacion' => $fila['estado_preparacion'] ?? 'pendiente'
+            'notas'              => $fila['notas'],
+            'estado_preparacion' => $fila['estado_preparacion']
         ];
     }
 
@@ -76,5 +84,9 @@ try {
 
 } catch (PDOException $e) {
     http_response_code(500);
-    echo json_encode(["status" => "error", "message" => "Error BD: " . $e->getMessage()]);
+    echo json_encode([
+        "status"  => "error", 
+        "message" => "Error BD: " . $e->getMessage()
+    ]);
 }
+?>
