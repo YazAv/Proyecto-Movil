@@ -153,9 +153,9 @@ try {
                 $urlImagenPublica = "https://tu-dominio.com/restaurante_app/assets/qr/qr_" . $nuevo_id . ".png";
 
                 // Texto con diseño formal de SazónTrack
-                $mensajeWhatsApp = "Hola *" . $nombre . " " . $apellido . "*, bienvenido(a) a *SazónTrack POS*.\n\n" .
-                                   "📌 *Puesto:* " . $puesto . "\n" .
-                                   "🔑 *Código de Marcaje:* " . $codigo_marcaje_real . "\n\n" .
+                $mensajeWhatsApp = "Hola" . $nombre . " " . $apellido . ", Bienvenido(a) a SazonTrack POS.\n\n" .
+                                   "Puesto: " . $puesto . "\n" .
+                                   "Codigo de Marcaje:* " . $codigo_marcaje_real . "\n\n" .
                                    "Te adjuntamos tu imagen de código QR personal. Muestra esta imagen frente a la cámara del reloj checador para registrar tu ENTRADA y SALIDA.";
 
                 $payload = [

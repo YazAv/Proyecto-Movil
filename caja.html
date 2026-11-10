@@ -558,12 +558,23 @@
         }
     }
 </script>
-<script src="http://localhost:3000/socket.io/socket.io.js"></script>
-
-<!-- Conexión universal basada en la IP del host actual -->
-<script src="http://10.0.10.25:3000/socket.io/socket.io.js"></script>
+<script src="http://179.66.132.102:3000/socket.io/socket.io.js"></script>
 <script>
-    const socket = io("http://10.0.10.25:3000");
+    // Conectando directamente a la IP pública del VPS en Hostinger
+    const socket = io("http://179.66.132.102:3000");
+
+    socket.on("connect", () => {
+        console.log("🟢 Caja Web conectada al servidor WS en el VPS: 179.66.132.102");
+    });
+
+    socket.on("actualizar_mesas_caja", (data) => {
+        console.log("🔔 Actualización desde app móvil:", data);
+        // Lógica para actualizar mesas abiertas o notificaciones
+    });
+    
+    socket.on("connect_error", (error) => {
+        console.warn("🔴 No se pudo conectar al servidor de WebSockets en el VPS.", error);
+    });
 </script>
 </body>
 </html>

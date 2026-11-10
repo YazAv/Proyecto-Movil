@@ -366,38 +366,84 @@
 </main>
 
 <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        // Validación de Sesión
-        const sessionData = localStorage.getItem("sazontrack_session");
-        if (!sessionData) {
-            window.location.href = "login.html";
-            return;
-        }
-
-        const session = JSON.parse(sessionData);
-        const userName = session.nombre_empleado || session.username;
-        const userRole = session.puesto || session.rol;
-
-        // Mostrar datos en menú lateral inferior
-        document.getElementById("sessionUserName").innerText = userName;
-        document.getElementById("sessionUserRole").innerText = userRole;
-        // Mostrar datos en Header
-        document.getElementById("headerUserName").innerText = userName;
-        document.getElementById("headerUserRole").innerText = userRole;
-        document.getElementById("lblTurnoId").innerText = session.turno_activo_id ? `#${session.turno_activo_id}` : "Sin Abrir";
-
-        inicializarGraficas();
-        
-        // Iniciar Widget RRHH y recargar cada 60s
-        cargarWidgetAsistencia();
-        setInterval(cargarWidgetAsistencia, 60000);
-    });
-
-    function cerrarSesion() {
-        localStorage.removeItem("sazontrack_session");
+   document.addEventListener("DOMContentLoaded", () => {
+    // 1. Validación de Sesión
+    const sessionData = localStorage.getItem("sazontrack_session");
+    if (!sessionData) {
         window.location.href = "login.html";
+        return;
     }
 
+    const session = JSON.parse(sessionData);
+    const userName = session.nombre_empleado || session.username;
+    const userRole = session.puesto || session.rol;
+
+    // Mostrar datos en menú lateral y encabezado
+    if (document.getElementById("sessionUserName")) document.getElementById("sessionUserName").innerText = userName;
+    if (document.getElementById("sessionUserRole")) document.getElementById("sessionUserRole").innerText = userRole.toUpperCase();
+    if (document.getElementById("headerUserName")) document.getElementById("headerUserName").innerText = userName;
+    if (document.getElementById("headerUserRole")) document.getElementById("headerUserRole").innerText = userRole.toUpperCase();
+    if (document.getElementById("lblTurnoId")) document.getElementById("lblTurnoId").innerText = session.turno_activo_id ? `#${session.turno_activo_id}` : "Sin Abrir";
+
+    // 2. Aplicar permisos según el rol
+    aplicarPermisos(userRole.toLowerCase());
+
+    inicializarGraficas();
+    cargarWidgetAsistencia();
+    setInterval(cargarWidgetAsistencia, 60000);
+});
+
+function aplicarPermisos(rol) {
+    // Definimos las reglas: qué enlaces (por palabra clave en el href) puede ver cada rol
+    const permisos = {
+        'administrador': 'todo', // Admin ve todo
+        'admin': 'todo',
+        'cajero': ['index.html', 'caja.html', 'turno.html', 'historial_comandas.html'],
+        'mesero': ['mesas.html', 'caja.html', 'asistencia.html'], // Mesero ve el mapa, su punto de venta y checa su entrada
+        'cocina': ['kds_cocina.html', 'inventario.html', 'asistencia.html'],
+        'barra': ['kds_barra.html', 'inventario.html', 'asistencia.html']
+    };
+
+    const enlacesPermitidos = permisos[rol] || [];
+    const navLinks = document.querySelectorAll('.sidebar-nav .nav-link');
+
+    navLinks.forEach(link => {
+        const href = link.getAttribute('href');
+        
+        // Si no es admin y el enlace no está en su lista de permitidos, lo ocultamos
+        if (permisos[rol] !== 'todo' && !enlacesPermitidos.some(permitido => href.includes(permitido))) {
+            link.style.display = 'none';
+        } else {
+            link.style.display = 'flex';
+        }
+    });
+
+    // Ocultar categorías si todos sus enlaces están ocultos
+    const navCategories = document.querySelectorAll('.sidebar-nav .nav-category');
+    if (permisos[rol] !== 'todo') {
+        navCategories.forEach(cat => {
+            let nextEl = cat.nextElementSibling;
+            let hasVisibleLinks = false;
+
+            // Revisar todos los enlaces debajo de la categoría hasta encontrar la siguiente categoría
+            while (nextEl && !nextEl.classList.contains('nav-category')) {
+                if (nextEl.style.display !== 'none') {
+                    hasVisibleLinks = true;
+                    break;
+                }
+                nextEl = nextEl.nextElementSibling;
+            }
+
+            if (!hasVisibleLinks) {
+                cat.style.display = 'none';
+            }
+        });
+    }
+}
+function cerrarSesion() {
+    localStorage.removeItem("sazontrack_session");
+    window.location.href = "login.html";
+}
     // Consulta de Empleados Activos (API Asistencia)
     async function cargarWidgetAsistencia() {
         const lblTurno = document.getElementById('dashEmpleadosTurno');
@@ -456,6 +502,126 @@
             options: { responsive: true, cutout: '70%' }
         });
     }
+    document.addEventListener("DOMContentLoaded", () => {
+    // 1. Validación de Sesión
+    const sessionData = localStorage.getItem("sazontrack_session");
+    if (!sessionData) {
+        window.location.href = "login.html"; // Redirigir si no hay sesión
+        return;
+    }
+
+    const session = JSON.parse(sessionData);
+    const userName = session.nombre_empleado || session.username || "Usuario";
+    // Asegurarnos de que el rol esté en minúsculas para facilitar la comparación
+    const userRole = (session.puesto || session.rol || "mesero").toLowerCase(); 
+
+    // Mostrar datos en menú lateral y encabezado
+    if (document.getElementById("sessionUserName")) document.getElementById("sessionUserName").innerText = userName;
+    if (document.getElementById("sessionUserRole")) document.getElementById("sessionUserRole").innerText = userRole.toUpperCase();
+    if (document.getElementById("headerUserName")) document.getElementById("headerUserName").innerText = userName;
+    if (document.getElementById("headerUserRole")) document.getElementById("headerUserRole").innerText = userRole.toUpperCase();
+
+    // 2. APLICAR PERMISOS SEGÚN EL ROL
+    aplicarPermisos(userRole);
+});
+
+function aplicarPermisos(rol) {
+    // Obtenemos todos los enlaces de navegación del sidebar
+    const navLinks = document.querySelectorAll('.sidebar-nav .nav-link');
+    const navCategories = document.querySelectorAll('.sidebar-nav .nav-category');
+
+    // Por defecto, ocultamos todos los enlaces de administración y reportes a los empleados regulares
+    navLinks.forEach(link => {
+        const href = link.getAttribute('href');
+        
+        // Reglas de acceso
+        if (rol === 'administrador' || rol === 'admin') {
+            // El admin ve todo, no ocultamos nada
+            link.style.display = 'flex';
+        } 
+        else if (rol === 'cajero') {
+            // El cajero solo ve Caja, Turnos y Dashboard
+            if (href.includes('empleados') || href.includes('inventario') || href.includes('productos') || href.includes('recetas') || href.includes('reporte_asistencia') || href.includes('modificadores')) {
+                link.style.display = 'none';
+            }
+        }
+        else if (rol === 'mesero') {
+            // El mesero solo ve Mapa Mesas, Caja (solo para pedir), y su Reloj Checador
+            if (!href.includes('mesas') && !href.includes('caja') && !href.includes('asistencia.html')) {
+                link.style.display = 'none';
+            }
+        }
+        else if (rol === 'cocina') {
+            // Cocina solo ve KDS Cocina, Inventario y Reloj Checador
+            if (!href.includes('kds_cocina') && !href.includes('inventario') && !href.includes('asistencia.html')) {
+                link.style.display = 'none';
+            }
+        }
+        else if (rol === 'barra') {
+            // Barra solo ve KDS Barra, Inventario y Reloj Checador
+            if (!href.includes('kds_barra') && !href.includes('inventario') && !href.includes('asistencia.html')) {
+                link.style.display = 'none';
+            }
+        }
+    });
+
+    // Ocultar categorías vacías si el rol no tiene acceso a nada debajo de ellas
+    if (rol !== 'administrador' && rol !== 'admin') {
+        navCategories.forEach(cat => {
+            if (cat.innerText.includes('Administración') || (cat.innerText.includes('Recursos Humanos') && rol !== 'cajero' && rol !== 'administrador')) {
+                 // cat.style.display = 'none'; // Descomenta esta línea si quieres ocultar el texto de la categoría también
+            }
+        });
+    }
+}
+// Llamar a esta función al iniciar la página
+document.addEventListener("DOMContentLoaded", () => {
+    // ... (Tu código existente de inicio de sesión y permisos se queda igual) ...
+    
+    // Llamar a cargarDashboard() al final de tu DOMContentLoaded
+    cargarDashboard();
+    
+    // Opcional: Que se actualice cada minuto sin recargar la página
+    setInterval(cargarDashboard, 60000); 
+});
+
+async function cargarDashboard() {
+    try {
+        const respuesta = await fetch('api/dashboard.php');
+        const datos = await respuesta.json();
+
+        if (datos.status === 'success') {
+            const kpis = datos.kpis;
+            
+            // Actualizar Tarjetas KPI (asegúrate de que los selectores coincidan con tus HTML)
+            // Si en tu HTML las tarjetas no tienen ID, agrégales id="valVentas", id="valOrdenes", etc.
+            
+            const formateadorMoneda = new Intl.NumberFormat('es-MX', {
+                style: 'currency',
+                currency: 'MXN'
+            });
+
+            // Seleccionamos los elementos donde pondremos los números (tendrás que agregar estos IDs a tu HTML)
+            const elVentas = document.querySelector('.metric-card:nth-child(1) h2') || document.getElementById('valVentas');
+            const elOrdenes = document.querySelector('.metric-card:nth-child(2) h2') || document.getElementById('valOrdenes');
+            const elTicket = document.querySelector('.metric-card:nth-child(3) h2') || document.getElementById('valTicket');
+            const elPersonal = document.querySelector('.metric-card:nth-child(5) h2') || document.getElementById('valPersonal'); // Ajustar el nth-child según tu diseño
+
+            if(elVentas) elVentas.innerText = formateadorMoneda.format(kpis.ventas_totales);
+            if(elOrdenes) elOrdenes.innerText = kpis.ordenes;
+            if(elTicket) elTicket.innerText = formateadorMoneda.format(kpis.ticket_promedio);
+            if(elPersonal) elPersonal.innerText = kpis.personal_activo;
+
+            // Actualizar la Gráfica de Dona (Órdenes por Estado)
+            // Esto asume que tienes Chart.js o que tienes IDs para asignar los valores directamente a la gráfica visual
+            if (typeof actualizarGraficaDona === 'function') {
+                actualizarGraficaDona(datos.grafica_estados);
+            }
+        }
+    } catch (error) {
+        console.error("Error al cargar datos del dashboard:", error);
+    }
+}
 </script>
 </body>
 </html>
