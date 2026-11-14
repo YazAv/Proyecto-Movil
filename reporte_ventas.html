@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SazónTrack - Reportes de Ventas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Italianno&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-offwhite: #FDFCF8;
+            --bg-ivory: #F3F0E9;
+            --color-nude: #E3DBCC;
+            --text-dark: #2A2621;
+            --text-muted: #736B60;
+            --sidebar-width: 250px;
+            --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            background-color: var(--bg-ivory);
+            color: var(--text-dark);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Oficial SazónTrack */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg-offwhite);
+            border-right: 1px solid var(--color-nude);
+            height: 100vh;
+            position: fixed;
+            top: 0; left: 0;
+            display: flex; flex-direction: column;
+            padding: 1.4rem 1rem;
+            z-index: 100;
+        }
+        .sidebar-scrollable { overflow-y: auto; flex-grow: 1; }
+        .brand-header {
+            display: flex; align-items: center; gap: 12px;
+            padding-bottom: 1.2rem; border-bottom: 1px solid var(--color-nude); margin-bottom: 1rem;
+        }
+        .brand-avatar {
+            width: 42px; height: 42px; background: var(--text-dark); color: var(--bg-offwhite);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        }
+        .brand-title { font-family: 'Italianno', cursive; font-size: 2.1rem; margin: 0; line-height: 0.8; }
+        .brand-sub { font-size: 0.72rem; color: var(--text-muted); font-weight: 600; }
+
+        .nav-category { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); font-weight: 700; margin: 1rem 0 0.4rem 0.8rem; }
+        .sidebar-nav .nav-link {
+            color: var(--text-muted); font-weight: 600; font-size: 0.88rem; padding: 10px 14px;
+            border-radius: 12px; display: flex; align-items: center; gap: 10px; margin-bottom: 4px; text-decoration: none;
+            transition: var(--transition-smooth);
+        }
+        .sidebar-nav .nav-link:hover { background: var(--bg-ivory); color: var(--text-dark); transform: translateX(3px); }
+        .sidebar-nav .nav-link.active { background: var(--text-dark); color: var(--bg-offwhite); box-shadow: 0 4px 12px rgba(42,38,33,0.15); }
+
+        .main-wrapper { margin-left: var(--sidebar-width); padding: 2rem; }
+
+        /* Tarjetas de Resumen */
+        .summary-card {
+            background: #fff;
+            border: 1px solid var(--color-nude);
+            border-radius: 20px;
+            padding: 1.5rem;
+            transition: var(--transition-smooth);
+            height: 100%;
+        }
+        .summary-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(42,38,33,0.06);
+            border-color: var(--text-dark);
+        }
+
+        .form-control, .form-select {
+            border-radius: 12px;
+            padding: 10px 14px;
+            border-color: var(--color-nude);
+            transition: var(--transition-smooth);
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--text-dark);
+            box-shadow: 0 0 0 3px rgba(42,38,33,0.08);
+        }
+
+        .table-custom {
+            background: #fff;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--color-nude);
+        }
+
+        @media print {
+            .sidebar, .no-print { display: none !important; }
+            .main-wrapper { margin-left: 0; padding: 0; }
+        }
+    </style>
+</head>
+<body onload="cargarDatosReporte()">
+
+<aside class="sidebar">
+    <div class="sidebar-scrollable">
+        <div class="brand-header">
+            <div class="brand-avatar"><i class="fa-solid fa-chart-line"></i></div>
+            <div>
+                <h2 class="brand-title">SazónTrack</h2>
+                <span class="brand-sub">Auditoría & Ventas</span>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-category">Principal</div>
+            <a href="index.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+            <a href="caja.html" class="nav-link"><i class="fa-solid fa-cash-register"></i> Caja POS</a>
+            <a href="turno.html" class="nav-link"><i class="fa-solid fa-vault"></i> Turnos y Cortes</a>
+            <a href="mesas.html" class="nav-link"><i class="fa-solid fa-utensils"></i> Mapa Mesas</a>
+
+            <div class="nav-category">Reportes y Personal</div>
+            <a href="reportes_ventas.html" class="nav-link active"><i class="fa-solid fa-sack-dollar"></i> Reportes de Ventas</a>
+            <a href="reporte_asistencia.html" class="nav-link"><i class="fa-solid fa-file-invoice-dollar"></i> Asistencias y Nómina</a>
+            <a href="empleados.html" class="nav-link"><i class="fa-solid fa-users"></i> Empleados</a>
+
+            <div class="nav-category">Administración</div>
+            <a href="productos.html" class="nav-link"><i class="fa-solid fa-burger"></i> Catálogo Menú</a>
+            <a href="inventario.html" class="nav-link"><i class="fa-solid fa-boxes-stacked"></i> Inventario</a>
+            <a href="modificadores.html" class="nav-link"><i class="fa-solid fa-code-branch"></i> Modificadores</a>
+        </nav>
+    </div>
+</aside>
+
+<main class="main-wrapper">
+    <!-- Cabecera -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3 bg-white p-3 rounded-4 border shadow-sm">
+        <div>
+            <h4 class="fw-800 m-0"><i class="fa-solid fa-sack-dollar me-2 text-dark"></i>Reportes Gerenciales de Ventas</h4>
+            <small class="text-muted fw-semibold">Auditoría financiera y rendimiento comercial conectado a Vistas de PostgreSQL</small>
+        </div>
+        <div class="d-flex gap-2 no-print">
+            <button onclick="exportarCSV()" class="btn btn-outline-dark rounded-pill fw-bold btn-sm px-3"><i class="fa-solid fa-file-csv me-1"></i> Exportar CSV</button>
+            <button onclick="window.print()" class="btn btn-dark rounded-pill fw-bold btn-sm px-3"><i class="fa-solid fa-print me-1"></i> Imprimir Reporte</button>
+        </div>
+    </div>
+
+    <!-- Tarjetas KPI Globales -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="summary-card">
+                <small class="text-muted fw-bold">TICKETS COBRADOS</small>
+                <h3 class="fw-800 m-0 mt-1" id="lblTotalTickets">0</h3>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="summary-card">
+                <small class="text-muted fw-bold">TICKET PROMEDIO</small>
+                <h3 class="fw-800 m-0 mt-1 text-primary" id="lblTicketPromedio">$0.00</h3>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="summary-card bg-dark text-white border-dark">
+                <small class="text-white-50 fw-bold">INGRESOS TOTALES NETOS</small>
+                <h3 class="fw-800 m-0 mt-1 text-white" id="lblIngresosTotales">$0.00 MXN</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros de Vista -->
+    <div class="bg-white border rounded-4 p-4 shadow-sm mb-4 no-print">
+        <h6 class="fw-800 mb-3 text-muted small text-uppercase"><i class="fa-solid fa-database me-1"></i> Seleccionar Vista Analítica de Base de Datos</h6>
+        <div class="row g-3 align-items-end">
+            <div class="col-md-9">
+                <select id="selectVista" class="form-select fw-bold" onchange="cargarDatosReporte()">
+                    <option value="vw_reporte_ventas_diarias">1. Resumen Diario de Ventas por Turno (vw_reporte_ventas_diarias)</option>
+                    <option value="vw_reporte_top_platillos">2. Top de Platillos Más Vendidos (vw_reporte_top_platillos)</option>
+                    <option value="vw_reporte_metodos_pago">3. Auditoría de Ingresos por Método de Pago (vw_reporte_metodos_pago)</option>
+                    <option value="vw_reporte_ventas_por_cajero">4. Productividad de Personal de Caja (vw_reporte_ventas_por_cajero)</option>
+                    <option value="vw_reporte_auditoria_ordenes">5. Bitácora de Órdenes Pendientes/Canceladas (vw_reporte_auditoria_ordenes)</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-dark w-100 fw-bold py-2 rounded-3 shadow-sm" onclick="cargarDatosReporte()">
+                    <i class="fa-solid fa-rotate me-1"></i> Actualizar Vista
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de Resultados -->
+    <div class="table-custom shadow-sm p-3">
+        <div class="d-flex justify-content-between align-items-center mb-3 px-2">
+            <h6 class="fw-800 m-0" id="tituloTabla">Vista Previa</h6>
+            <span class="badge bg-dark rounded-pill px-3 py-2" id="badgeContador">0 registros</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="tablaReporte">
+                <thead class="table-light" id="tablaHead"></thead>
+                <tbody id="tablaBody">
+                    <tr><td colspan="8" class="text-center py-4 text-muted">Cargando registros...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    let datosActuales = [];
+
+    async function cargarDatosReporte() {
+        const select = document.getElementById('selectVista');
+        const vista = select.value;
+        document.getElementById('tituloTabla').innerText = select.selectedOptions[0].text;
+
+        const tbody = document.getElementById('tablaBody');
+        const thead = document.getElementById('tablaHead');
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-muted"><i class="fa-solid fa-spinner fa-spin me-2"></i>Consultando vista en PostgreSQL...</td></tr>';
+
+        try {
+            const response = await fetch(`api/reportes/obtener_vista.php?vista=${vista}`);
+            const resultado = await response.json();
+
+            if (resultado.status !== 'success') {
+                throw new Error(resultado.message || 'Error en el servidor');
+            }
+
+            // Actualizar KPIs globales
+            if (resultado.kpis) {
+                document.getElementById('lblTotalTickets').innerText = resultado.kpis.total_tickets || 0;
+                document.getElementById('lblTicketPromedio').innerText = `$${parseFloat(resultado.kpis.ticket_promedio || 0).toFixed(2)}`;
+                document.getElementById('lblIngresosTotales').innerText = `$${parseFloat(resultado.kpis.ingresos_totales || 0).toFixed(2)} MXN`;
+            }
+
+            datosActuales = resultado.data || [];
+            document.getElementById('badgeContador').innerText = `${datosActuales.length} registros`;
+
+            if (datosActuales.length === 0) {
+                thead.innerHTML = '';
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center py-5 text-muted fw-semibold">No hay registros en esta vista todavía. Realiza una venta en Caja POS o ejecuta el script de testing SQL.</td></tr>';
+                return;
+            }
+
+            const columnas = Object.keys(datosActuales[0]);
+            thead.innerHTML = `<tr>${columnas.map(c => `<th class="py-3 text-uppercase small fw-800">${c.replace(/_/g, ' ')}</th>`).join('')}</tr>`;
+
+            tbody.innerHTML = '';
+            datosActuales.forEach(row => {
+                let tr = '<tr>';
+                columnas.forEach(col => {
+                    let val = row[col] !== null ? row[col] : '-';
+                    // Formateo visual para montos y estados
+                    if (typeof val === 'string' && (col.includes('total') || col.includes('ingresos') || col.includes('monto') || col.includes('descuento') || col.includes('propina'))) {
+                        if (!isNaN(parseFloat(val))) val = `<span class="fw-bold text-success">$${parseFloat(val).toFixed(2)}</span>`;
+                    } else if (col.includes('estado')) {
+                        const badgeClass = val.toUpperCase() === 'PAGADA' || val.toUpperCase() === 'CERRADO' ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning-emphasis';
+                        val = `<span class="badge ${badgeClass} fw-bold px-2 py-1">${val}</span>`;
+                    }
+                    tr += `<td>${val}</td>`;
+                });
+                tr += '</tr>';
+                tbody.innerHTML += tr;
+            });
+
+        } catch (error) {
+            console.error(error);
+            thead.innerHTML = '';
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-danger fw-bold"><i class="fa-solid fa-triangle-exclamation me-2"></i>${error.message}</td></tr>`;
+        }
+    }
+
+    function exportarCSV() {
+        if (!datosActuales || datosActuales.length === 0) {
+            alert("No hay datos para exportar.");
+            return;
+        }
+        const columnas = Object.keys(datosActuales[0]);
+        const filas = [columnas.join(',')];
+        datosActuales.forEach(row => {
+            filas.push(columnas.map(c => `"${(row[c] ?? '').toString().replace(/"/g, '""')}"`).join(','));
+        });
+        const blob = new Blob([filas.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `${document.getElementById('selectVista').value}_${new Date().toISOString().slice(0,10)}.csv`;
+        link.click();
+    }
+</script>
+</body>
+</html>
