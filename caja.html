@@ -234,85 +234,145 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    
     // ==========================================
-    // BASE DE DATOS SIMULADA (Sustituir con FETCH en producción)
+    // VARIABLES GLOBALES
     // ==========================================
-    const dbProductos = [
-        { id: 1, nombre: "Filete de rib eyes", precio: 450.00, tag: "Menú", tiene_mods: true },
-        { id: 2, nombre: "Flan", precio: 90.00, tag: "Postre", tiene_mods: false },
-        { id: 3, nombre: "Hamburguesa Clásica", precio: 125.00, tag: "Menú", tiene_mods: true },
-        { id: 4, nombre: "tacos", precio: 70.00, tag: "Menú", tiene_mods: false },
-        { id: 5, nombre: "Tacos al Pastor", precio: 45.00, tag: "Menú", tiene_mods: false },
-        { id: 6, nombre: "expreso", precio: 90.00, tag: "Menú", tiene_mods: false },
-        { id: 7, nombre: "Margarita de Limón", precio: 90.00, tag: "Bebida", tiene_mods: false },
-        { id: 8, nombre: "Martini", precio: 40.00, tag: "Bebida", tiene_mods: false }
-    ];
-
-    // Modificadores vinculados
-    const dbMods = {
-        1: [ // Rib Eye
-            { id_grupo: 1, nombre: "Términos de la Carne", obligatorio: true, opciones: [
-                { id_opcion: 1, nombre: "Rojo / Inglés", precio_extra: 0 }, 
-                { id_opcion: 2, nombre: "Medio", precio_extra: 0 }, 
-                { id_opcion: 3, nombre: "3/4", precio_extra: 0 }, 
-                { id_opcion: 4, nombre: "Bien Cocido", precio_extra: 0 }
-            ]}
-        ],
-        3: [ // Hamburguesa
-            { id_grupo: 2, nombre: "Agregar Extras", obligatorio: false, opciones: [
-                { id_opcion: 5, nombre: "Extra Tocino", precio_extra: 15.00 }, 
-                { id_opcion: 6, nombre: "Doble Queso", precio_extra: 20.00 },
-                { id_opcion: 7, nombre: "Papas a la francesa", precio_extra: 35.00 }
-            ]},
-            { id_grupo: 3, nombre: "Exclusiones (Sin)", obligatorio: false, opciones: [
-                { id_opcion: 8, nombre: "Sin Cebolla", precio_extra: 0 },
-                { id_opcion: 9, nombre: "Sin Jitomate", precio_extra: 0 }
-            ]}
-        ]
-    };
-
-    // ==========================================
-    // VARIABLES DE ESTADO GLOBALES
-    // ==========================================
+    let dbProductos = []; 
+    let dbMods = {}; 
     let carrito = [];
     let productoPendiente = null;
     let propinaPorcentaje = 0;
-    const modalModificadoresInst = new bootstrap.Modal(document.getElementById('modalModificadoresCaja'));
+    let modalModificadoresInst;
 
-    // ==========================================
-    // 1. INICIALIZAR Y RENDERIZAR MENÚ
-    // ==========================================
     document.addEventListener('DOMContentLoaded', () => {
-        renderizarProductos();
+        modalModificadoresInst = new bootstrap.Modal(document.getElementById('modalModificadoresCaja'));
+        cargarProductosYModsDesdeBD();
     });
 
-    function renderizarProductos() {
+    // ==========================================
+    // 1. CARGAR DATOS DESDE POSTGRESQL (API)
+    // ==========================================
+    async function cargarProductosYModsDesdeBD() {
+        const grid = document.getElementById('productosGrid');
+        grid.innerHTML = '<div class="col-12 text-center py-5 text-muted"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><p class="mt-2">Cargando menú y modificadores...</p></div>';
+
+        try {
+            // A) Cargar Productos
+            const resProductos = await fetch('api/platillos/listar_platillos.php'); 
+            if (!resProductos.ok) throw new Error("Error al cargar productos.");
+            const dataProductos = await resProductos.json();
+            const productosBD = Array.isArray(dataProductos) ? dataProductos : (dataProductos.data || []);
+
+            // B) Cargar Grupos de Modificadores
+            const resGrupos = await fetch('api/modificadores/index.php?accion=listar_grupos');
+            const dataGrupos = resGrupos.ok ? await resGrupos.json() : { data: [] };
+            
+            dbMods = {};
+            
+            // C) Cargar Opciones por cada Grupo
+            for (let g of dataGrupos.data) {
+                const resOpciones = await fetch(`api/modificadores/index.php?accion=listar_opciones&id_grupo=${g.id_grupo}`);
+                const dataOpciones = resOpciones.ok ? await resOpciones.json() : { data: [] };
+                
+                const opcionesMapeadas = dataOpciones.data.map(op => ({
+                    id_opcion: op.id_opcion,
+                    nombre: op.nombre,
+                    precio_extra: parseFloat(op.precio_extra)
+                }));
+
+                if (!dbMods['general']) dbMods['general'] = [];
+                
+                dbMods['general'].push({
+                    id_grupo: g.id_grupo,
+                    nombre: g.nombre,
+                    obligatorio: (g.obligatorio === true || g.obligatorio === 'true' || g.obligatorio === 't' || g.obligatorio === 1 || g.obligatorio === '1'),
+                    opciones: opcionesMapeadas
+                });
+            }
+
+            // D) Construir base de productos
+            if (productosBD.length === 0) {
+                grid.innerHTML = '<div class="col-12 text-center py-4 fw-bold text-muted">No se encontraron platillos.</div>';
+                return;
+            }
+
+            dbProductos = productosBD.map(p => {
+                return {
+                    id: p.id_producto || p.id,
+                    nombre: p.nombre || p.producto,
+                    precio: parseFloat(p.precio) || 0,
+                    tag: p.categoria || "General",
+                    tiene_mods: true // Asumimos que todos podrían tener notas o extras a demanda
+                };
+            });
+
+            dbProductos.forEach(p => {
+                dbMods[p.id] = dbMods['general']; 
+            });
+
+            renderizarProductos(dbProductos);
+
+        } catch (error) {
+            console.error(error);
+            grid.innerHTML = `<div class="col-12 text-center py-4 fw-bold text-danger">Error al cargar datos del servidor.</div>`;
+        }
+    }
+
+    // ==========================================
+    // 2. RENDERIZADO DEL MENÚ (Añadido botón de opciones)
+    // ==========================================
+    function renderizarProductos(productos) {
         const grid = document.getElementById('productosGrid');
         grid.innerHTML = '';
-        dbProductos.forEach(p => {
+        if (productos.length === 0) {
+            grid.innerHTML = '<div class="text-muted col-12 text-center py-4 fw-bold">No se encontraron platillos.</div>';
+            return;
+        }
+        productos.forEach(p => {
             grid.insertAdjacentHTML('beforeend', `
                 <div class="product-card">
                     <small class="text-muted fw-bold d-block mb-1" style="font-size: 0.7rem;">${p.tag}</small>
                     <div class="fw-800 text-dark mb-3" style="font-size: 0.95rem; line-height: 1.2;">${p.nombre}</div>
                     <div class="fw-bold text-success">$${p.precio.toFixed(2)}</div>
-                    <button class="btn-add-prod" onclick="interceptarProducto(${p.id})"><i class="fa-solid fa-plus"></i></button>
+                    
+                    <div class="d-flex justify-content-end gap-2" style="position: absolute; bottom: 1.2rem; right: 1.2rem;">
+                        <button class="btn btn-sm btn-outline-dark rounded-circle" style="width: 32px; height: 32px;" title="Opciones / Extras" onclick="abrirModalModificadores(${p.id})">
+                            <i class="fa-solid fa-gear"></i>
+                        </button>
+                        <button class="btn-add-prod" title="Añadir directo" onclick="agregarProductoDirecto(${p.id})">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                    </div>
                 </div>
             `);
         });
     }
 
+    function filtrarMenu(filtro) {
+        const texto = filtro.toLowerCase();
+        const filtrados = dbProductos.filter(p => p.nombre.toLowerCase().includes(texto) || p.tag.toLowerCase().includes(texto));
+        renderizarProductos(filtrados);
+    }
+
     // ==========================================
-    // 2. MOTOR DE MODIFICADORES (INTERCEPTOR)
+    // 3. MOTOR DE MODIFICADORES E INTERCEPTOR (Bajo demanda)
     // ==========================================
-    function interceptarProducto(id) {
+    
+    // Función para agregar directo con botón "+"
+    function agregarProductoDirecto(id) {
+        const prod = dbProductos.find(p => p.id === id);
+        if (!prod) return;
+        agregarAlTicket({ ...prod, precio_final: prod.precio, modificadores: [] });
+    }
+
+    // Función para abrir modal a voluntad con el botón "⚙️"
+    function abrirModalModificadores(id) {
         const prod = dbProductos.find(p => p.id === id);
         if (!prod) return;
 
-        // Validamos si tiene modificadores en la BD
-        if (prod.tiene_mods && dbMods[prod.id]) {
-            // Retenemos el producto y abrimos modal
+        if (dbMods[prod.id] && dbMods[prod.id].length > 0) {
             productoPendiente = { 
                 id: prod.id, nombre: prod.nombre, precio_base: prod.precio, precio_final: prod.precio, modificadores: [] 
             };
@@ -320,8 +380,7 @@
             actualizarTotalModal();
             modalModificadoresInst.show();
         } else {
-            // Si no tiene, se va directo al ticket
-            agregarAlTicket({ ...prod, precio_final: prod.precio, modificadores: [] });
+            alert("No hay opciones o extras configurados.");
         }
     }
 
@@ -335,7 +394,7 @@
         grupos.forEach(grupo => {
             const esRadio = grupo.obligatorio; 
             const inputType = esRadio ? 'radio' : 'checkbox';
-            const badgeReq = esRadio ? '<span class="text-danger small fw-bold">*Obligatorio</span>' : '<span class="text-primary small fw-bold opacity-75">Opcional</span>';
+            const badgeReq = esRadio ? '<span class="text-danger small fw-bold">*Obligatorio</span>' : '<span class="badge bg-secondary opacity-75">Opcional</span>';
             
             let opcionesHtml = '';
             grupo.opciones.forEach(op => {
@@ -405,7 +464,7 @@
     }
 
     // ==========================================
-    // 3. CARRITO, TICKET Y CÁLCULOS
+    // 4. CARRITO, TICKET Y CÁLCULOS
     // ==========================================
     function agregarAlTicket(producto) {
         carrito.push({ uuid: Date.now() + Math.random(), ...producto });
@@ -433,7 +492,7 @@
         } else {
             carrito.forEach(item => {
                 let modsHtml = '';
-                if(item.modificadores.length > 0) {
+                if(item.modificadores && item.modificadores.length > 0) {
                     modsHtml = '<div class="t-item-mods">';
                     item.modificadores.forEach(m => {
                         const ex = m.precio > 0 ? ` (+$${m.precio.toFixed(2)})` : '';
@@ -459,7 +518,6 @@
         calcularTotales();
     }
 
-    // Cálculos de Propina, Descuento y Cambio
     function setPropina(porcentaje, btnElement) {
         propinaPorcentaje = porcentaje;
         document.querySelectorAll('.propina-btn').forEach(b => b.classList.remove('active'));
@@ -480,7 +538,7 @@
         document.getElementById('txtSubtotal').innerText = `$${subtotal.toFixed(2)}`;
         document.getElementById('txtPropina').innerText = `$${propina.toFixed(2)}`;
         document.getElementById('txtTotal').innerText = `$${totalCobrar.toFixed(2)}`;
-        document.getElementById('txtTotal').setAttribute('data-val', totalCobrar); // Para calcular cambio
+        document.getElementById('txtTotal').setAttribute('data-val', totalCobrar);
         calcularCambio();
     }
 
@@ -495,86 +553,81 @@
             txtCambio.style.color = '#16a34a';
         } else {
             txtCambio.innerText = `$0.00`;
-            txtCambio.style.color = '#736B60';
+            txtCambio.style.color = '#16a34a';
         }
     }
 
+    // ==========================================
+    // 5. PROCESAMIENTO DE PAGO AL BACKEND
+    // ==========================================
     async function procesarCobro() {
         if (carrito.length === 0) { alert("El ticket está vacío"); return; }
+        
         const total = parseFloat(document.getElementById('txtTotal').getAttribute('data-val')) || 0;
         const recibido = parseFloat(document.getElementById('inputRecibido').value) || 0;
         
         if(recibido < total) { alert("El monto recibido es menor al total a cobrar."); return; }
 
-        const ventanaTicket = window.open('about:blank', '_blank');
         const botonCobrar = document.querySelector('.ticket-footer > button');
         botonCobrar.disabled = true;
+        botonCobrar.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Procesando...';
 
         try {
             const subtotal = carrito.reduce((sum, item) => sum + item.precio_final, 0);
             const descuento = parseFloat(document.getElementById('inputDescuento').value) || 0;
             const propina = Math.max(0, subtotal - descuento) * (propinaPorcentaje / 100);
+            const cambio_calculado = recibido - total; 
+
+            const payload = {
+                id_orden: window.idOrdenActual || null,
+                monto: total,
+                cambio: cambio_calculado,
+                monto_recibido: recibido,
+                metodo_pago: document.getElementById('selectMetodoPago').value,
+                descuento: descuento,
+                propina: propina,
+                productos: carrito.map(item => ({
+                    id: item.id, 
+                    id_producto: item.id,
+                    nombre: item.nombre, 
+                    cantidad: 1,
+                    precio: item.precio_final,
+                    // Si trae notas de preparación o modificadores, se mandan en formato texto
+                    notas: item.modificadores ? item.modificadores.map(mod => mod.nombre).join(', ') : ''
+                }))
+            };
+
             const respuesta = await fetch('api/caja/procesar_pago.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    metodo_pago: document.getElementById('selectMetodoPago').value,
-                    descuento,
-                    propina,
-                    monto_recibido: recibido,
-                    productos: carrito.map(item => ({
-                        id_producto: item.id,
-                        cantidad: 1,
-                        precio: item.precio_final,
-                        notas: item.modificadores.map(mod => mod.nombre).join(', ')
-                    }))
-                })
+                body: JSON.stringify(payload)
             });
+            
             const resultado = await respuesta.json();
 
-            if (!respuesta.ok || resultado.success !== true || !resultado.id_orden) {
-                throw new Error(resultado.message || 'No se pudo procesar el cobro.');
+            if (!respuesta.ok || resultado.status !== 'success') {
+                throw new Error(resultado.message || 'Error en el servidor al cobrar.');
             }
 
+            // Imprimir el ticket real
             const urlTicket = `api/caja/generar_ticket.php?id=${encodeURIComponent(resultado.id_orden)}`;
-            if (ventanaTicket) {
-                ventanaTicket.location.href = urlTicket;
-            } else {
-                window.location.href = urlTicket;
-            }
+            window.open(urlTicket, '_blank');
 
+            // Reiniciar la caja exitosamente
             carrito = [];
             document.getElementById('inputDescuento').value = 0;
             document.getElementById('inputRecibido').value = '';
             propinaPorcentaje = 0;
             document.querySelectorAll('.propina-btn').forEach(b => b.classList.remove('active'));
-            document.querySelector('.propina-btn').classList.add('active');
             renderizarTicket();
+            
         } catch (error) {
-            if (ventanaTicket) ventanaTicket.close();
             alert(error.message || 'Ocurrió un error al procesar el cobro.');
         } finally {
             botonCobrar.disabled = false;
+            botonCobrar.innerHTML = '<i class="fa-solid fa-print me-2"></i> COBRAR E IMPRIMIR TICKET';
         }
     }
-</script>
-<script src="http://179.66.132.102:3000/socket.io/socket.io.js"></script>
-<script>
-    // Conectando directamente a la IP pública del VPS en Hostinger
-    const socket = io("http://179.66.132.102:3000");
-
-    socket.on("connect", () => {
-        console.log("🟢 Caja Web conectada al servidor WS en el VPS: 179.66.132.102");
-    });
-
-    socket.on("actualizar_mesas_caja", (data) => {
-        console.log("🔔 Actualización desde app móvil:", data);
-        // Lógica para actualizar mesas abiertas o notificaciones
-    });
-    
-    socket.on("connect_error", (error) => {
-        console.warn("🔴 No se pudo conectar al servidor de WebSockets en el VPS.", error);
-    });
 </script>
 </body>
 </html>

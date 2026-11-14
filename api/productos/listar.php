@@ -11,6 +11,7 @@ $db = new Database();
 $conn = $db->getConnection();
 
 try {
+  
     $sql = "
         SELECT 
             p.id,
@@ -29,11 +30,12 @@ try {
         FROM productos p
         INNER JOIN categorias c ON p.categoria_id = c.id
         LEFT JOIN kds_estaciones k ON p.estacion_kds_id = k.id
+        WHERE p.activo = true
         ORDER BY c.orden ASC, p.nombre ASC
     ";
 
     $stmt = $conn->query($sql);
-    $productos = $stmt->fetchAll();
+    $productos = $stmt->fetchAll(PDO::FETCH_ASSOC); // Recomendable especificar FETCH_ASSOC
 
     http_response_code(200);
     echo json_encode([
@@ -46,3 +48,4 @@ try {
     http_response_code(500);
     echo json_encode(["status" => "error", "message" => "Error al listar productos: " . $e->getMessage()]);
 }
+?>
