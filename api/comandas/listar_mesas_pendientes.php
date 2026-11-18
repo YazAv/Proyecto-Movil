@@ -1,65 +1,79 @@
 <?php
-// api/comandas/listar_pendientes_cocina.php
+// api/comandas/listar_mesas_pendientes.php
+header('Access-Control-Allow-Origin: *');
 header('Content-Type: application/json; charset=utf-8');
-date_default_timezone_set('America/Mexico_City');
 
-require_once __DIR__ . '/../../config/conexion.php';
+$rutas = [
+    __DIR__ . '/../../config/conexion.php',
+    __DIR__ . '/../../config/db.php',
+    __DIR__ . '/../conexion.php'
+];
+foreach ($rutas as $r) { if (file_exists($r)) { require_once $r; break; } }
+if (!isset($conn) && isset($pdo)) $conn = $pdo;
+if (!isset($conn) && class_exists('Database')) $conn = (new Database())->getConnection();
 
-if (!isset($conn) && class_exists('Database')) {
-    $db = new Database();
-    $conn = $db->getConnection();
+if (!isset($conn)) {
+    http_response_code(500);
+    echo json_encode([
+        'status' => 'error',
+        'message' => 'No se pudo establecer la conexion con la base de datos.'
+    ]);
+    exit;
 }
 
 try {
-    // Buscar detalles pendientes o en preparación de órdenes abiertas
     $stmt = $conn->query("
-        SELECT 
-            o.id_orden, 
-            o.folio, 
-            o.creado_en AS fecha_orden, 
-            COALESCE(m.numero_mesa, 'Mostrador') AS numero_mesa,
-            od.id_detalle, 
-            od.cantidad, 
-            od.notas, 
-            od.estado_kds, 
-            p.nombre AS producto
-        FROM orden_detalles od
-        JOIN ordenes o ON o.id_orden = od.orden_id
-        JOIN productos p ON p.id_producto = od.producto_id
-        LEFT JOIN mesas m ON m.id_mesa = o.id_mesa
-        WHERE UPPER(od.estado_kds) IN ('PENDIENTE', 'EN_PREPARACION')
-          AND UPPER(o.estado) = 'ABIERTA'
-        ORDER BY o.creado_en ASC, o.id_orden ASC, od.id_detalle ASC
+        SELECT o.id_orden,
+               COALESCE(o.folio, 'ORD-' || o.id_orden) AS folio,
+               o.id_mesa,
+               COALESCE(o.total, 0) AS total,
+               COALESCE(m.numero_mesa::text, o.id_mesa::text) AS numero_mesa,
+               COALESCE('Mesa ' || m.numero_mesa, 'Mesa #' || o.id_mesa) AS nombre_mesa
+        FROM public.ordenes o
+        LEFT JOIN public.mesas m ON o.id_mesa = m.id_mesa
+        WHERE UPPER(o.estado) = 'ABIERTA'
+        ORDER BY o.creado_en ASC
     ");
-    
-    $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $ordenes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Agrupar por Orden/Ticket para mostrarlo en forma de "Tarjetas" en la cocina
-    $comandas = [];
-    foreach ($resultados as $row) {
-        $id_orden = $row['id_orden'];
-        if (!isset($comandas[$id_orden])) {
-            $comandas[$id_orden] = [
-                'id_orden'    => $id_orden,
-                'folio'       => $row['folio'],
-                'numero_mesa' => $row['numero_mesa'],
-                'fecha_orden' => $row['fecha_orden'],
-                'detalles'    => []
-            ];
+    $stmtDet = $conn->prepare("
+        SELECT od.id_detalle,
+               od.id_producto AS producto_id,
+               COALESCE(od.nombre_producto, p.nombre, 'Platillo') AS nombre_producto,
+               od.cantidad,
+               COALESCE(od.precio_unitario, p.precio, 0) AS precio_unitario,
+               (od.cantidad * COALESCE(od.precio_unitario, p.precio, 0)) AS subtotal
+        FROM public.orden_detalle od
+        LEFT JOIN public.productos p ON od.id_producto = p.id_producto
+        WHERE od.id_orden = ? AND UPPER(COALESCE(od.estado, 'PENDIENTE')) != 'CANCELADO'
+    ");
+
+    foreach ($ordenes as $ordIndex => $ord) {
+        $stmtDet->execute([$ord['id_orden']]);
+        $items = $stmtDet->fetchAll(PDO::FETCH_ASSOC);
+        $ord['productos'] = $items;
+
+        // Recalcular total si en la cabecera estuviera en 0
+        if (floatval($ord['total']) <= 0 && !empty($items)) {
+            $ord['total'] = array_reduce(
+                $items,
+                function ($acc, $i) {
+                    return $acc + floatval($i['subtotal']);
+                },
+                0
+            );
         }
-        $comandas[$id_orden]['detalles'][] = [
-            'id_detalle' => $row['id_detalle'],
-            'cantidad'   => $row['cantidad'],
-            'producto'   => $row['producto'],
-            'notas'      => $row['notas'],
-            'estado_kds' => $row['estado_kds']
-        ];
+
+        $resumen = array_map(function ($i) {
+            return $i['cantidad'] . 'x ' . $i['nombre_producto'];
+        }, $items);
+        $ord['detalle_resumen'] = implode(', ', $resumen) ?: 'Sin productos detallados';
+        $ordenes[$ordIndex] = $ord;
     }
 
-    echo json_encode(array_values($comandas));
-
-} catch (Exception $e) {
+    echo json_encode($ordenes, JSON_UNESCAPED_UNICODE);
+} catch (Throwable $e) {
     http_response_code(500);
-    echo json_encode(['error' => $e->getMessage()]);
+    echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
 }
 ?>

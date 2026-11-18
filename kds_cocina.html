@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SazónTrack - KDS</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <title>SazónTrack - KDS Cocina</title>
     <link href="https://fonts.googleapis.com/css2?family=Italianno&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -16,235 +14,211 @@
             --color-nude: #E3DBCC;
             --text-dark: #2A2621;
             --text-muted: #736B60;
-            --sidebar-width: 250px;
+            --sidebar-width: 240px;
         }
-        body { background-color: var(--bg-ivory); color: var(--text-dark); font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; min-height: 100vh; }
-        .sidebar { width: var(--sidebar-width); background: var(--bg-offwhite); border-right: 1px solid var(--color-nude); height: 100vh; position: fixed; top: 0; left: 0; display: flex; flex-direction: column; padding: 1.4rem 1rem; z-index: 100; }
-        .sidebar-scrollable { overflow-y: auto; flex-grow: 1; }
+        body { background-color: var(--bg-ivory); color: var(--text-dark); font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; }
+        .sidebar { width: var(--sidebar-width); background: var(--bg-offwhite); border-right: 1px solid var(--color-nude); height: 100vh; position: fixed; top: 0; left: 0; display: flex; flex-direction: column; justify-content: space-between; padding: 1.4rem 1rem; }
         .brand-header { display: flex; align-items: center; gap: 12px; padding-bottom: 1.2rem; border-bottom: 1px solid var(--color-nude); margin-bottom: 1rem; }
-        .brand-avatar { width: 42px; height: 42px; background: #f39c12; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .brand-avatar { width: 42px; height: 42px; background: #F59E0B; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
         .brand-title { font-family: 'Italianno', cursive; font-size: 2.1rem; margin: 0; line-height: 0.8; }
         .brand-sub { font-size: 0.72rem; color: var(--text-muted); font-weight: 600; }
-        .sidebar-nav .nav-link { color: var(--text-muted); font-weight: 600; font-size: 0.88rem; padding: 9px 14px; border-radius: 12px; display: flex; align-items: center; gap: 10px; margin-bottom: 4px; text-decoration: none; }
-        .sidebar-nav .nav-link:hover { background: var(--bg-ivory); color: var(--text-dark); }
-        .sidebar-nav .nav-link.active { background: var(--text-dark); color: var(--bg-offwhite); }
-        .user-profile { margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--color-nude); display: flex; align-items: center; justify-content: space-between; }
+        .nav-link { color: var(--text-muted); font-weight: 600; font-size: 0.88rem; padding: 10px 14px; border-radius: 12px; display: flex; align-items: center; gap: 10px; margin-bottom: 6px; text-decoration: none; }
+        .nav-link:hover { background: var(--bg-ivory); color: var(--text-dark); }
+        .nav-link.active { background: var(--text-dark); color: var(--bg-offwhite); }
         .main-wrapper { margin-left: var(--sidebar-width); padding: 2rem; }
-        
-        .kds-header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-        .btn-live { background-color: #ffc107; border: none; font-weight: bold; }
-        .time-badges .badge { padding: 8px 12px; border-radius: 20px; font-weight: 600; font-size: 0.8rem; margin-left: 5px; }
-        .badge-normal { background-color: #0dcaf0; color: #000; }
-        .badge-alert { background-color: #ffc107; color: #000; }
-        .badge-urgent { background-color: #dc3545; color: #fff; }
-
-        .ticket-card { background: #fff; border: 1px solid var(--color-nude); border-radius: 16px; border-top: 5px solid #0d6efd; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; flex-direction: column; height: 100%; }
-        .ticket-card.warning { border-top-color: #ffc107; }
-        .ticket-card.danger { border-top-color: #dc3545; }
-        .ticket-header { padding: 12px 15px; border-bottom: 1px solid var(--color-nude); display: flex; justify-content: space-between; align-items: center; font-weight: 800; background-color: #fafafa; border-radius: 16px 16px 0 0; }
-        .ticket-body { padding: 0; flex-grow: 1; }
-        .kds-item { padding: 12px 15px; border-bottom: 1px solid var(--color-nude); display: flex; justify-content: space-between; align-items: flex-start; cursor: pointer; transition: background-color 0.2s; }
-        .kds-item:hover { background-color: #f8f9fa; }
-        .item-qty { background-color: var(--text-dark); color: #fff; padding: 4px 10px; border-radius: 6px; font-weight: 800; margin-right: 12px; font-size: 1.1rem; }
-        .item-name { font-size: 1.05rem; font-weight: 600; }
-        .item-notes { font-size: 0.85rem; color: #d35400; margin-top: 4px; font-weight: 600; }
-        .btn-ready { background-color: #198754; color: white; border: none; border-radius: 8px; padding: 5px 12px; font-weight: bold; }
-        .empty-state { text-align: center; margin-top: 5rem; color: var(--text-muted); }
+        .filter-pill { border-radius: 30px; padding: 7px 18px; font-weight: 700; font-size: 0.85rem; border: 1px solid var(--color-nude); background: #fff; color: var(--text-muted); cursor: pointer; }
+        .filter-pill.active { background: var(--text-dark); color: #fff; border-color: var(--text-dark); }
+        .ticket-card { background: #fff; border-radius: 18px; border: 1px solid var(--color-nude); border-top: 6px solid #06B6D4; box-shadow: 0 6px 18px rgba(42,38,33,0.05); overflow: hidden; transition: 0.2s; }
+        .ticket-card.alerta { border-top-color: #F59E0B; }
+        .ticket-card.urgente { border-top-color: #EF4444; }
+        .item-row { padding: 12px 16px; border-bottom: 1px solid var(--bg-ivory); display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+        .item-row.en-prep { background-color: #FEF9C3; }
     </style>
 </head>
 <body>
-    <aside class="sidebar">
-        <div class="sidebar-scrollable">
-            <div class="brand-header">
-                <div class="brand-avatar"><i class="fa-solid fa-fire-burner"></i></div>
-                <div>
-                    <h2 class="brand-title">SazónTrack</h2>
-                    <span class="brand-sub">KDS Cocina</span>
-                </div>
-            </div>
-            <nav class="sidebar-nav">
-                <a href="index.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
-                <a href="mesas.html" class="nav-link"><i class="fa-solid fa-utensils"></i> Mapa Mesas</a>
-                <a href="kds_cocina.html" class="nav-link active"><i class="fa-solid fa-fire-burner"></i> KDS Cocina</a>
-                <a href="kds_barra.html" class="nav-link"><i class="fa-solid fa-martini-glass"></i> KDS Barra</a>
-            </nav>
-        </div>
-        <div class="user-profile">
-            <div class="d-flex align-items-center gap-2">
-                <i class="fa-solid fa-circle-user fa-2x text-muted"></i>
-                <div style="line-height: 1.2;">
-                    <strong class="d-block" style="font-size: 0.85rem;">Yazmin Areli Vasquez Garcia</strong>
-                    <small class="text-muted" style="font-size: 0.75rem;">Administrador</small>
-                </div>
-            </div>
-            <a href="#" class="text-danger"><i class="fa-solid fa-right-from-bracket"></i></a>
-        </div>
-    </aside>
 
-    <main class="main-wrapper">
-        <div class="kds-header-top">
+<aside class="sidebar">
+    <div>
+        <div class="brand-header">
+            <div class="brand-avatar"><i class="fa-solid fa-fire-burner"></i></div>
             <div>
-                <h3 class="fw-800 m-0"><i class="fa-solid fa-fire-burner text-warning me-2"></i>KDS - Pantalla de Cocina</h3>
-                <p class="text-muted mb-0">Control de Comandas en Cocina</p>
-            </div>
-            <div class="d-flex gap-2 align-items-center">
-                <button class="btn btn-outline-dark rounded-pill fw-bold"><i class="fa-solid fa-clock-rotate-left"></i> Ver Despachados</button>
-                <button class="btn btn-live rounded-pill"><i class="fa-solid fa-arrows-rotate"></i> Live <span id="segundosRefresh">5</span>s</button>
+                <h2 class="brand-title">SazónTrack</h2>
+                <span class="brand-sub">KDS Cocina</span>
             </div>
         </div>
+        <nav>
+            <a href="index.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+            <a href="mesas.html" class="nav-link"><i class="fa-solid fa-utensils"></i> Mapa Mesas</a>
+            <a href="kds_cocina.html" class="nav-link active"><i class="fa-solid fa-fire-burner"></i> KDS Cocina</a>
+            <a href="kds_barra.html" class="nav-link"><i class="fa-solid fa-martini-glass"></i> KDS Barra</a>
+        </nav>
+    </div>
+    <div class="pt-3 border-top">
+        <small class="text-muted fw-bold d-block" id="wsStatus"><i class="fa-solid fa-circle text-warning me-1"></i> Conectando WS...</small>
+    </div>
+</aside>
 
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div class="btn-group" role="group">
-                <button type="button" class="btn btn-dark rounded-pill px-4">Todos</button>
-                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 ms-2"><i class="fa-solid fa-circle text-warning small me-1"></i> Pendientes</button>
-                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 ms-2"><i class="fa-solid fa-circle text-primary small me-1"></i> Preparacion</button>
-            </div>
-            <div class="time-badges">
-                <span class="badge badge-normal">< 10 min (Normal)</span>
-                <span class="badge badge-alert">10 - 15 min (Alerta)</span>
-                <span class="badge badge-urgent">> 15 min (Urgente)</span>
-            </div>
+<main class="main-wrapper">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-3">
+        <div>
+            <h3 class="fw-800 m-0"><i class="fa-solid fa-fire-burner text-warning me-2"></i>KDS - Pantalla de Cocina</h3>
+            <small class="text-muted fw-semibold">Control de Comandas en Cocina (Alimentos)</small>
         </div>
-
-        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4" id="contenedorComandas">
-            <!-- Tickets inyectados por JS -->
+        <div class="d-flex align-items-center gap-2">
+            <button class="btn btn-outline-dark rounded-pill fw-bold btn-sm px-3" onclick="cargarCocina()"><i class="fa-solid fa-rotate me-1"></i> Actualizar</button>
+            <span class="badge bg-warning text-dark rounded-pill px-3 py-2 fw-bold"><i class="fa-solid fa-bolt me-1"></i> Live WS</span>
         </div>
-    </main>
+    </div>
 
-    <script>
-        const AREA_FILTRO = 'cocina'; 
-        let countdown = 5;
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+        <div class="d-flex gap-2">
+            <button class="filter-pill active" onclick="filtrarEstado('TODOS', this)">Todos</button>
+            <button class="filter-pill" onclick="filtrarEstado('PENDIENTE', this)"><span class="text-warning">●</span> Pendientes</button>
+            <button class="filter-pill" onclick="filtrarEstado('PREPARANDO', this)"><span class="text-primary">●</span> Preparación</button>
+        </div>
+        <div class="d-flex gap-2">
+            <span class="badge rounded-pill px-3 py-2 text-dark" style="background:#22D3EE;">&lt; 10 min (Normal)</span>
+            <span class="badge rounded-pill px-3 py-2 text-dark" style="background:#FBBF24;">10 - 15 min (Alerta)</span>
+            <span class="badge rounded-pill px-3 py-2 text-white" style="background:#EF4444;">&gt; 15 min (Urgente)</span>
+        </div>
+    </div>
 
-        document.addEventListener('DOMContentLoaded', () => {
-            cargarComandasKDS();
-            setInterval(() => {
-                countdown--;
-                if(countdown <= 0) {
-                    cargarComandasKDS();
-                    countdown = 5;
-                }
-                document.getElementById('segundosRefresh').innerText = countdown;
-            }, 1000);
-            setInterval(actualizarTiempos, 1000);
-        });
+    <div class="row g-4" id="gridCocina"></div>
+</main>
 
-        function actualizarTiempos() {
-            const ahora = new Date();
-            document.querySelectorAll('.tiempo-espera').forEach(el => {
-                const tiempoCreacion = new Date(el.dataset.fecha).getTime();
-                const minTranscurridos = Math.floor((ahora.getTime() - tiempoCreacion) / 60000);
-                el.innerText = `${minTranscurridos} min`;
-
-                const tarjeta = el.closest('.ticket-card');
-                if (minTranscurridos >= 15) {
-                    tarjeta.classList.add('danger');
-                    tarjeta.classList.remove('warning');
-                } else if (minTranscurridos >= 10) {
-                    tarjeta.classList.add('warning');
-                    tarjeta.classList.remove('danger');
-                }
-            });
-        }
-
-        async function cargarComandasKDS() {
-            try {
-                const resp = await fetch('api/comandas/listar_pendientes_cocina.php');
-                const comandas = await resp.json();
-                renderizarComandas(comandas);
-            } catch (error) {
-                console.error("Error al obtener comandas:", error);
-            }
-        }
-
-        function renderizarComandas(comandas) {
-            const contenedor = document.getElementById('contenedorComandas');
-            contenedor.innerHTML = '';
-            let ticketsVisibles = 0;
-
-            if (comandas.length === 0) {
-                mostrarMensajeVacio(contenedor);
-                return;
-            }
-
-            comandas.forEach(orden => {
-                // Filtrar solo items que contengan 'cocina' en el área de preparación
-                let itemsFiltrados = orden.detalles.filter(item => {
-                    return item.area_preparacion && item.area_preparacion.toLowerCase().includes(AREA_FILTRO);
-                });
-
-                if (itemsFiltrados.length === 0) return;
-                
-                ticketsVisibles++;
-                
-                let htmlDetalles = '';
-                itemsFiltrados.forEach(item => {
-                    let notasHtml = item.notas ? `<div class="item-notes"><i class="fa-solid fa-circle-exclamation me-1"></i>${item.notas}</div>` : '';
-                    
-                    htmlDetalles += `
-                        <div class="kds-item" onclick="marcarPreparado(${item.id_detalle}, event)">
-                            <div class="d-flex w-100">
-                                <div class="item-qty">${item.cantidad}</div>
-                                <div>
-                                    <div class="item-name">${item.producto}</div>
-                                    ${notasHtml}
-                                </div>
-                            </div>
-                            <button class="btn-ready"><i class="fa-solid fa-check"></i></button>
-                        </div>
-                    `;
-                });
-
-                contenedor.insertAdjacentHTML('beforeend', `
-                    <div class="col">
-                        <div class="ticket-card">
-                            <div class="ticket-header">
-                                <span class="fs-5">Mesa: <span class="text-dark">${orden.numero_mesa}</span></span>
-                                <span class="tiempo-espera text-muted" data-fecha="${orden.fecha_orden}">0 min</span>
-                            </div>
-                            <div class="ticket-body">
-                                ${htmlDetalles}
-                            </div>
-                        </div>
-                    </div>
-                `);
-            });
-
-            if (ticketsVisibles === 0) {
-                mostrarMensajeVacio(contenedor);
-            }
-        }
-
-        function mostrarMensajeVacio(contenedor) {
-            contenedor.innerHTML = `
-                <div class="col-12 empty-state">
-                    <div class="d-inline-flex justify-content-center align-items-center bg-success text-white rounded-circle mb-3" style="width: 60px; height: 60px;">
-                        <i class="fa-solid fa-check fa-2x"></i>
-                    </div>
-                    <h4>¡Cocina al día!</h4>
-                    <p>No hay órdenes pendientes de comida.</p>
-                </div>`;
-        }
-
-        async function marcarPreparado(idDetalle, event) {
-            if(event) event.stopPropagation();
-            try {
-                await fetch('api/comandas/actualizar_estado_kds.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id_detalle: idDetalle, estado: 'PREPARADO' })
-                });
-                cargarComandasKDS();
-            } catch (error) {
-                alert("No se pudo actualizar el estado.");
-            }
-        }
-        
-    </script>
-  <script src="http://localhost:3000/socket.io/socket.io.js"></script>
-<!-- Conexión universal basada en la IP del host actual -->
-<script src="http://10.0.10.:3000/socket.io/socket.io.js"></script>
 <script>
-    const socket = io("http://10.0.10.25:3000");
+    const ESTACION = 'cocina';
+    let filtroActual = 'TODOS';
+    const WS_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+        ? 'http://localhost:3000'
+        : 'http://179.66.132.102:3000';
+
+    const scriptWs = document.createElement('script');
+    scriptWs.src = `${WS_URL}/socket.io/socket.io.js`;
+    scriptWs.onload = () => {
+        const socket = io(WS_URL);
+        socket.on('connect', () => {
+            document.getElementById('wsStatus').innerHTML = '<i class="fa-solid fa-circle text-success me-1"></i> WebSocket Activo';
+        });
+        socket.on('renderizar_kds', () => cargarCocina());
+        window.socketKds = socket;
+    };
+    scriptWs.onerror = () => {
+        document.getElementById('wsStatus').innerHTML = '<i class="fa-solid fa-circle text-secondary me-1"></i> Modo Polling (5s)';
+    };
+    document.body.appendChild(scriptWs);
+
+    document.addEventListener('DOMContentLoaded', () => {
+        cargarCocina();
+        setInterval(cargarCocina, 5000);
+    });
+
+    function filtrarEstado(estado, btn) {
+        filtroActual = estado;
+        document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        cargarCocina();
+    }
+
+    async function cargarCocina() {
+        try {
+            const resp = await fetch(`api/estaciones_kds/obtener_comandas.php?estacion=${ESTACION}`);
+            const res = await resp.json();
+            const grid = document.getElementById('gridCocina');
+            const tickets = res.data || [];
+
+            let tarjetasRenderizadas = 0;
+            let htmlAcumulado = '';
+
+            tickets.forEach(cmd => {
+                const detallesFiltrados = filtroActual === 'TODOS'
+                    ? cmd.detalles
+                    : cmd.detalles.filter(d => d.estado_kds === filtroActual || (filtroActual === 'PREPARANDO' && d.estado_kds === 'EN_PREPARACION'));
+
+                if (detallesFiltrados.length === 0) return;
+                tarjetasRenderizadas++;
+
+                const mins = parseInt(cmd.minutos_espera || 0);
+                let claseTiempo = mins > 15 ? 'urgente' : (mins >= 10 ? 'alerta' : '');
+                const badgeOrigen = cmd.origen === 'MÓVIL'
+                    ? '<span class="badge bg-info text-dark ms-1">MÓVIL</span>'
+                    : '<span class="badge bg-secondary ms-1">WEB</span>';
+
+                let itemsHtml = '';
+                detallesFiltrados.forEach(det => {
+                    const enPrep = (det.estado_kds === 'PREPARANDO' || det.estado_kds === 'EN_PREPARACION');
+                    const notas = det.notas ? `<div class="small text-danger fw-bold"><i class="fa-solid fa-triangle-exclamation me-1"></i>${det.notas}</div>` : '';
+                    const badgeEstado = enPrep ? '<span class="badge bg-warning text-dark ms-1" style="font-size:0.65rem;">EN FUEGO</span>' : '';
+
+                    itemsHtml += `
+                        <div class="item-row ${enPrep ? 'en-prep' : ''}">
+                            <div>
+                                <div class="fw-bold"><span class="badge bg-dark me-2">${det.cantidad}x</span>${det.platillo} ${badgeEstado}</div>
+                                ${notas}
+                            </div>
+                            <div class="d-flex gap-1">
+                                ${!enPrep ? `<button type="button" class="btn btn-sm btn-outline-warning rounded-circle" title="Iniciar preparación" onclick="cambiarEstado(${det.id_detalle}, 0, 'PREPARANDO', this)"><i class="fa-solid fa-fire"></i></button>` : ''}
+                                <button type="button" class="btn btn-sm btn-outline-success rounded-circle" title="Marcar platillo listo" onclick="cambiarEstado(${det.id_detalle}, 0, 'LISTO', this)"><i class="fa-solid fa-check"></i></button>
+                            </div>
+                        </div>`;
+                });
+
+                htmlAcumulado += `
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <div class="ticket-card ${claseTiempo}">
+                            <div class="p-3 bg-light border-bottom d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="fw-800">${cmd.mesa} ${badgeOrigen}</div>
+                                    <small class="text-muted">${cmd.folio}</small>
+                                </div>
+                                <span class="badge bg-dark rounded-pill px-3 py-2">${mins} min</span>
+                            </div>
+                            <div>${itemsHtml}</div>
+                            <div class="p-3 bg-white">
+                                <button type="button" class="btn btn-dark w-100 fw-bold rounded-pill" onclick="cambiarEstado(0, ${cmd.id_orden}, 'LISTO', this)">
+                                    <i class="fa-solid fa-bell-concierge me-1"></i> Despachar Cocina
+                                </button>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+
+            if (tarjetasRenderizadas === 0) {
+                grid.innerHTML = `<div class="col-12 text-center py-5 text-muted fw-bold">Sin comandas pendientes en esta vista de Cocina.</div>`;
+            } else {
+                grid.innerHTML = htmlAcumulado;
+            }
+        } catch (e) { console.error("Error KDS Cocina:", e); }
+    }
+
+    async function cambiarEstado(idDetalle, idOrden, nuevoEstado, btn) {
+        if (btn) btn.disabled = true;
+        try {
+            const resp = await fetch('api/estaciones_kds/despachar_orden.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id_detalle: idDetalle,
+                    id_orden: idOrden,
+                    estacion: ESTACION,
+                    estado: nuevoEstado
+                })
+            });
+            const res = await resp.json();
+            if (res.status === 'success' || res.ok) {
+                if (window.socketKds) {
+                    window.socketKds.emit('platillo_preparado', { id_detalle: idDetalle, id_orden: idOrden, estacion: ESTACION, estado: nuevoEstado });
+                }
+                await cargarCocina();
+            } else {
+                alert('Error al actualizar: ' + (res.message || 'Verifica despachar_orden.php'));
+                if (btn) btn.disabled = false;
+            }
+        } catch (e) {
+            alert('Error de conexión con despachar_orden.php');
+            if (btn) btn.disabled = false;
+        }
+    }
 </script>
 </body>
 </html>

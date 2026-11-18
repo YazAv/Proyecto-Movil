@@ -1,92 +1,86 @@
 <?php
 // api/estaciones_kds/obtener_comandas.php
-header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+header('Content-Type: application/json; charset=utf-8');
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
 
-if (file_exists(__DIR__ . '/../../config/conexion.php')) {
-    require_once __DIR__ . '/../../config/conexion.php';
-} elseif (file_exists(__DIR__ . '/../conexion.php')) {
-    require_once __DIR__ . '/../conexion.php';
-}
+$rutas = [
+    __DIR__ . '/../../config/conexion.php',
+    __DIR__ . '/../config/conexion.php',
+    __DIR__ . '/../../config/db.php',
+    __DIR__ . '/../config.php',
+    __DIR__ . '/../conexion.php'
+];
+foreach ($rutas as $r) { if (file_exists($r)) { require_once $r; break; } }
+if (!isset($conn) && isset($pdo)) $conn = $pdo;
+if (!isset($conn) && class_exists('Database')) $conn = (new Database())->getConnection();
 
-$estacion = isset($_GET['estacion']) ? trim($_GET['estacion']) : 'cocina';
-$ver_historial = isset($_GET['historial']) && $_GET['historial'] === 'true';
-
-// Soportar tanto la clase Database() como la variable $conn directa
-if (!isset($conn) && class_exists('Database')) {
-    $db = new Database();
-    $conn = $db->getConnection();
-}
+$estacion = strtolower(trim($_GET['estacion'] ?? 'todas')); // 'cocina', 'barra' o 'todas'
 
 try {
-    // Filtrar entregados vs pendientes (insensible a mayúsculas/minúsculas)
-    $condicionEstado = $ver_historial 
-        ? "LOWER(COALESCE(od.estado_preparacion, od.estado_kds, '')) IN ('entregado', 'listo')"
-        : "LOWER(COALESCE(od.estado_preparacion, od.estado_kds, 'pendiente')) NOT IN ('entregado', 'cancelado')";
+    // 1. Buscar órdenes con platillos activos en public.orden_detalle
+    $stmt = $conn->query("
+        SELECT o.id_orden, 
+               COALESCE(o.folio, 'ORD-' || o.id_orden) AS folio, 
+               COALESCE('Mesa ' || m.numero_mesa, 'Mostrador') AS mesa,
+               o.creado_en,
+               ROUND(EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - o.creado_en)) / 60) AS minutos_espera
+        FROM public.ordenes o
+        LEFT JOIN public.mesas m ON o.id_mesa = m.id_mesa
+        WHERE EXISTS (
+            SELECT 1 FROM public.orden_detalle od 
+            WHERE od.id_orden = o.id_orden 
+              AND UPPER(COALESCE(od.estado, 'PENDIENTE')) IN ('PENDIENTE', 'EN_PREPARACION', 'PREPARANDO')
+        )
+        ORDER BY o.creado_en ASC
+    ");
+    $comandas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    $query = "
-        SELECT 
-            o.id_orden AS orden_id,
-            COALESCE(m.numero_mesa, 'Mostrador') AS numero_mesa,
-            COALESCE(a.nombre, 'Salón Principal') AS area_nombre,
-            TO_CHAR(o.creado_en, 'HH24:MI') AS hora_orden,
-            EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - o.creado_en))/60 AS minutos_transcurridos,
-            od.id_detalle AS detalle_id,
-            p.nombre AS producto,
-            od.cantidad,
-            COALESCE(od.notas, '') AS notas,
-            LOWER(COALESCE(od.estado_preparacion, od.estado_kds, 'pendiente')) AS estado_preparacion,
-            COALESCE(c.estacion, 'cocina') AS estacion
-        FROM ordenes o
-        LEFT JOIN mesas m ON m.id_mesa = o.id_mesa
-        LEFT JOIN areas a ON a.id_area = m.id_area
-        JOIN orden_detalles od ON od.orden_id = o.id_orden
-        JOIN productos p ON p.id_producto = od.producto_id
-        LEFT JOIN categorias c ON c.id_categoria = p.id_categoria
-        WHERE LOWER(o.estado) NOT IN ('pagada', 'cancelada')
-          AND LOWER(COALESCE(c.estacion, 'cocina')) = :estacion
-          AND {$condicionEstado}
-        ORDER BY o.creado_en ASC, od.id_detalle ASC
+    // 2. Traer los platillos de cada orden desde public.orden_detalle
+    $sqlDetalles = "
+        SELECT od.id_detalle, 
+               od.cantidad, 
+               COALESCE(od.nombre_producto, p.nombre, 'Platillo') AS platillo, 
+               COALESCE(od.notas, '') AS notas, 
+               UPPER(COALESCE(od.estado, 'PENDIENTE')) AS estado_kds,
+               LOWER(COALESCE(od.estacion, 'cocina')) AS estacion
+        FROM public.orden_detalle od
+        LEFT JOIN public.productos p ON od.id_producto = p.id_producto
+        WHERE od.id_orden = ? 
+          AND UPPER(COALESCE(od.estado, 'PENDIENTE')) IN ('PENDIENTE', 'EN_PREPARACION', 'PREPARANDO')
     ";
 
-    $stmt = $conn->prepare($query);
-    $stmt->execute([':estacion' => strtolower($estacion)]);
-    $filas = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    $comandas = [];
-    foreach ($filas as $fila) {
-        $oid = $fila['orden_id'];
-        if (!isset($comandas[$oid])) {
-            $comandas[$oid] = [
-                'orden_id'              => $fila['orden_id'],
-                'numero_mesa'           => $fila['numero_mesa'],
-                'area_nombre'           => $fila['area_nombre'],
-                'hora_orden'            => $fila['hora_orden'],
-                'minutos_transcurridos' => max(0, round((float)$fila['minutos_transcurridos'])),
-                'detalles'              => []
-            ];
-        }
-
-        $comandas[$oid]['detalles'][] = [
-            'detalle_id'         => $fila['detalle_id'],
-            'producto'           => $fila['producto'],
-            'cantidad'           => $fila['cantidad'],
-            'notas'              => $fila['notas'],
-            'estado_preparacion' => $fila['estado_preparacion']
-        ];
+    if ($estacion === 'cocina' || $estacion === 'barra') {
+        $sqlDetalles .= " AND LOWER(COALESCE(od.estacion, 'cocina')) = " . $conn->quote($estacion);
     }
 
-    http_response_code(200);
-    echo json_encode([
-        "status"   => "success",
-        "estacion" => $estacion,
-        "comandas" => array_values($comandas)
-    ]);
+    $stmtDet = $conn->prepare($sqlDetalles);
+    $resultado = [];
 
-} catch (PDOException $e) {
+    foreach ($comandas as $cmd) {
+        $stmtDet->execute([$cmd['id_orden']]);
+        $items = $stmtDet->fetchAll(PDO::FETCH_ASSOC);
+        if (!empty($items)) {
+            $cmd['origen'] = (strpos($cmd['folio'], 'MOV-') === 0) ? 'MÓVIL' : 'WEB';
+            $cmd['detalles'] = $items;
+            $resultado[] = $cmd;
+        }
+    }
+
+    echo json_encode([
+        'status' => 'success',
+        'estacion' => $estacion,
+        'total_comandas' => count($resultado),
+        'data' => $resultado
+    ], JSON_UNESCAPED_UNICODE);
+
+} catch (Exception $e) {
     http_response_code(500);
     echo json_encode([
-        "status"  => "error", 
-        "message" => "Error BD: " . $e->getMessage()
-    ]);
+        'status' => 'error',
+        'message' => $e->getMessage(),
+        'data' => []
+    ], JSON_UNESCAPED_UNICODE);
 }
 ?>
