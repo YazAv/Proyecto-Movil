@@ -4,832 +4,873 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SazónTrack POS - Mapa de Mesas</title>
-    <!-- CSS de Bootstrap, FontAwesome e Iconos/Fuentes Google (Italianno y Plus Jakarta Sans) -->
+    <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Italianno&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Italianno&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <style>
-        /* Variables globales de color: Paleta Off-white, Ivory, Nude y estados de mesa */
         :root {
+            --bg-main: #F5F2EB;
             --bg-offwhite: #FDFCF8;
-            --bg-ivory: #F3F0E9;
-            --color-nude: #E3DBCC;
+            --color-nude: #E6DFD3;
             --text-dark: #2A2621;
-            --text-muted: #736B60;
-            --color-disponible: #10B981;
-            --color-ocupada: #EF4444;
-            --color-reservada: #F59E0B;
-            --color-limpiar: #3B82F6;
+            --text-muted: #7C7469;
+            --accent-dark: #26221E;
+            --card-shadow: rgba(42, 38, 33, 0.06);
         }
 
         body {
-            background-color: var(--bg-ivory);
+            background-color: var(--bg-main);
+            font-family: 'Plus Jakarta Sans', sans-serif;
             color: var(--text-dark);
-            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-            min-height: 100vh;
             margin: 0;
         }
 
-        /* Menú Lateral (Sidebar) Fijo a la izquierda */
+        /* SIDEBAR UNIFICADO */
         .sidebar {
             width: 260px;
-            background: var(--bg-offwhite);
+            background-color: var(--bg-offwhite);
             border-right: 1px solid var(--color-nude);
             height: 100vh;
             position: fixed;
             top: 0;
             left: 0;
+            padding: 1.4rem 1.1rem;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: 1.5rem 1rem;
             z-index: 100;
         }
+
+        .sidebar-scrollable {
+            overflow-y: auto;
+            padding-right: 4px;
+            flex: 1;
+        }
+        .sidebar-scrollable::-webkit-scrollbar { width: 4px; }
+        .sidebar-scrollable::-webkit-scrollbar-thumb { background: var(--color-nude); border-radius: 10px; }
 
         .brand-header {
             display: flex;
             align-items: center;
             gap: 12px;
-            padding-bottom: 1.2rem;
-            border-bottom: 1px solid var(--color-nude);
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
+            padding-left: 4px;
         }
 
         .brand-avatar {
-            width: 44px;
-            height: 44px;
-            background: var(--text-dark);
-            color: var(--bg-offwhite);
+            width: 42px;
+            height: 42px;
+            background-color: var(--accent-dark);
+            color: #fff;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
+            flex-shrink: 0;
         }
 
         .brand-title {
-            font-family: 'Italianno', cursive, serif;
+            font-family: 'Italianno', cursive;
             font-size: 2.2rem;
-            color: var(--text-dark);
+            line-height: 0.85;
             margin: 0;
-            line-height: 0.8;
+            color: var(--text-dark);
+        }
+
+        .brand-sub {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .nav-category {
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin: 1.15rem 0 0.45rem 0.6rem;
         }
 
         .sidebar-nav .nav-link {
-            color: var(--text-muted);
-            font-weight: 600;
-            font-size: 0.9rem;
-            padding: 10px 14px;
-            border-radius: 12px;
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 4px;
-            text-decoration: none;
-            transition: all 0.15s ease;
-        }
-
-        .sidebar-nav .nav-link:hover, .sidebar-nav .nav-link.active {
-            background: var(--text-dark);
-            color: var(--bg-offwhite);
-        }
-
-        /* Áreas y Contenedor Principal desplazado a la derecha de la sidebar */
-        .main-wrapper {
-            margin-left: 260px;
-            padding: 2rem;
-        }
-
-        .badge-status {
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.8rem;
+            gap: 11px;
+            padding: 0.65rem 0.95rem;
+            border-radius: 14px;
+            color: var(--text-dark);
             font-weight: 600;
-            background: white;
-            border: 1px solid var(--color-nude);
-        }
-
-        /* Tarjetas Dinámicas de Mesas con borde superior según el estado */
-        .mesa-card {
-            background: var(--bg-offwhite);
-            border: 2px solid var(--color-nude);
-            border-radius: 20px;
-            padding: 1.2rem;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+            font-size: 0.88rem;
+            margin-bottom: 0.22rem;
             transition: all 0.2s ease;
-            cursor: pointer;
+            text-decoration: none;
         }
 
-        .mesa-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 25px rgba(42, 38, 33, 0.1);
+        .sidebar-nav .nav-link:hover {
+            background-color: rgba(230, 223, 211, 0.55);
         }
 
-        /* Colores del borde superior de la tarjeta según el estado */
-        .mesa-card.disponible { border-top: 6px solid var(--color-disponible); }
-        .mesa-card.ocupada { border-top: 6px solid var(--color-ocupada); }
-        .mesa-card.reservada { border-top: 6px solid var(--color-reservada); }
-        .mesa-card.por_limpiar { border-top: 6px solid var(--color-limpiar); }
-
-        .mesa-number {
-            font-size: 1.6rem;
-            font-weight: 800;
-            color: var(--text-dark);
+        .sidebar-nav .nav-link.active {
+            background-color: var(--accent-dark);
+            color: #ffffff;
         }
 
-        .area-title {
-            font-size: 1.2rem;
+        /* CONTENIDO PRINCIPAL */
+        .main-content {
+            margin-left: 260px;
+            padding: 2rem 2.4rem;
+        }
+
+        .btn-nueva-mesa {
+            background-color: var(--accent-dark);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 0.6rem 1.25rem;
             font-weight: 700;
+            font-size: 0.9rem;
+            transition: transform 0.18s ease, box-shadow 0.18s ease;
+        }
+        .btn-nueva-mesa:hover {
+            background-color: #161411;
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(38, 34, 30, 0.2);
+        }
+
+        /* Leyenda de Estados */
+        .legend-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 1.5rem;
+            font-size: 0.84rem;
+            font-weight: 600;
             color: var(--text-dark);
-            margin: 1.5rem 0 1rem;
-            padding-bottom: 0.4rem;
-            border-bottom: 2px dashed var(--color-nude);
+            margin-bottom: 1.75rem;
+        }
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+
+        /* Encabezado de Cada Área */
+        .area-section {
+            margin-bottom: 2.1rem;
+        }
+        .area-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding-bottom: 0.65rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--color-nude);
+        }
+        .area-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            margin: 0;
+        }
+        .area-count-badge {
+            background-color: #8E959E;
+            color: #fff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 3px 11px;
+            border-radius: 8px;
         }
 
-        /* Estilos de botones estándar en tono oscuro */
-        .btn-action-dark {
-            background: var(--text-dark);
-            color: var(--bg-offwhite);
-            border-radius: 12px;
-            font-weight: 600;
-            border: none;
-            padding: 8px 16px;
+        /* Tarjeta Exacta de Mesa */
+        .mesa-box {
+            background-color: var(--bg-offwhite);
+            border: 1px solid var(--color-nude);
+            border-top-width: 4px;
+            border-radius: 16px;
+            padding: 1.15rem 1.25rem;
+            box-shadow: 0 4px 14px var(--card-shadow);
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            height: 100%;
+        }
+        .mesa-box:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 22px rgba(42, 38, 33, 0.1);
         }
 
-        .btn-action-dark:hover {
-            background: #423c34;
+        .mesa-box.st-disponible { border-top-color: #16A34A; }
+        .mesa-box.st-ocupada    { border-top-color: #DC2626; }
+        .mesa-box.st-reservada  { border-top-color: #EAB308; }
+        .mesa-box.st-limpiar    { border-top-color: #2563EB; }
+
+        .mesa-code {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            line-height: 1.1;
+        }
+
+        .status-pill {
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 7px;
             color: #fff;
         }
+        .pill-disponible { background-color: #198754; }
+        .pill-ocupada    { background-color: #DC3545; }
+        .pill-reservada  { background-color: #EAB308; color: #1F1C18; }
+        .pill-limpiar    { background-color: #2563EB; }
+
+        .mesa-cap {
+            margin-top: 0.65rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        /* Botones del Modal Gestionar Mesa */
+        .btn-accion-modal {
+            width: 100%;
+            text-align: left;
+            padding: 0.72rem 1rem;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.92rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.15s ease;
+        }
+        .btn-accion-disponible {
+            background: #fff;
+            border: 1px solid #D1D5DB;
+            color: #198754;
+        }
+        .btn-accion-disponible:hover { background: #F0FDF4; border-color: #198754; }
+
+        .btn-accion-ocupar {
+            background: #fff;
+            border: 1px solid #F5C2C7;
+            color: #DC3545;
+        }
+        .btn-accion-ocupar:hover { background: #FEF2F2; border-color: #DC3545; }
+
+        .btn-accion-limpiar {
+            background: #1D74F5;
+            border: 1px solid #1D74F5;
+            color: #fff;
+        }
+        .btn-accion-limpiar:hover { background: #155EC9; color: #fff; }
+
+        .btn-accion-transferir {
+            background: #fff;
+            border: 1px solid #FDE68A;
+            color: #1F1C18;
+        }
+        .btn-accion-transferir:hover { background: #FFFBEB; border-color: #F59E0B; }
+
+        .btn-accion-eliminar {
+            width: 100%;
+            background: #fff;
+            border: 1px solid #F5C2C7;
+            color: #DC3545;
+            border-radius: 10px;
+            padding: 0.55rem 1rem;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        .btn-accion-eliminar:hover { background: #DC3545; color: #fff; }
     </style>
 </head>
 <body>
 
-<!-- NAVEGACIÓN LATERAL (Sidebar con datos del usuario en sesión) -->
-<aside class="sidebar">
-    <div>
-        <!-- Logo e Identidad del Sistema -->
-        <div class="brand-header">
-            <div class="brand-avatar"><i class="fa-solid fa-concierge-bell"></i></div>
-            <div>
-                <h2 class="brand-title">SazónTrack</h2>
-                <span class="text-muted small fw-bold">Mapa de Mesas</span>
-            </div>
-        </div>
-        <!-- Opciones de Menú Lateral -->
-        <nav class="sidebar-nav">
-            <a href="index.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
-            <a href="mesas.html" class="nav-link active"><i class="fa-solid fa-utensils"></i> Mapa Mesas</a>
-            <a href="#" class="nav-link"><i class="fa-solid fa-fire-burner"></i> KDS Cocina/Barra</a>
-        </nav>
-    </div>
-
-    <!-- Indicador de Usuario Activo e Inicio de Sesión -->
-    <div class="pt-3 border-top border-secondary-subtle">
-        <div class="d-flex align-items-center justify-content-between">
-            <div class="d-flex align-items-center gap-2">
-                <i class="fa-solid fa-user-circle fa-2x text-secondary"></i>
-                <div class="lh-1">
-                    <div id="sessionUserName" class="fw-bold small">Cargando...</div>
-                    <small id="sessionUserRole" class="text-muted" style="font-size: 0.75rem;"></small>
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-scrollable">
+            <div class="brand-header">
+                <div class="brand-avatar">
+                    <i class="fa-solid fa-concierge-bell"></i>
+                </div>
+                <div>
+                    <h2 class="brand-title">SazónTrack</h2>
+                    <span class="brand-sub">Mapa de Mesas</span>
                 </div>
             </div>
-            <button onclick="cerrarSesion()" class="btn btn-sm text-danger" title="Cerrar Sesión">
-                <i class="fa-solid fa-right-from-bracket"></i>
-            </button>
-        </div>
-    </div>
-</aside>
 
-<!-- CONTENIDO PRINCIPAL DE LA PÁGINA -->
-<main class="main-wrapper">
-    <!-- Encabezado con Botones de Acción Globales (Bitácora, Nueva Reserva y Nueva Mesa) -->
-    <div class="d-flex align-items-center justify-content-between mb-4">
-        <div>
-            <h3 class="fw-bold m-0">Mapa de Mesas</h3>
-            <p class="text-muted small m-0">Estado operativo, apertura, reservaciones y reasignación de órdenes</p>
-        </div>
-        <div class="d-flex gap-2">
-            <button class="btn btn-action-dark" onclick="abrirAgendaReservas()">
-                <i class="fa-solid fa-book-bookmark me-1"></i> Bitácora
-            </button>
-            <button class="btn btn-action-dark" onclick="abrirModalAgendarReservaGlobal()">
-                <i class="fa-solid fa-calendar-plus me-1"></i> Nueva Reserva
-            </button>
-            <button class="btn btn-action-dark" onclick="abrirModalCrearMesa()">
-                <i class="fa-solid fa-plus me-1"></i> Nueva Mesa
-            </button>
-        </div>
-    </div>
+            <nav class="sidebar-nav">
+                <div class="nav-category">Principal</div>
+                <a href="index.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+                <a href="caja.html" class="nav-link"><i class="fa-solid fa-cash-register"></i> Caja POS</a>
+                <a href="mesas.html" class="nav-link active"><i class="fa-solid fa-utensils"></i> Mapa Mesas</a>
+                <a href="reservas.html" class="nav-link"><i class="fa-solid fa-calendar-check"></i> Reservaciones</a>
+                <a href="kds_cocina.html" class="nav-link"><i class="fa-solid fa-fire-burner"></i> KDS Cocina</a>
+                <a href="kds_barra.html" class="nav-link"><i class="fa-solid fa-martini-glass-citrus"></i> KDS Barra</a>
 
-    <!-- Leyenda Explicativa del Código de Colores -->
-    <div class="d-flex gap-2 mb-4">
-        <span class="badge-status"><i class="fa-solid fa-circle text-success me-1"></i> Disponible</span>
-        <span class="badge-status"><i class="fa-solid fa-circle text-danger me-1"></i> Ocupada</span>
-        <span class="badge-status"><i class="fa-solid fa-circle text-warning me-1"></i> Reservada</span>
-        <span class="badge-status"><i class="fa-solid fa-circle text-primary me-1"></i> Por Limpiar</span>
-    </div>
+                <div class="nav-category">Recursos Humanos</div>
+                <a href="asistencia.html" target="_blank" class="nav-link">
+                    <i class="fa-solid fa-clock"></i> Reloj Checador <i class="fa-solid fa-arrow-up-right-from-square ms-auto opacity-50" style="font-size: 0.7rem;"></i>
+                </a>
+                <a href="reporte_asistencia.html" class="nav-link"><i class="fa-solid fa-clipboard-user"></i> Control de Nómina</a>
 
-    <!-- Contenedor donde JavaScript dibujará las áreas y mesas recuperadas del servidor -->
-    <div id="mapaContenedor">
-        <div class="text-center py-5 text-muted">
-            <i class="fa-solid fa-spinner fa-spin fa-2x mb-2"></i>
-            <p>Cargando mapa de mesas...</p>
+                <div class="nav-category">Administración (CRUDs)</div>
+                <a href="empleados.html" class="nav-link"><i class="fa-solid fa-users"></i> Empleados</a>
+                <a href="productos.html" class="nav-link"><i class="fa-solid fa-burger"></i> Menú</a>
+                <a href="recetas.html" class="nav-link"><i class="fa-solid fa-file-invoice-dollar"></i> Recetas</a>
+                <a href="inventario.html" class="nav-link"><i class="fa-solid fa-boxes-stacked"></i> Insumos e Inventario</a>
+                <a href="modificadores.html" class="nav-link"><i class="fa-solid fa-code-branch"></i> Modificadores</a>
+                <a href="historial_comandas.html" class="nav-link"><i class="fa-solid fa-receipt"></i> Histórico Comandas</a>
+                <a href="turno.html" class="nav-link"><i class="fa-solid fa-vault"></i> Turnos y Cortes</a>
+                <a href="reporte_ventas.html" class="nav-link"><i class="fa-solid fa-chart-line"></i> Reporte de Ventas</a>
+            </nav>
         </div>
-    </div>
-</main>
 
-<!-- MODAL 1: Opciones Rápidas de la Mesa Seleccionada -->
-<div class="modal fade" id="modalMesa" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="border-radius: 20px; background: var(--bg-offwhite);">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold" id="modalMesaTitulo">Mesa</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p class="text-muted small">Selecciona una acción operativa para la mesa:</p>
-                <div class="d-grid gap-2 mb-3">
-                    <button class="btn btn-outline-success text-start py-2 fw-bold" onclick="cambiarEstado('disponible')">
-                        <i class="fa-solid fa-check-circle me-2"></i> Marcar Disponible
-                    </button>
-                    <button class="btn btn-outline-danger text-start py-2 fw-bold" onclick="cambiarEstado('ocupada')">
-                        <i class="fa-solid fa-user-group me-2"></i> Abrir Comanda / Ocupar
-                    </button>
-                    <button class="btn btn-outline-primary text-start py-2 fw-bold" onclick="cambiarEstado('por_limpiar')">
-                        <i class="fa-solid fa-broom me-2"></i> Marcar Por Limpiar
-                    </button>
-                    <button class="btn btn-outline-warning text-dark text-start py-2 fw-bold" onclick="abrirModalCambiarMesa()">
-                        <i class="fa-solid fa-arrow-right-arrow-left me-2"></i> Transferir / Cambiar de Mesa
-                    </button>
+        <div class="pt-3 border-top border-secondary-subtle">
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-user-circle fa-2x text-secondary"></i>
+                    <div class="lh-1">
+                        <div id="sessionUserName" class="fw-bold small">Cargando...</div>
+                        <small id="sessionUserRole" class="text-muted" style="font-size: 0.75rem;"></small>
+                    </div>
                 </div>
-                <hr>
-                <button class="btn btn-sm btn-outline-danger w-100" onclick="ejecutarEliminarMesa()">
-                    <i class="fa-solid fa-trash me-1"></i> Eliminar Mesa
+                <button onclick="cerrarSesion()" class="btn btn-sm text-danger" title="Cerrar Sesión">
+                    <i class="fa-solid fa-right-from-bracket"></i>
                 </button>
             </div>
         </div>
-    </div>
-</div>
+    </aside>
 
-<!-- MODAL 2: Formulario para Agendar Nueva Reserva y Alergias -->
-<div class="modal fade" id="modalAgendarReserva" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="border-radius: 20px; background: var(--bg-offwhite);">
-            <div class="modal-header border-0">
-                <h5 class="modal-title fw-bold"><i class="fa-solid fa-calendar-plus me-2"></i>Agendar Nueva Reserva</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="main-content">
+        <!-- Encabezado -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+            <div>
+                <h2 class="fw-bold m-0">Mapa de Mesas</h2>
+                <p class="text-muted small m-0">Estado operativo, apertura, reservaciones y reasignación de órdenes</p>
             </div>
-            <div class="modal-body">
-                <form id="formNuevaReserva" onsubmit="guardarReserva(event)">
-                    <div class="mb-2">
-                        <label class="form-label small text-muted fw-bold">Asignar a Mesa</label>
-                        <select id="resSelectMesa" class="form-select" required></select>
+            <div class="d-flex align-items-center gap-2">
+                <button id="btnNuevaMesa" class="btn-nueva-mesa" onclick="abrirModalNuevaMesa()">
+                    <i class="fa-solid fa-plus me-1"></i> Nueva Mesa
+                </button>
+            </div>
+        </div>
+
+        <!-- Leyenda de Estados -->
+        <div class="legend-bar">
+            <span><span class="legend-dot" style="background:#198754;"></span>Disponible</span>
+            <span><span class="legend-dot" style="background:#DC3545;"></span>Ocupada</span>
+            <span><span class="legend-dot" style="background:#EAB308;"></span>Reservada</span>
+            <span><span class="legend-dot" style="background:#2563EB;"></span>Por Limpiar</span>
+        </div>
+
+        <!-- Contenedor Dinámico Agrupado por Áreas -->
+        <div id="contenedorAreasMesas">
+            <div class="text-center py-5 text-muted">Cargando mapa de mesas...</div>
+        </div>
+    </main>
+
+    <!-- MODAL GESTIONAR MESA (IDÉNTICO A TU CAPTURA) -->
+    <div class="modal fade" id="modalGestionarMesa" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 460px;">
+            <div class="modal-content" style="border-radius: 18px; border: none; box-shadow: 0 20px 45px rgba(0,0,0,0.18);">
+                <div class="modal-header border-bottom px-4 pt-4 pb-3">
+                    <h5 class="modal-title fw-bold" id="tituloGestionarMesa">Gestionar Mesa</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body px-4 pt-3 pb-4">
+                    <p class="text-muted small mb-3">Selecciona una acción operativa para la mesa:</p>
+
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn-accion-modal btn-accion-disponible" onclick="cambiarEstadoSeleccionada('disponible')">
+                            <i class="fa-solid fa-circle-check"></i> Marcar Disponible
+                        </button>
+
+                        <button type="button" class="btn-accion-modal btn-accion-ocupar" onclick="abrirComandaYOcupar()">
+                            <i class="fa-solid fa-users"></i> Abrir Comanda / Ocupar
+                        </button>
+
+                        <button type="button" class="btn-accion-modal btn-accion-limpiar" onclick="cambiarEstadoSeleccionada('por_limpiar')">
+                            <i class="fa-solid fa-broom"></i> Marcar Por Limpiar
+                        </button>
+
+                        <button type="button" class="btn-accion-modal btn-accion-transferir" onclick="abrirModalTransferir()">
+                            <i class="fa-solid fa-right-left"></i> Transferir / Cambiar de Mesa
+                        </button>
                     </div>
-                    <div class="mb-2">
-                        <label class="form-label small text-muted fw-bold">Nombre del Cliente</label>
-                        <input type="text" id="resNombre" class="form-control" placeholder="" required>
+
+                    <div id="bloqueEliminarMesa" class="mt-3 pt-3 border-top">
+                        <button type="button" class="btn-accion-eliminar" onclick="eliminarMesaSeleccionada()">
+                            <i class="fa-solid fa-trash-can me-1"></i> Eliminar Mesa
+                        </button>
                     </div>
-                    <div class="row g-2 mb-2">
-                        <div class="col-6">
-                            <label class="form-label small text-muted fw-bold">Teléfono</label>
-                            <input type="tel" id="resTelefono" class="form-control" placeholder="">
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label small text-muted fw-bold">Personas</label>
-                            <input type="number" id="resPersonas" class="form-control" value="2" min="1" required>
-                        </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL TRANSFERIR / CAMBIAR DE MESA -->
+    <div class="modal fade" id="modalTransferirMesa" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content" style="border-radius: 18px;">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold">Transferir Mesa</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form onsubmit="ejecutarTransferencia(event)">
+                    <div class="modal-body">
+                        <p class="small text-muted mb-2">Mover cuenta de <strong id="lblMesaOrigen"></strong> hacia:</p>
+                        <select id="selectMesaDestino" class="form-select" required></select>
                     </div>
-                    <div class="row g-2 mb-2">
-                        <div class="col-6">
-                            <label class="form-label small text-muted fw-bold">Fecha</label>
-                            <input type="date" id="resFecha" class="form-control" required>
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label small text-muted fw-bold">Hora</label>
-                            <input type="time" id="resHora" class="form-control" required>
-                        </div>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-dark rounded-pill px-4">Confirmar Cambio</button>
                     </div>
-                    <div class="mb-2">
-                        <label class="form-label small text-muted fw-bold">Tipo de Evento</label>
-                        <select id="resEvento" class="form-select">
-                            <option value="Normal">Comida / Cena Regular</option>
-                            <option value="Cumpleaños">Cumpleaños (Traen pastel)</option>
-                            <option value="Aniversario">Aniversario / Romántico</option>
-                            <option value="Negocios">Reunión de Negocios</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small text-muted fw-bold text-danger"><i class="fa-solid fa-triangle-exclamation me-1"></i> Alergias & Notas Especiales</label>
-                        <textarea id="resNotas" class="form-control" rows="3" placeholder="Ej. Alergia severa a mariscos. Requieren silla alta de bebé."></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-action-dark w-100">Confirmar & Guardar Reserva</button>
                 </form>
             </div>
         </div>
     </div>
-</div>
 
-<!-- MODAL 3: Visualización de Bitácora Completa de Reservaciones -->
-<div class="modal fade" id="modalAgendaReservas" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content" style="border-radius: 20px; background: var(--bg-offwhite);">
-            <div class="modal-header border-0">
-                <h5 class="modal-title fw-bold"><i class="fa-solid fa-book-bookmark me-2"></i>Agenda de Reservaciones</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div id="listaReservasContenedor">
-                    <p class="text-center text-muted">Cargando reservaciones...</p>
+    <!-- MODAL NUEVA MESA -->
+    <div class="modal fade" id="modalNuevaMesa" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 18px;">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold">Agregar Nueva Mesa</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- MODAL 4: Transferir o Cambiar Comanda Activa a Otra Mesa Libre -->
-<div class="modal fade" id="modalCambiarMesa" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="border-radius: 20px; background: var(--bg-offwhite);">
-            <div class="modal-header border-0">
-                <h5 class="modal-title fw-bold">Reasignar Mesa</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p class="text-muted small mb-3">Selecciona la mesa libre a donde se moverá la orden activa:</p>
-                <div class="mb-3">
-                    <label class="form-label small text-muted fw-bold">Mesa Destino Disponible</label>
-                    <select id="selectMesaDestino" class="form-select"></select>
-                </div>
-                <button class="btn btn-action-dark w-100" onclick="ejecutarCambioMesa()">Confirmar Cambio de Mesa</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- MODAL 5: Crear Nueva Mesa en el Sistema -->
-<div class="modal fade" id="modalCrearMesa" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="border-radius: 20px; background: var(--bg-offwhite);">
-            <div class="modal-header border-0">
-                <h5 class="modal-title fw-bold">Crear Nueva Mesa</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="mb-2">
-                    <label class="form-label small text-muted">Número o Identificador</label>
-                    <input type="text" id="crearNumMesa" class="form-control" placeholder="Ej. M12" required>
-                </div>
-                <div class="mb-2">
-                    <label class="form-label small text-muted">Capacidad</label>
-                    <input type="number" id="crearCapMesa" class="form-control" value="4" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label small text-muted">Área</label>
-                    <select id="crearAreaMesa" class="form-select"></select>
-                </div>
-                <button class="btn btn-action-dark w-100" onclick="ejecutarCrearMesa()">Guardar Mesa</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Scripts de Bootstrap y Lógica Principal en JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    // Variables globales de estado
-    let mapaGlobal = [];
-    let mesaSeleccionadaId = null;
-    let ordenActivaId = null;
-
-    // Ejecutar al cargar completamente el DOM: verifica autenticación y consulta datos del mapa
-    document.addEventListener("DOMContentLoaded", () => {
-        const sessionData = localStorage.getItem("sazontrack_session");
-        if (!sessionData) {
-            window.location.href = "login.html";
-            return;
-        }
-
-        // Mostrar nombre y puesto del empleado activo
-        const session = JSON.parse(sessionData);
-        document.getElementById("sessionUserName").innerText = session.nombre_empleado || session.username;
-        document.getElementById("sessionUserRole").innerText = session.puesto || session.rol;
-
-        cargarMapa();
-    });
-
-    // Cierra la sesión activa borrando el localStorage
-    function cerrarSesion() {
-        localStorage.removeItem("sazontrack_session");
-        window.location.href = "login.html";
-    }
-
-    // Petición GET al backend para obtener áreas y mesas organizadas
-    async function cargarMapa() {
-        try {
-            const resp = await fetch('api/mesas/obtener_mapa.php');
-            const data = await resp.json();
-
-            if (resp.ok && data.status === 'success') {
-                mapaGlobal = data.mapa;
-                renderizarMapa(mapaGlobal);
-            } else {
-                document.getElementById("mapaContenedor").innerHTML = `<div class="alert alert-danger">${data.message || 'Error al obtener mapa'}</div>`;
-            }
-        } catch (err) {
-            document.getElementById("mapaContenedor").innerHTML = `<div class="alert alert-danger">Error al conectar con la API de mesas</div>`;
-        }
-    }
-
-    // Genera dinámicamente el HTML de cada área y sus mesas correspondientes
-    function renderizarMapa(areas) {
-        const contenedor = document.getElementById("mapaContenedor");
-        contenedor.innerHTML = "";
-
-        if (!areas || areas.length === 0) {
-            contenedor.innerHTML = `<div class="text-center py-4 text-muted">No hay áreas configuradas.</div>`;
-            return;
-        }
-
-        areas.forEach(area => {
-            let htmlArea = `
-                <div class="area-title">
-                    <span><i class="fa-solid fa-layer-group me-2"></i>${area.nombre}</span>
-                    <span class="badge bg-secondary">${area.mesas ? area.mesas.length : 0} mesas</span>
-                </div>
-                <div class="row g-3">
-            `;
-
-            if (!area.mesas || area.mesas.length === 0) {
-                htmlArea += `<div class="col-12 text-muted small italic">Sin mesas agregadas a esta área.</div>`;
-            } else {
-                area.mesas.forEach(m => {
-                    let badgeColor = m.estado === 'disponible' ? 'success' : (m.estado === 'ocupada' ? 'danger' : (m.estado === 'reservada' ? 'warning text-dark' : 'primary'));
-                    let ordenId = m.id_orden || m.id_comanda || m.id_mesa;
-
-                    htmlArea += `
-                        <div class="col-md-3">
-                            <div class="mesa-card ${m.estado}" onclick="abrirModalMesa(${m.id_mesa}, '${m.numero_mesa}', ${ordenId})">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="mesa-number">${m.numero_mesa}</span>
-                                    <span class="badge bg-${badgeColor} text-capitalize">${m.estado ? m.estado.replace('_', ' ') : 'disponible'}</span>
-                                </div>
-                                <div class="text-muted small">
-                                    <i class="fa-solid fa-users me-1"></i> Capacidad: ${m.capacidad} pers.
-                                </div>
+                <form onsubmit="crearNuevaMesa(event)">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Número o Identificador de Mesa *</label>
+                            <input type="text" id="nueva_numero_mesa" class="form-control" required placeholder="Ej. 4, S2, T3, B4">
+                        </div>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <label class="form-label small fw-bold">Área / Zona *</label>
+                                <select id="nueva_id_area" class="form-select" required></select>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-bold">Capacidad (Personas) *</label>
+                                <input type="number" id="nueva_capacidad" class="form-control" min="1" max="30" value="4" required>
                             </div>
                         </div>
-                    `;
-                });
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-dark rounded-pill px-4">Guardar Mesa</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let mesasGlobal = [];
+        let areasGlobal = [];
+        let mesaSeleccionada = null;
+        let esAdmin = false;
+
+        let modalNuevaMesaInst = null;
+        let modalGestionarInst = null;
+        let modalTransferirInst = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const sessionData = localStorage.getItem("sazontrack_session");
+            if (!sessionData) {
+                window.location.href = "login.html";
+                return;
             }
 
-            htmlArea += `</div>`;
-            contenedor.innerHTML += htmlArea;
+            const session = JSON.parse(sessionData);
+            const userName = session.nombre_empleado || session.username || "Usuario";
+            const userRole = (session.puesto || session.rol || "mesero").toString().trim().toLowerCase();
+
+            document.getElementById("sessionUserName").innerText = userName;
+            document.getElementById("sessionUserRole").innerText = userRole.toUpperCase();
+
+            esAdmin = (userRole === 'administrador' || userRole === 'admin');
+            aplicarPermisos(userRole);
+
+            if (!esAdmin) {
+                document.getElementById('btnNuevaMesa').style.display = 'none';
+                document.getElementById('bloqueEliminarMesa').style.display = 'none';
+            }
+
+            modalNuevaMesaInst = new bootstrap.Modal(document.getElementById('modalNuevaMesa'));
+            modalGestionarInst = new bootstrap.Modal(document.getElementById('modalGestionarMesa'));
+            modalTransferirInst = new bootstrap.Modal(document.getElementById('modalTransferirMesa'));
+
+            cargarMapaMesas();
+            setInterval(cargarMapaMesas, 15000);
         });
-    }
 
-    // Abre el modal de acciones operativas de la mesa elegida
-    function abrirModalMesa(id, numero, ordenId) {
-        mesaSeleccionadaId = id;
-        ordenActivaId = ordenId;
-        document.getElementById("modalMesaTitulo").innerText = `Gestionar Mesa ${numero}`;
-        new bootstrap.Modal(document.getElementById('modalMesa')).show();
-    }
-
-    // Cambia el estado directo (disponible, ocupada, por_limpiar) llamando al backend
-    async function cambiarEstado(nuevoEstado) {
-        if (!mesaSeleccionadaId) return;
-        await fetch('api/mesas/actualizar_estado.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id_mesa: mesaSeleccionadaId, estado: nuevoEstado })
-        });
-        bootstrap.Modal.getInstance(document.getElementById('modalMesa')).hide();
-        cargarMapa();
-    }
-
-    // Prepara el select de mesas disponibles para realizar una transferencia
-    function abrirModalCambiarMesa() {
-        const selectDestino = document.getElementById("selectMesaDestino");
-        selectDestino.innerHTML = "";
-        
-        mapaGlobal.forEach(area => {
-            if (area.mesas) {
-                area.mesas.forEach(m => {
-                    if (m.id_mesa !== mesaSeleccionadaId && m.estado === 'disponible') {
-                        selectDestino.innerHTML += `<option value="${m.id_mesa}">${area.nombre} - Mesa ${m.numero_mesa}</option>`;
+        function aplicarPermisos(rol) {
+            const permisos = {
+                'administrador': 'todo',
+                'admin': 'todo',
+                'cajero': ['index.html', 'caja.html', 'mesas.html', 'reservas.html', 'turno.html', 'historial_comandas.html'],
+                'mesero': ['mesas.html', 'caja.html', 'asistencia.html'],
+                'cocina': ['kds_cocina.html', 'inventario.html', 'asistencia.html'],
+                'barra': ['kds_barra.html', 'inventario.html', 'asistencia.html']
+            };
+            const permitidos = permisos[rol] || [];
+            document.querySelectorAll('.sidebar-nav .nav-link').forEach(link => {
+                const href = link.getAttribute('href') || '';
+                if (permisos[rol] !== 'todo' && !permitidos.some(p => href.includes(p))) {
+                    link.style.display = 'none';
+                }
+            });
+            if (permisos[rol] !== 'todo') {
+                document.querySelectorAll('.sidebar-nav .nav-category').forEach(cat => {
+                    let next = cat.nextElementSibling;
+                    let visible = false;
+                    while (next && !next.classList.contains('nav-category')) {
+                        if (next.style.display !== 'none') { visible = true; break; }
+                        next = next.nextElementSibling;
                     }
+                    if (!visible) cat.style.display = 'none';
                 });
             }
-        });
-
-        if (selectDestino.children.length === 0) {
-            selectDestino.innerHTML = `<option value="">No hay otras mesas libres</option>`;
         }
 
-        bootstrap.Modal.getInstance(document.getElementById('modalMesa')).hide();
-        new bootstrap.Modal(document.getElementById('modalCambiarMesa')).show();
-    }
-
-    // Ejecuta la API cambiar_mesa.php para mover comanda y estados
-    async function ejecutarCambioMesa() {
-        const nueva_mesa_id = document.getElementById("selectMesaDestino").value;
-        if (!nueva_mesa_id) {
-            alert("Por favor seleccione una mesa libre destino.");
-            return;
+        function cerrarSesion() {
+            localStorage.removeItem("sazontrack_session");
+            window.location.href = "login.html";
         }
 
-        try {
-            const resp = await fetch('api/mesas/cambiar_mesa.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    id_mesa_origen: parseInt(mesaSeleccionadaId),
-                    nueva_mesa_id: parseInt(nueva_mesa_id),
-                    orden_id: parseInt(ordenActivaId || 0)
-                })
-            });
-
-            const data = await resp.json();
-            
-            if (resp.ok && data.status === 'success') {
-                const modalEl = document.getElementById('modalCambiarMesa');
-                const modalObj = bootstrap.Modal.getInstance(modalEl);
-                if (modalObj) modalObj.hide();
-                cargarMapa();
-            } else {
-                alert(data.message || "Error al realizar el cambio de mesa");
-            }
-        } catch (err) {
-            alert("Error de conexión al transferir la mesa");
-        }
-    }
-
-    // Puebla el select de mesas para agendar una reserva desde la barra superior
-    function abrirModalAgendarReservaGlobal() {
-    const selectMesa = document.getElementById("resSelectMesa");
-    selectMesa.innerHTML = "";
-
-    mapaGlobal.forEach(area => {
-        if (area.mesas && area.mesas.length > 0) {
-            area.mesas.forEach(m => {
-                selectMesa.innerHTML += `<option value="${m.id_mesa}">${area.nombre} - Mesa ${m.numero_mesa} (Cap: ${m.capacidad}p)</option>`;
-            });
-        }
-    });
-
-    const ahora = new Date();
-    const hoy = ahora.toISOString().split('T')[0];
-    
-    const inputFecha = document.getElementById("resFecha");
-    const inputHora = document.getElementById("resHora");
-
-    // 1. Bloquear fechas pasadas directamente en el calendario nativo del navegador
-    inputFecha.min = hoy;
-    inputFecha.value = hoy;
-
-    // Formatear hora actual HH:MM
-    const horas = String(ahora.getHours()).padStart(2, '0');
-    const minutos = String(ahora.getMinutes()).padStart(2, '0');
-    const horaActualStr = `${horas}:${minutos}`;
-
-    // 2. Establecer hora actual por defecto y limitar si es hoy
-    inputHora.min = horaActualStr;
-    inputHora.value = horaActualStr;
-
-    // Escuchar cambios en la fecha para liberar o restringir la hora según sea hoy u otro día
-    inputFecha.onchange = function() {
-        if (this.value === hoy) {
-            inputHora.min = horaActualStr;
-            if (inputHora.value < horaActualStr) {
-                inputHora.value = horaActualStr;
-            }
-        } else {
-            inputHora.removeAttribute('min'); // Liberar horas para fechas futuras
-        }
-    };
-
-    new bootstrap.Modal(document.getElementById('modalAgendarReserva')).show();
-}
-
-async function guardarReserva(e) {
-    e.preventDefault();
-    const id_mesa_reserva = document.getElementById("resSelectMesa").value;
-    const fecha_reserva = document.getElementById("resFecha").value;
-    const hora_reserva = document.getElementById("resHora").value;
-
-    if (!id_mesa_reserva) {
-        alert("Selecciona una mesa válida para la reserva.");
-        return;
-    }
-
-    // Validación final antes de enviar
-    const ahora = new Date();
-    const fechaHoraIngresada = new Date(`${fecha_reserva}T${hora_reserva}`);
-
-    if (fechaHoraIngresada < ahora) {
-        alert("No es posible agendar reservas en un horario que ya transcurrió.");
-        return;
-    }
-
-    const datos = {
-        id_mesa: parseInt(id_mesa_reserva),
-        nombre_cliente: document.getElementById("resNombre").value,
-        telefono: document.getElementById("resTelefono").value,
-        num_personas: parseInt(document.getElementById("resPersonas").value),
-        fecha_reserva: fecha_reserva,
-        hora_reserva: hora_reserva,
-        tipo_evento: document.getElementById("resEvento").value,
-        alergias_notas: document.getElementById("resNotas").value
-    };
-
-    try {
-        const resp = await fetch('api/mesas/reservas.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(datos)
-        });
-
-        const data = await resp.json();
-
-        if (resp.ok && data.status === 'success') {
-            bootstrap.Modal.getInstance(document.getElementById('modalAgendarReserva')).hide();
-            document.getElementById("formNuevaReserva").reset();
-            cargarMapa();
-        } else {
-            alert(data.message || "Error al guardar la reserva.");
-        }
-    } catch (err) {
-        alert("Error de conexión al guardar la reserva.");
-    }
-}
-
-    // Envía la nueva reservación y sus notas de alergias a la API
-    async function guardarReserva(e) {
-        e.preventDefault();
-        const id_mesa_reserva = document.getElementById("resSelectMesa").value;
-
-        if (!id_mesa_reserva) {
-            alert("Selecciona una mesa válida para la reserva.");
-            return;
-        }
-
-        const datos = {
-            id_mesa: parseInt(id_mesa_reserva),
-            nombre_cliente: document.getElementById("resNombre").value,
-            telefono: document.getElementById("resTelefono").value,
-            num_personas: parseInt(document.getElementById("resPersonas").value),
-            fecha_reserva: document.getElementById("resFecha").value,
-            hora_reserva: document.getElementById("resHora").value,
-            tipo_evento: document.getElementById("resEvento").value,
-            alergias_notas: document.getElementById("resNotas").value
-        };
-
-        const resp = await fetch('api/mesas/reservas.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(datos)
-        });
-
-        if (resp.ok) {
-            bootstrap.Modal.getInstance(document.getElementById('modalAgendarReserva')).hide();
-            document.getElementById("formNuevaReserva").reset();
-            cargarMapa();
-        } else {
-            alert("Error al guardar la reserva");
-        }
-    }
-
-    // Consulta la lista de reservas registradas y las despliega en una tabla dentro del modal
-    async function abrirAgendaReservas() {
-        new bootstrap.Modal(document.getElementById('modalAgendaReservas')).show();
-        const contenedor = document.getElementById("listaReservasContenedor");
-
-        try {
-            const resp = await fetch('api/mesas/reservas.php');
-            const data = await resp.json();
-
-            if (resp.ok && data.status === 'success') {
-                if (data.reservas.length === 0) {
-                    contenedor.innerHTML = `<p class="text-center text-muted py-4">No hay reservas programadas activas.</p>`;
-                    return;
+        async function cargarMapaMesas() {
+            try {
+                let json = null;
+                for (const endpoint of ['api/mesas/obtener_mapa.php', 'api/mesas/listar_mesas.php']) {
+                    try {
+                        const res = await fetch(endpoint + '?t=' + Date.now());
+                        if (res.ok) {
+                            const parsed = await res.json();
+                            if (parsed && (Array.isArray(parsed) || parsed.mesas || parsed.data || parsed.areas || parsed.mapa)) {
+                                json = parsed;
+                                break;
+                            }
+                        }
+                    } catch (e) {}
                 }
 
-                let html = `<div class="table-responsive"><table class="table align-middle">
-                    <thead>
-                        <tr>
-                            <th>Mesa / Área</th>
-                            <th>Cliente</th>
-                            <th>Fecha & Hora</th>
-                            <th>Pers.</th>
-                            <th>Evento</th>
-                            <th>Alergias & Notas</th>
-                        </tr>
-                    </thead><tbody>`;
+                if (!json) return;
 
-                data.reservas.forEach(r => {
-                    html += `
-                        <tr>
-                            <td class="fw-bold">${r.numero_mesa} (${r.area_nombre})</td>
-                            <td>${r.nombre_cliente} <br><small class="text-muted">${r.telefono || 'Sin tel'}</small></td>
-                            <td>${r.fecha_reserva} <br><span class="badge bg-dark">${r.hora_reserva}</span></td>
-                            <td>${r.num_personas}</td>
-                            <td><span class="badge bg-warning text-dark">${r.tipo_evento}</span></td>
-                            <td><small class="text-danger fw-bold">${r.alergias_notas || 'Sin especificaciones'}</small></td>
-                        </tr>
-                    `;
+                mesasGlobal = [];
+                areasGlobal = [];
+
+                if (Array.isArray(json)) {
+                    mesasGlobal = json;
+                } else {
+                    mesasGlobal = json.mesas || json.data || [];
+                    areasGlobal = json.areas || json.mapa || [];
+                }
+
+                // Si vienen agrupadas dentro de areas[].mesas
+                if (mesasGlobal.length === 0 && Array.isArray(areasGlobal) && areasGlobal.length > 0) {
+                    areasGlobal.forEach(a => {
+                        const listaHija = a.mesas || a.items || [];
+                        if (Array.isArray(listaHija)) {
+                            listaHija.forEach(m => {
+                                m.id_area = m.id_area || a.id_area || a.id;
+                                m.area_nombre = m.area_nombre || m.area || a.nombre;
+                                mesasGlobal.push(m);
+                            });
+                        }
+                    });
+                }
+
+                // Llenar selector de áreas para Nueva Mesa
+                const mapAreas = new Map();
+                areasGlobal.forEach(a => mapAreas.set(String(a.id_area || a.id), { id: a.id_area || a.id, nombre: a.nombre }));
+                mesasGlobal.forEach(m => {
+                    const idA = String(m.id_area || m.area_id || m.area_nombre || m.area || 'Salón Principal');
+                    const nomA = m.area_nombre || m.area || m.nombre_area || 'Salón Principal';
+                    if (!mapAreas.has(idA)) mapAreas.set(idA, { id: m.id_area || idA, nombre: nomA });
                 });
 
-                html += `</tbody></table></div>`;
-                contenedor.innerHTML = html;
+                const selArea = document.getElementById('nueva_id_area');
+                selArea.innerHTML = Array.from(mapAreas.values())
+                    .map(a => `<option value="${a.id}">${a.nombre}</option>`).join('');
+
+                renderizarAgrupadoPorArea();
+            } catch (err) {
+                console.error("Error al cargar mapa de mesas:", err);
             }
-        } catch (err) {
-            contenedor.innerHTML = `<div class="alert alert-danger">Error al obtener lista de reservas.</div>`;
-        }
-    }
-
-   // Solicita la eliminación física de una mesa a api/mesas/eliminar.php
-async function ejecutarEliminarMesa() {
-    if (!mesaSeleccionadaId) return;
-
-    if (!confirm("¿Deseas eliminar esta mesa del sistema de forma permanente?")) return;
-
-    try {
-        const resp = await fetch('api/mesas/eliminar.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id_mesa: parseInt(mesaSeleccionadaId) })
-        });
-
-        const data = await resp.json();
-
-        if (resp.ok && data.status === 'success') {
-            const modalEl = document.getElementById('modalMesa');
-            const modalObj = bootstrap.Modal.getInstance(modalEl);
-            if (modalObj) modalObj.hide();
-
-            cargarMapa();
-        } else {
-            alert(data.message || "No se pudo eliminar la mesa.");
-        }
-    } catch (err) {
-        alert("Error de conexión al intentar eliminar la mesa.");
-    }
-}
-
-    // Llena el desplegable de áreas para el modal de nueva mesa
-    function abrirModalCrearMesa() {
-        const select = document.getElementById("crearAreaMesa");
-        select.innerHTML = "";
-        mapaGlobal.forEach(a => {
-            select.innerHTML += `<option value="${a.id_area}">${a.nombre}</option>`;
-        });
-        new bootstrap.Modal(document.getElementById('modalCrearMesa')).show();
-    }
-
-    // Registra una nueva mesa enviando datos a api/mesas/crear.php
-    async function ejecutarCrearMesa() {
-        const numero_mesa = document.getElementById("crearNumMesa").value.trim();
-        const capacidad = document.getElementById("crearCapMesa").value;
-        const id_area = document.getElementById("crearAreaMesa").value;
-
-        if (!numero_mesa) {
-            alert("Por favor ingresa un identificador para la mesa (Ej. M12).");
-            return;
         }
 
-        try {
-            const resp = await fetch('api/mesas/crear.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    numero_mesa: numero_mesa,
-                    capacidad: parseInt(capacidad),
-                    id_area: parseInt(id_area)
-                })
+        function renderizarAgrupadoPorArea() {
+            const contenedor = document.getElementById('contenedorAreasMesas');
+
+            if (mesasGlobal.length === 0) {
+                contenedor.innerHTML = `<div class="text-center py-5 text-muted">No hay mesas registradas en la base de datos.</div>`;
+                return;
+            }
+
+            const grupos = new Map();
+            mesasGlobal.forEach(m => {
+                const nombreArea = m.area_nombre || m.area || m.nombre_area || 'Salón Principal';
+                if (!grupos.has(nombreArea)) grupos.set(nombreArea, []);
+                grupos.get(nombreArea).push(m);
             });
 
-            const data = await resp.json();
+            let html = '';
+            grupos.forEach((mesasDelArea, nombreArea) => {
+                const tarjetasHtml = mesasDelArea.map(m => {
+                    const numero = m.numero_mesa || m.nombre || m.numero || m.id_mesa;
+                    const cap = m.capacidad || 4;
+                    const estRaw = (m.estado || 'disponible').toString().trim().toLowerCase();
 
-            if (resp.ok && data.status === 'success') {
-                const modalEl = document.getElementById('modalCrearMesa');
-                const modalObj = bootstrap.Modal.getInstance(modalEl);
-                if (modalObj) modalObj.hide();
-                
-                document.getElementById("crearNumMesa").value = "";
-                cargarMapa();
-            } else {
-                alert(data.message || "Error al crear la mesa");
-            }
-        } catch (err) {
-            alert("Error de conexión al guardar la mesa");
+                    let stClass = 'st-disponible';
+                    let pillClass = 'pill-disponible';
+                    let pillText = 'Disponible';
+
+                    if (estRaw === 'ocupada') {
+                        stClass = 'st-ocupada';
+                        pillClass = 'pill-ocupada';
+                        pillText = 'Ocupada';
+                    } else if (estRaw === 'reservada') {
+                        stClass = 'st-reservada';
+                        pillClass = 'pill-reservada';
+                        pillText = 'Reservada';
+                    } else if (estRaw === 'por_limpiar' || estRaw === 'limpieza' || estRaw === 'por limpiar') {
+                        stClass = 'st-limpiar';
+                        pillClass = 'pill-limpiar';
+                        pillText = 'Por Limpiar';
+                    }
+
+                    return `
+                    <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                        <div class="mesa-box ${stClass}" onclick='abrirModalGestionar(${JSON.stringify(m)})'>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="mesa-code">${numero}</span>
+                                <span class="status-pill ${pillClass}">${pillText}</span>
+                            </div>
+                            <div class="mesa-cap">
+                                <i class="fa-solid fa-users me-1"></i> Capacidad: ${cap} pers.
+                            </div>
+                        </div>
+                    </div>`;
+                }).join('');
+
+                html += `
+                <section class="area-section">
+                    <div class="area-header">
+                        <h5 class="area-title">
+                            <i class="fa-solid fa-layer-group text-secondary"></i>
+                            <span>${nombreArea}</span>
+                        </h5>
+                        <span class="area-count-badge">${mesasDelArea.length} mesas</span>
+                    </div>
+                    <div class="row g-3">
+                        ${tarjetasHtml}
+                    </div>
+                </section>`;
+            });
+
+            contenedor.innerHTML = html;
         }
-    }
-</script>
+
+        // 1. Abrir Modal Gestionar Mesa
+        function abrirModalGestionar(m) {
+            mesaSeleccionada = m;
+            const numero = m.numero_mesa || m.nombre || m.id_mesa;
+            document.getElementById('tituloGestionarMesa').innerText = `Gestionar Mesa ${numero}`;
+            modalGestionarInst.show();
+        }
+
+        // 2. Cambiar Estado (Marcar Disponible / Marcar Por Limpiar)
+        async function cambiarEstadoSeleccionada(nuevoEstado) {
+            if (!mesaSeleccionada) return;
+            const idMesa = mesaSeleccionada.id_mesa || mesaSeleccionada.id;
+
+            try {
+                const res = await fetch('api/mesas/actualizar_estado.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id_mesa: idMesa,
+                        estado: nuevoEstado
+                    })
+                });
+                const json = await res.json();
+                modalGestionarInst.hide();
+
+                if (json.status === 'success' || json.ok || res.ok) {
+                    cargarMapaMesas();
+                } else {
+                    Swal.fire('Aviso', json.message || 'No se pudo actualizar el estado', 'warning');
+                }
+            } catch (e) {
+                console.error(e);
+                Swal.fire('Error', 'Error de conexión con actualizar_estado.php', 'error');
+            }
+        }
+
+        // 3. Abrir Comanda / Ocupar
+        async function abrirComandaYOcupar() {
+            if (!mesaSeleccionada) return;
+            const idMesa = mesaSeleccionada.id_mesa || mesaSeleccionada.id;
+            const numero = mesaSeleccionada.numero_mesa || mesaSeleccionada.nombre || idMesa;
+            const estActual = (mesaSeleccionada.estado || 'disponible').toLowerCase();
+
+            // Si aún no está ocupada, cambiar estado en backend antes de abrir Caja POS
+            if (estActual !== 'ocupada') {
+                try {
+                    await fetch('api/mesas/actualizar_estado.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id_mesa: idMesa, estado: 'ocupada' })
+                    });
+                } catch (e) {}
+            }
+
+            modalGestionarInst.hide();
+            window.location.href = `caja.html?id_mesa=${idMesa}&mesa=${encodeURIComponent(numero)}`;
+        }
+
+        // 4. Transferir / Cambiar de Mesa
+        function abrirModalTransferir() {
+            if (!mesaSeleccionada) return;
+            const idOrigen = mesaSeleccionada.id_mesa || mesaSeleccionada.id;
+            const numOrigen = mesaSeleccionada.numero_mesa || mesaSeleccionada.nombre || idOrigen;
+
+            const disponibles = mesasGlobal.filter(m => {
+                const idM = m.id_mesa || m.id;
+                const estM = (m.estado || 'disponible').toLowerCase();
+                return String(idM) !== String(idOrigen) && estM === 'disponible';
+            });
+
+            if (disponibles.length === 0) {
+                Swal.fire('Sin mesas libres', 'No hay otras mesas disponibles para realizar la transferencia.', 'info');
+                return;
+            }
+
+            document.getElementById('lblMesaOrigen').innerText = `Mesa ${numOrigen}`;
+            document.getElementById('selectMesaDestino').innerHTML = disponibles.map(m => {
+                const idM = m.id_mesa || m.id;
+                const numM = m.numero_mesa || m.nombre || idM;
+                const areaM = m.area_nombre || m.area || '';
+                return `<option value="${idM}">Mesa ${numM} (${areaM})</option>`;
+            }).join('');
+
+            modalGestionarInst.hide();
+            modalTransferirInst.show();
+        }
+
+        async function ejecutarTransferencia(e) {
+            e.preventDefault();
+            if (!mesaSeleccionada) return;
+            const idOrigen = mesaSeleccionada.id_mesa || mesaSeleccionada.id;
+            const idDestino = document.getElementById('selectMesaDestino').value;
+
+            try {
+                const res = await fetch('api/mesas/cambiar_mesa.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id_mesa_origen: idOrigen,
+                        id_mesa_destino: idDestino,
+                        mesa_origen: idOrigen,
+                        mesa_destino: idDestino
+                    })
+                });
+                const json = await res.json();
+                modalTransferirInst.hide();
+
+                if (json.status === 'success' || json.ok) {
+                    Swal.fire({ icon: 'success', title: 'Mesa transferida', timer: 1300, showConfirmButton: false });
+                    cargarMapaMesas();
+                } else {
+                    Swal.fire('Aviso', json.message || 'No se pudo transferir la mesa', 'warning');
+                }
+            } catch (err) {
+                Swal.fire('Error', 'Error al conectar con cambiar_mesa.php', 'error');
+            }
+        }
+
+        // 5. Eliminar Mesa
+        async function eliminarMesaSeleccionada() {
+            if (!mesaSeleccionada) return;
+            const idMesa = mesaSeleccionada.id_mesa || mesaSeleccionada.id;
+            const numero = mesaSeleccionada.numero_mesa || mesaSeleccionada.nombre || idMesa;
+
+            modalGestionarInst.hide();
+            const conf = await Swal.fire({
+                title: `¿Eliminar Mesa ${numero}?`,
+                text: 'Esta acción quitará la mesa del mapa.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#DC3545'
+            });
+
+            if (!conf.isConfirmed) return;
+
+            try {
+                const res = await fetch(`api/mesas/eliminar.php?id=${idMesa}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id_mesa: idMesa, id: idMesa })
+                });
+                const json = await res.json();
+                if (json.status === 'success' || json.ok || res.ok) {
+                    Swal.fire({ icon: 'success', title: 'Mesa eliminada', timer: 1200, showConfirmButton: false });
+                    cargarMapaMesas();
+                } else {
+                    Swal.fire('Error', json.message || 'No se pudo eliminar', 'error');
+                }
+            } catch (e) {
+                Swal.fire('Error', 'Error al conectar con eliminar.php', 'error');
+            }
+        }
+
+        // 6. Nueva Mesa
+        function abrirModalNuevaMesa() {
+            document.getElementById('nueva_numero_mesa').value = '';
+            document.getElementById('nueva_capacidad').value = 4;
+            modalNuevaMesaInst.show();
+        }
+
+        async function crearNuevaMesa(e) {
+            e.preventDefault();
+            const payload = {
+                numero_mesa: document.getElementById('nueva_numero_mesa').value,
+                id_area: document.getElementById('nueva_id_area').value,
+                capacidad: document.getElementById('nueva_capacidad').value
+            };
+
+            const res = await fetch('api/mesas/crear.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const json = await res.json();
+
+            if (json.status === 'success' || json.ok || json.id_mesa) {
+                modalNuevaMesaInst.hide();
+                Swal.fire({ icon: 'success', title: 'Mesa agregada', timer: 1200, showConfirmButton: false });
+                cargarMapaMesas();
+            } else {
+                Swal.fire('Error', json.message || 'No se pudo agregar la mesa', 'error');
+            }
+        }
+    </script>
 </body>
 </html>

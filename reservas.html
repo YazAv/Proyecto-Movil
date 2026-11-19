@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SazónTrack POS - Reservaciones</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Italianno&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        :root {
+            --bg-main: #F5F2EB;
+            --bg-offwhite: #FDFCF8;
+            --color-nude: #E6DFD3;
+            --text-dark: #2A2621;
+            --text-muted: #7C7469;
+            --accent-dark: #26221E;
+            --accent-gold: #C88A36;
+        }
+        body { background-color: var(--bg-main); font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text-dark); }
+        .sidebar {
+            width: 260px; background: var(--bg-offwhite); border-right: 1px solid var(--color-nude);
+            height: 100vh; position: fixed; top: 0; left: 0; padding: 1.4rem 1.1rem;
+            display: flex; flex-direction: column; justify-content: space-between; z-index: 100;
+        }
+        .sidebar-scrollable { overflow-y: auto; flex: 1; }
+        .brand-header { display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem; }
+        .brand-avatar {
+            width: 42px; height: 42px; background: var(--accent-dark); color: #fff;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        }
+        .brand-title { font-family: 'Italianno', cursive; font-size: 2.2rem; line-height: 0.85; margin: 0; }
+        .brand-sub { font-size: 0.72rem; color: var(--text-muted); font-weight: 600; }
+        .nav-category { font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin: 1.1rem 0 0.45rem 0.6rem; }
+        .sidebar-nav .nav-link {
+            display: flex; align-items: center; gap: 11px; padding: 0.65rem 0.95rem; border-radius: 14px;
+            color: var(--text-dark); font-weight: 600; font-size: 0.88rem; margin-bottom: 0.22rem; text-decoration: none;
+        }
+        .sidebar-nav .nav-link:hover { background: rgba(230, 223, 211, 0.55); }
+        .sidebar-nav .nav-link.active { background: var(--accent-dark); color: #fff; }
+        .main-content { margin-left: 260px; padding: 2rem; }
+        .panel-card { background: var(--bg-offwhite); border: 1px solid var(--color-nude); border-radius: 20px; padding: 1.5rem; }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-scrollable">
+            <div class="brand-header">
+                <div class="brand-avatar"><i class="fa-solid fa-concierge-bell"></i></div>
+                <div>
+                    <h2 class="brand-title">SazónTrack</h2>
+                    <span class="brand-sub">Panel de Control</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-category">Principal</div>
+                <a href="index.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+                <a href="caja.html" class="nav-link"><i class="fa-solid fa-cash-register"></i> Caja POS</a>
+                <a href="mesas.html" class="nav-link"><i class="fa-solid fa-utensils"></i> Mapa Mesas</a>
+                <a href="reservas.html" class="nav-link active"><i class="fa-solid fa-calendar-check"></i> Reservaciones</a>
+                <a href="kds_cocina.html" class="nav-link"><i class="fa-solid fa-fire-burner"></i> KDS Cocina</a>
+                <a href="kds_barra.html" class="nav-link"><i class="fa-solid fa-martini-glass-citrus"></i> KDS Barra</a>
+
+                <div class="nav-category">Recursos Humanos</div>
+                <a href="asistencia.html" target="_blank" class="nav-link">
+                    <i class="fa-solid fa-clock"></i> Reloj Checador <i class="fa-solid fa-arrow-up-right-from-square ms-auto opacity-50" style="font-size: 0.7rem;"></i>
+                </a>
+                <a href="reporte_asistencia.html" class="nav-link"><i class="fa-solid fa-clipboard-user"></i> Control de Nómina</a>
+
+                <div class="nav-category">Administración (CRUDs)</div>
+                <a href="empleados.html" class="nav-link"><i class="fa-solid fa-users"></i> Empleados</a>
+                <a href="productos.html" class="nav-link"><i class="fa-solid fa-burger"></i> Menú</a>
+                <a href="recetas.html" class="nav-link"><i class="fa-solid fa-file-invoice-dollar"></i> Recetas</a>
+                <a href="inventario.html" class="nav-link"><i class="fa-solid fa-boxes-stacked"></i> Insumos e Inventario</a>
+                <a href="modificadores.html" class="nav-link"><i class="fa-solid fa-code-branch"></i> Modificadores</a>
+                <a href="historial_comandas.html" class="nav-link"><i class="fa-solid fa-receipt"></i> Histórico Comandas</a>
+                <a href="turno.html" class="nav-link"><i class="fa-solid fa-vault"></i> Turnos y Cortes</a>
+                <a href="reporte_ventas.html" class="nav-link"><i class="fa-solid fa-chart-line"></i> Reporte de Ventas</a>
+            </nav>
+        </div>
+        <div class="pt-3 border-top">
+            <a href="index.html" class="btn btn-sm btn-outline-dark w-100 rounded-pill"><i class="fa-solid fa-arrow-left me-1"></i> Volver al Dashboard</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+            <div>
+                <h2 class="fw-bold m-0">Gestión de Reservaciones</h2>
+                <p class="text-muted small m-0">Agenda sincronizada con App Móvil y Dashboard Ejecutivo</p>
+            </div>
+            <button class="btn btn-dark rounded-pill px-4 fw-semibold" onclick="abrirModalNueva()">
+                <i class="fa-solid fa-plus me-2"></i>Nueva Reservación
+            </button>
+        </div>
+
+        <!-- Filtros -->
+        <div class="panel-card mb-4">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold">Filtrar por Fecha</label>
+                    <input type="date" id="filtroFecha" class="form-control" onchange="cargarReservas()">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold">Buscar Cliente o Teléfono</label>
+                    <input type="text" id="filtroTexto" class="form-control" placeholder="Ej. Carlos, 378..." oninput="renderizarTabla()">
+                </div>
+                <div class="col-md-4 d-flex gap-2">
+                    <button class="btn btn-outline-dark rounded-pill" onclick="document.getElementById('filtroFecha').value=''; cargarReservas();">Ver Todas</button>
+                    <button class="btn btn-light border rounded-pill" onclick="cargarReservas()"><i class="fa-solid fa-rotate"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de Reservaciones -->
+        <div class="panel-card">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr class="text-muted small text-uppercase">
+                            <th>Fecha y Hora</th>
+                            <th>Cliente</th>
+                            <th>Personas</th>
+                            <th>Mesa</th>
+                            <th>Evento / Notas</th>
+                            <th>Estado</th>
+                            <th class="text-end">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbodyReservas">
+                        <tr><td colspan="7" class="text-center py-4 text-muted">Cargando reservaciones...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- MODAL CREAR / EDITAR RESERVACIÓN -->
+    <div class="modal fade" id="modalReserva" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 20px;">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold" id="modalTitulo">Nueva Reservación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="formReserva" onsubmit="guardarReserva(event)">
+                    <div class="modal-body">
+                        <input type="hidden" id="id_reserva">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Nombre del Cliente *</label>
+                            <input type="text" id="nombre_cliente" class="form-control" required placeholder="Nombre completo">
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label small fw-bold">Teléfono</label>
+                                <input type="text" id="telefono" class="form-control" placeholder="10 dígitos">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-bold">Número de Personas *</label>
+                                <input type="number" id="num_personas" class="form-control" min="1" max="40" value="2" required>
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label small fw-bold">Fecha *</label>
+                                <input type="date" id="fecha_reserva" class="form-control" required>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-bold">Hora *</label>
+                                <input type="time" id="hora_reserva" class="form-control" value="14:00" required>
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label small fw-bold">Mesa Asignada</label>
+                                <select id="id_mesa" class="form-select">
+                                    <option value="">Por asignar al llegar</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-bold">Tipo de Evento</label>
+                                <select id="tipo_evento" class="form-select">
+                                    <option value="Normal">Comida / Cena Normal</option>
+                                    <option value="Cumpleaños">Cumpleaños</option>
+                                    <option value="Aniversario">Aniversario</option>
+                                    <option value="Reunión Ejecutiva">Reunión Ejecutiva</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small fw-bold">Alergias o Notas Especiales</label>
+                            <textarea id="alergias_notas" class="form-control" rows="2" placeholder="Ej. Silla para bebé, terraza, alergia a mariscos..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-dark rounded-pill px-4">Guardar Reservación</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let reservasCache = [];
+        let mesasCache = [];
+        let modalInstance = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            modalInstance = new bootstrap.Modal(document.getElementById('modalReserva'));
+            document.getElementById('fecha_reserva').value = new Date().toISOString().slice(0, 10);
+            cargarReservas();
+        });
+
+        async function cargarReservas() {
+            const fecha = document.getElementById('filtroFecha').value;
+            const url = fecha ? `api/reservas/index.php?fecha=${fecha}` : 'api/reservas/index.php';
+            const res = await fetch(url);
+            const json = await res.json();
+
+            if (json.status === 'success') {
+                reservasCache = json.data || [];
+                mesasCache = json.mesas || [];
+                llenarSelectMesas();
+                renderizarTabla();
+            }
+        }
+
+        function llenarSelectMesas() {
+            const sel = document.getElementById('id_mesa');
+            sel.innerHTML = '<option value="">Por asignar al llegar</option>' +
+                mesasCache.map(m => `<option value="${m.id_mesa}">Mesa ${m.numero_mesa} (${m.area} · ${m.capacidad} pers.)</option>`).join('');
+        }
+
+        function renderizarTabla() {
+            const q = document.getElementById('filtroTexto').value.toLowerCase();
+            const filtradas = reservasCache.filter(r =>
+                r.nombre_cliente.toLowerCase().includes(q) || (r.telefono || '').includes(q)
+            );
+
+            const tbody = document.getElementById('tbodyReservas');
+            if (filtradas.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">No se encontraron reservaciones.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filtradas.map(r => {
+                const badgeColor = r.estado === 'programada' ? 'bg-success-subtle text-success' :
+                                   r.estado === 'en_mesa' ? 'bg-primary-subtle text-primary' :
+                                   r.estado === 'cancelada' ? 'bg-danger-subtle text-danger' : 'bg-secondary-subtle text-secondary';
+                return `
+                <tr>
+                    <td>
+                        <div class="fw-bold">${r.fecha_fmt}</div>
+                        <small class="text-muted"><i class="fa-regular fa-clock me-1"></i>${r.hora_reserva} hrs</small>
+                    </td>
+                    <td>
+                        <div class="fw-bold">${r.nombre_cliente}</div>
+                        <small class="text-muted">${r.telefono || 'Sin teléfono'}</small>
+                    </td>
+                    <td><span class="badge bg-light text-dark border"><i class="fa-solid fa-users me-1"></i>${r.num_personas}</span></td>
+                    <td><span class="badge bg-dark">Mesa ${r.numero_mesa}</span></td>
+                    <td>
+                        <div class="small fw-semibold">${r.tipo_evento}</div>
+                        <small class="text-muted">${r.alergias_notas || '-'}</small>
+                    </td>
+                    <td><span class="badge ${badgeColor} text-uppercase">${r.estado}</span></td>
+                    <td class="text-end">
+                        ${r.estado === 'programada' ? `
+                            <button class="btn btn-sm btn-success rounded-pill" title="Cliente llegó / Sentar" onclick="cambiarEstado(${r.id_reserva}, 'en_mesa')">
+                                <i class="fa-solid fa-chair"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger rounded-pill" title="Cancelar" onclick="cambiarEstado(${r.id_reserva}, 'cancelada')">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        ` : ''}
+                        <button class="btn btn-sm btn-outline-dark rounded-pill" title="Editar" onclick='editarReserva(${JSON.stringify(r)})'>
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        function abrirModalNueva() {
+            document.getElementById('formReserva').reset();
+            document.getElementById('id_reserva').value = '';
+            document.getElementById('fecha_reserva').value = new Date().toISOString().slice(0, 10);
+            document.getElementById('modalTitulo').innerText = 'Nueva Reservación';
+            modalInstance.show();
+        }
+
+        function editarReserva(r) {
+            document.getElementById('id_reserva').value = r.id_reserva;
+            document.getElementById('nombre_cliente').value = r.nombre_cliente;
+            document.getElementById('telefono').value = r.telefono;
+            document.getElementById('num_personas').value = r.num_personas;
+            document.getElementById('fecha_reserva').value = r.fecha_reserva;
+            document.getElementById('hora_reserva').value = r.hora_reserva;
+            document.getElementById('id_mesa').value = r.id_mesa || '';
+            document.getElementById('tipo_evento').value = r.tipo_evento || 'Normal';
+            document.getElementById('alergias_notas').value = r.alergias_notas || '';
+            document.getElementById('modalTitulo').innerText = 'Editar Reservación';
+            modalInstance.show();
+        }
+
+        async function guardarReserva(e) {
+            e.preventDefault();
+            const payload = {
+                id_reserva: document.getElementById('id_reserva').value,
+                nombre_cliente: document.getElementById('nombre_cliente').value,
+                telefono: document.getElementById('telefono').value,
+                num_personas: document.getElementById('num_personas').value,
+                fecha_reserva: document.getElementById('fecha_reserva').value,
+                hora_reserva: document.getElementById('hora_reserva').value,
+                id_mesa: document.getElementById('id_mesa').value,
+                tipo_evento: document.getElementById('tipo_evento').value,
+                alergias_notas: document.getElementById('alergias_notas').value
+            };
+
+            const res = await fetch('api/reservas/index.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const json = await res.json();
+
+            if (json.status === 'success') {
+                modalInstance.hide();
+                Swal.fire({ icon: 'success', title: json.message, timer: 1500, showConfirmButton: false });
+                cargarReservas();
+            } else {
+                Swal.fire('Error', json.message || 'No se pudo guardar', 'error');
+            }
+        }
+
+        async function cambiarEstado(id, estado) {
+            await fetch('api/reservas/index.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ accion: 'cambiar_estado', id_reserva: id, estado })
+            });
+            cargarReservas();
+        }
+    </script>
+</body>
+</html>

@@ -1,11 +1,8 @@
 <?php
 // api/comandas/crear_comanda.php
 header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
 header('Content-Type: application/json; charset=utf-8');
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') exit;
+date_default_timezone_set('America/Mexico_City');
 
 $rutas = [
     __DIR__ . '/../../config/conexion.php',
@@ -13,104 +10,109 @@ $rutas = [
     __DIR__ . '/../../config/db.php',
     __DIR__ . '/../conexion.php'
 ];
-foreach ($rutas as $r) { if (file_exists($r)) { require_once $r; break; } }
-if (!isset($conn) && isset($pdo)) $conn = $pdo;
-if (!isset($conn) && class_exists('Database')) $conn = (new Database())->getConnection();
+foreach ($rutas as$r) { if (file_exists($r)) { require_once$r; break; } }
+if (!isset($conn) && isset($pdo)) $conn =$pdo;
+if (!isset($conn) && class_exists('Database'))$conn = (new Database())->getConnection();
+
+$data = json_decode(file_get_contents('php://input'), true);
+if (!$data || empty($data['productos'])) {
+    echo json_encode(['status' => 'error', 'message' => 'No hay productos en la comanda']);
+    exit;
+}
 
 try {
-    $data = json_decode(file_get_contents("php://input"), true) ?: $_POST;
-    
-    $id_mesa = !empty($data['id_mesa']) ? intval($data['id_mesa']) : null;
-    $id_usuario = intval($data['id_usuario'] ?? 1);
-    $origen = strtoupper(trim($data['origen'] ?? 'WEB')); // 'MOVIL' o 'WEB'
-    $items = $data['productos'] ?? ($data['items'] ?? []);
-
-    if (empty($items)) {
-        throw new Exception("La comanda no contiene productos.");
-    }
-
     $conn->beginTransaction();
 
-    // 1. Buscar turno abierto o usar turno 1 por defecto
-    $stmtTurno = $conn->query("SELECT id_turno FROM public.turnos_caja WHERE LOWER(estado) = 'abierto' ORDER BY id_turno DESC LIMIT 1");
-    $id_turno = $stmtTurno->fetchColumn() ?: 1;
+    $id_orden   = !empty($data['id_orden']) ? intval($data['id_orden']) : null;
+    $id_mesa    = !empty($data['id_mesa']) ? intval($data['id_mesa']) : null;
+    $id_usuario = intval($data['id_usuario'] ?? 1);$subtotal   = floatval($data['subtotal'] ?? 0);$total      = floatval($data['total'] ?? $subtotal);
+    $productos  =$data['productos'];
 
-    // 2. Verificar si la mesa ya tiene una orden ABIERTA para agregarle platillos, o crear una nueva
-    $id_orden = null;
-    if ($id_mesa) {
-        $stmtOrdExistente = $conn->prepare("SELECT id_orden FROM public.ordenes WHERE id_mesa = ? AND UPPER(estado) = 'ABIERTA' ORDER BY id_orden DESC LIMIT 1");
-        $stmtOrdExistente->execute([$id_mesa]);
-        $id_orden = $stmtOrdExistente->fetchColumn();
+    // Si no viene id_orden pero sí id_mesa, buscar orden ABIERTA de esa mesa
+    if (!$id_orden &&$id_mesa) {
+        $stmtExist =$conn->prepare("SELECT id_orden, folio FROM public.ordenes WHERE id_mesa = ? AND UPPER(estado) = 'ABIERTA' ORDER BY id_orden DESC LIMIT 1");
+        $stmtExist->execute([$id_mesa]);
+        $rowExist =$stmtExist->fetch(PDO::FETCH_ASSOC);
+        if ($rowExist) {
+            $id_orden = intval($rowExist['id_orden']);
+            $folio    =$rowExist['folio'];
+        }
     }
 
-    if (!$id_orden) {
-        $folio = ($origen === 'MOVIL' ? 'MOV-' : 'WEB-') . date('His') . '-' . rand(10, 99);
-        $stmtNewOrd = $conn->prepare("
-            INSERT INTO public.ordenes (folio, id_mesa, id_usuario, id_turno, subtotal, total, estado, creado_en)
-            VALUES (?, ?, ?, ?, 0, 0, 'ABIERTA', CURRENT_TIMESTAMP)
+    if ($id_orden) {
+        $stmtUpd =$conn->prepare("UPDATE public.ordenes SET subtotal = ?, total = ? WHERE id_orden = ?");
+        $stmtUpd->execute([$subtotal, $total,$id_orden]);
+        if (!isset($folio)) {
+            $stmtF =$conn->prepare("SELECT folio FROM public.ordenes WHERE id_orden = ?");
+            $stmtF->execute([$id_orden]);
+            $folio =$stmtF->fetchColumn();
+        }
+    } else {
+        $folio = 'ORD-' . date('Ymd-His');
+        $stmtIns =$conn->prepare("
+            INSERT INTO public.ordenes (folio, id_mesa, id_usuario, subtotal, total, estado, creado_en)
+            VALUES (?, ?, ?, ?, ?, 'ABIERTA', CURRENT_TIMESTAMP)
             RETURNING id_orden
         ");
-        $stmtNewOrd->execute([$folio, $id_mesa, $id_usuario, $id_turno]);
-        $id_orden = $stmtNewOrd->fetchColumn();
+        $stmtIns->execute([$folio, $id_mesa,$id_usuario, $subtotal,$total]);
+        $id_orden = intval($stmtIns->fetchColumn());
     }
 
-    // 3. Insertar cada producto detectando su estación KDS (COCINA o BARRA)
-    $stmtProdInfo = $conn->prepare("
-        SELECT p.nombre, p.precio,
-               LOWER(COALESCE(ke.nombre, c.estacion, 'cocina')) AS estacion_destino
+    // Consultar nombre y estación real del producto
+    $stmtProdInfo =$conn->prepare("
+        SELECT p.nombre, COALESCE(LOWER(c.estacion), 'cocina') AS estacion
         FROM public.productos p
         LEFT JOIN public.categorias c ON p.id_categoria = c.id_categoria
-        LEFT JOIN public.kds_estaciones ke ON p.estacion_kds_id = ke.id_estacion
         WHERE p.id_producto = ?
     ");
 
-    $stmtInsertDet = $conn->prepare("
+    // Insertar incluyendo nombre_producto (obligatorio en public.orden_detalle)
+    $stmtDet =$conn->prepare("
         INSERT INTO public.orden_detalle 
-        (id_orden, id_producto, nombre_producto, cantidad, precio_unitario, subtotal, notas, estacion, estado, enviado_en)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'PENDIENTE', CURRENT_TIMESTAMP)
+            (id_orden, id_producto, nombre_producto, cantidad, precio_unitario, notas, estacion, estado, subtotal)
+        VALUES 
+            (?, ?, ?, ?, ?, ?, ?, 'PENDIENTE', ?)
     ");
 
-    $total_agregado = 0;
-    foreach ($items as $item) {
-        $id_prod = intval($item['id_producto'] ?? $item['producto_id']);
-        $cant = intval($item['cantidad'] ?? 1);
-        $notas = trim($item['notas'] ?? ($item['modificadores'] ?? ''));
+    foreach ($productos as$prod) {
+        if (!empty($prod['ya_enviado'])) continue;
+        $idP   = intval($prod['id'] ?? $prod['id_producto']);
+        $cant  = intval($prod['cantidad'] ?? 1);
+        $prec  = floatval($prod['precio'] ?? 0);
+        $notas = trim($prod['notas'] ?? '');
 
-        $stmtProdInfo->execute([$id_prod]);
-        $info = $stmtProdInfo->fetch(PDO::FETCH_ASSOC);
+        $stmtProdInfo->execute([$idP]);
+        $infoP =$stmtProdInfo->fetch(PDO::FETCH_ASSOC);
 
-        $nombre_prod = $info['nombre'] ?? ($item['nombre'] ?? 'Platillo');
-        $precio = floatval($info['precio'] ?? ($item['precio'] ?? 0));
-        $subtotal = $precio * $cant;
-        $total_agregado += $subtotal;
+        $nombreProd = trim($prod['nombre'] ?? ($infoP['nombre'] ?? 'Platillo'));
+        $estacion   =$infoP['estacion'] ?? 'cocina';
 
-        // Normalizar estación a 'barra' o 'cocina'
-        $estacion_raw = $info['estacion_destino'] ?? 'cocina';
-        $estacion = (strpos($estacion_raw, 'barra') !== false || strpos($estacion_raw, 'bebida') !== false) ? 'barra' : 'cocina';
-
-        $stmtInsertDet->execute([$id_orden, $id_prod, $nombre_prod, $cant, $precio, $subtotal, $notas, $estacion]);
+        $stmtDet->execute([$id_orden,
+            $idP,$nombreProd,
+            $cant,$prec,
+            $notas,
+            $estacion,
+            ($prec * $cant)
+        ]);
     }
 
-    // 4. Actualizar el total acumulado de la orden y ocupar la mesa
-    $stmtUpdOrd = $conn->prepare("UPDATE public.ordenes SET subtotal = subtotal + ?, total = total + ? WHERE id_orden = ?");
-    $stmtUpdOrd->execute([$total_agregado, $total_agregado, $id_orden]);
-
     if ($id_mesa) {
-        $conn->prepare("UPDATE public.mesas SET estado = 'ocupada' WHERE id_mesa = ?")->execute([$id_mesa]);
+        $stmtM =$conn->prepare("UPDATE public.mesas SET estado = 'ocupada' WHERE id_mesa = ?");
+        $stmtM->execute([$id_mesa]);
     }
 
     $conn->commit();
 
     echo json_encode([
-        'status' => 'success',
+        'status'   => 'success',
         'id_orden' => $id_orden,
-        'origen' => $origen,
-        'message' => 'Comanda enviada a Cocina/Barra correctamente.'
+        'folio'    => $folio,
+        'message'  => 'Comanda enviada a cocina/barra'
     ], JSON_UNESCAPED_UNICODE);
 
 } catch (Exception $e) {
-    if (isset($conn) && $conn->inTransaction()) $conn->rollBack();
-    http_response_code(400);
+    if (isset($conn) && $conn->inTransaction())$conn->rollBack();
+    http_response_code(500);
     echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
 }
 ?>
