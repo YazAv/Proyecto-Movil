@@ -59,7 +59,6 @@
             box-shadow: 0 6px 15px rgba(0, 0, 0, 0.04);
         }
 
-        /* Tipografía Cursiva Elegante para el Título */
         .brand-title {
             font-family: 'Italianno', 'Playfair Display', cursive, serif;
             font-size: 3.2rem;
@@ -77,7 +76,6 @@
             font-weight: 600;
         }
 
-        /* Navegación por pestañas */
         .nav-pills {
             background: var(--bg-ivory);
             padding: 5px;
@@ -113,7 +111,6 @@
             box-shadow: 0 0 0 4px rgba(42, 38, 33, 0.08);
         }
 
-        /* Contenedor del PIN con opción de ver/ocultar números */
         .pin-container {
             position: relative;
             margin-bottom: 1.2rem;
@@ -153,7 +150,6 @@
             color: var(--text-dark);
         }
 
-        /* Teclado Numérico (Numpad) */
         .numpad {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -193,12 +189,52 @@
             color: #fff;
             box-shadow: 0 8px 20px rgba(42, 38, 33, 0.22);
         }
+
+        .btn-checador-kiosco {
+            background: var(--bg-ivory);
+            color: var(--text-dark);
+            border: 1.5px solid var(--color-nude);
+            font-weight: 700;
+            border-radius: 14px;
+            padding: 12px;
+            width: 100%;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-checador-kiosco:hover {
+            background: var(--color-nude);
+            color: var(--text-dark);
+        }
+
+        .perfil-btn {
+            background: var(--bg-ivory);
+            border: 1.5px solid var(--color-nude);
+            border-radius: 14px;
+            padding: 12px 16px;
+            text-align: left;
+            transition: all 0.15s ease;
+        }
+
+        .perfil-btn:hover {
+            background: var(--text-dark);
+            color: var(--bg-offwhite);
+            border-color: var(--text-dark);
+        }
+        
+        .perfil-btn:hover .badge {
+            background-color: var(--bg-offwhite) !important;
+            color: var(--text-dark) !important;
+        }
     </style>
 </head>
 <body>
 
 <div class="login-card">
-    <!-- Icono Campana Gastronómica -->
     <div class="bell-icon-container">
         <i class="fa-solid fa-concierge-bell fa-2x"></i>
     </div>
@@ -228,7 +264,7 @@
     </ul>
 
     <div class="tab-content">
-        <!-- Panel 1: PIN Rápido con Visibilidad Alternable -->
+        <!-- Panel 1: PIN Rápido -->
         <div class="tab-pane fade show active" id="pin-panel">
             <div class="pin-container">
                 <div id="pinDisplay" class="pin-display">----</div>
@@ -260,11 +296,11 @@
         <div class="tab-pane fade" id="user-panel">
             <form id="formCredenciales" onsubmit="loginPorCredenciales(event)">
                 <div class="mb-3">
-                    <label class="form-label small text-muted font-weight-bold">Nombre de Usuario</label>
-                    <input type="text" id="usernameInput" class="form-control" placeholder="" required>
+                    <label class="form-label small text-muted fw-bold">Nombre de Usuario</label>
+                    <input type="text" id="usernameInput" class="form-control" required>
                 </div>
                 <div class="mb-4">
-                    <label class="form-label small text-muted font-weight-bold">Contraseña</label>
+                    <label class="form-label small text-muted fw-bold">Contraseña</label>
                     <input type="password" id="passwordInput" class="form-control" placeholder="••••••••" required>
                 </div>
                 <button type="submit" class="btn btn-action-primary">
@@ -288,19 +324,20 @@
                 </div>
                 <div class="mb-2">
                     <label class="form-label small text-muted">Usuario de Acceso</label>
-                    <input type="text" id="regUsername" class="form-control" placeholder="" required>
+                    <input type="text" id="regUsername" class="form-control" required>
                 </div>
                 <div class="row g-2 mb-2">
                     <div class="col-6">
                         <label class="form-label small text-muted">PIN (Números)</label>
-                        <input type="password" id="regPin" maxlength="6" class="form-control" placeholder="" required>
+                        <input type="password" id="regPin" maxlength="6" class="form-control" required>
                     </div>
                     <div class="col-6">
                         <label class="form-label small text-muted">Puesto</label>
                         <select id="regPuesto" class="form-select" required>
                             <option value="Cajero">Cajero</option>
                             <option value="Mesero">Mesero</option>
-                            <option value="Chef">Chef / Cocina</option>
+                            <option value="Cocina">Cocina</option>
+                            <option value="Barra">Barra</option>
                             <option value="Administrador">Administrador</option>
                         </select>
                     </div>
@@ -316,14 +353,41 @@
         </div>
     </div>
 
+    <!-- Acceso Directo Universal al Reloj Checador -->
+    <div class="mt-4 pt-3 border-top border-secondary-subtle">
+        <a href="asistencia.html" class="btn-checador-kiosco">
+            <i class="fa-solid fa-qrcode"></i>
+            <span>Reloj Checador (Entrada / Salida)</span>
+        </a>
+    </div>
+
     <!-- Alertas de Estado -->
     <div id="alertMsg" class="alert alert-danger mt-3 text-center d-none py-2 small" role="alert"></div>
+</div>
+
+<!-- MODAL: SELECCIÓN DE PERFIL CUANDO HAY PIN COMPARTIDO -->
+<div class="modal fade" id="modalSeleccionPerfil" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content rounded-4 border-0 shadow p-2" style="background: var(--bg-offwhite);">
+            <div class="modal-header border-0 pb-1">
+                <h6 class="modal-title fw-bold">
+                    <i class="fa-solid fa-users me-2"></i>¿Quién ingresa?
+                </h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" onclick="clearPin()"></button>
+            </div>
+            <div class="modal-body pt-1">
+                <p class="small text-muted mb-3">Varios empleados comparten este PIN. Selecciona tu nombre para entrar con tu rol:</p>
+                <div id="listaCandidatos" class="d-grid gap-2"></div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     let currentPin = "";
     let isPinVisible = false;
+    let modalPerfilesInstance = null;
 
     function updatePinDisplay() {
         const display = document.getElementById("pinDisplay");
@@ -366,19 +430,29 @@
         setTimeout(() => alertBox.classList.add("d-none"), 4000);
     }
 
-    // Login mediante PIN
-    async function loginPorPin() {
+    // Ruta destino exacta según el rol del empleado
+    function obtenerRutaPorRol(rol) {
+        const r = (rol || '').toLowerCase();
+        if (r.includes('admin')) return 'index.html';
+        if (r.includes('caj'))   return 'caja.html';
+        if (r.includes('coc') || r.includes('chef')) return 'kds_cocina.html';
+        if (r.includes('bar'))   return 'kds_barra.html';
+        if (r.includes('mes'))   return 'mesas.html';
+        return 'index.html';
+    }
+
+    async function loginPorPin(usuarioIdSeleccionado = 0) {
         if (!currentPin) {
             showAlert("Ingrese su PIN de acceso");
             return;
         }
         await enviarPeticionLogin({ 
             tipo_login: "pin", 
-            pin: currentPin 
+            pin: currentPin,
+            usuario_id: usuarioIdSeleccionado
         });
     }
 
-    // Login mediante Usuario y Contraseña
     async function loginPorCredenciales(e) {
         e.preventDefault();
         const username = document.getElementById("usernameInput").value;
@@ -391,6 +465,29 @@
         });
     }
 
+    function mostrarSelectorCandidatos(candidatos) {
+        const contenedor = document.getElementById("listaCandidatos");
+        contenedor.innerHTML = "";
+
+        candidatos.forEach(c => {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "btn perfil-btn d-flex align-items-center justify-content-between";
+            btn.innerHTML = `
+                <span class="fw-bold small">${c.nombre}</span>
+                <span class="badge bg-dark rounded-pill">${c.rol}</span>
+            `;
+            btn.onclick = async () => {
+                if (modalPerfilesInstance) modalPerfilesInstance.hide();
+                await loginPorPin(c.usuario_id);
+            };
+            contenedor.appendChild(btn);
+        });
+
+        modalPerfilesInstance = new bootstrap.Modal(document.getElementById("modalSeleccionPerfil"));
+        modalPerfilesInstance.show();
+    }
+
     async function enviarPeticionLogin(bodyData) {
         try {
             const resp = await fetch('api/auth/login.php', {
@@ -401,10 +498,17 @@
 
             const data = await resp.json();
 
+            if (resp.ok && data.status === 'multiple' && Array.isArray(data.candidatos)) {
+                mostrarSelectorCandidatos(data.candidatos);
+                return;
+            }
+
             if (resp.ok && data.status === 'success') {
                 localStorage.setItem('sazontrack_session', JSON.stringify(data.session));
-                showAlert("Acceso concedido. Redirigiendo...", true);
-                setTimeout(() => window.location.href = 'index.html', 800);
+                const rol = data.session.rol || data.session.puesto || 'Usuario';
+                const destino = obtenerRutaPorRol(rol);
+                showAlert(`Bienvenido ${data.session.nombre_empleado} (${rol}). Entrando...`, true);
+                setTimeout(() => window.location.href = destino, 700);
             } else {
                 showAlert(data.message || "Credenciales inválidas");
                 clearPin();
@@ -435,7 +539,7 @@
             const data = await resp.json();
 
             if (resp.ok && data.status === 'success') {
-                showAlert("¡Usuario registrado con éxito! Ya puedes iniciar sesión.", true);
+                showAlert("Usuario registrado con éxito. Ya puedes iniciar sesión.", true);
                 document.getElementById("formRegistro").reset();
             } else {
                 showAlert(data.message || "Error al registrar usuario");
@@ -444,6 +548,19 @@
             showAlert("No se pudo conectar con el servicio de registro");
         }
     }
+
+    // Permitir ingresar PIN también desde teclado físico
+    document.addEventListener("keydown", (e) => {
+        const pinTabActive = document.getElementById("pin-panel").classList.contains("active");
+        if (!pinTabActive) return;
+        if (e.key >= '0' && e.key <= '9') {
+            addPin(e.key);
+        } else if (e.key === 'Backspace') {
+            backspacePin();
+        } else if (e.key === 'Enter') {
+            loginPorPin();
+        }
+    });
 </script>
 </body>
 </html>

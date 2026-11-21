@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SazónTrack - Gestión de Empleados</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Italianno&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-offwhite: #FDFCF8;
+            --bg-ivory: #F3F0E9;
+            --color-nude: #E3DBCC;
+            --color-nude-hover: #D5C7B3;
+            --text-dark: #2A2621;
+            --text-muted: #736B60;
+            --sidebar-width: 260px;
+        }
+
+        body {
+            background-color: var(--bg-ivory);
+            color: var(--text-dark);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg-offwhite);
+            border-right: 1px solid var(--color-nude);
+            height: 100vh;
+            position: fixed;
+            top: 0; left: 0;
+            display: flex; flex-direction: column;
+            padding: 1.5rem 1rem;
+            z-index: 100;
+        }
+        .sidebar-scrollable { overflow-y: auto; flex-grow: 1; padding-right: 5px; }
+        .brand-header {
+            display: flex; align-items: center; gap: 12px;
+            padding-bottom: 1.2rem; border-bottom: 1px solid var(--color-nude); margin-bottom: 1rem;
+        }
+        .brand-avatar {
+            width: 44px; height: 44px; background: var(--text-dark); color: var(--bg-offwhite);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+        }
+        .brand-title { font-family: 'Italianno', cursive; font-size: 2.2rem; margin: 0; line-height: 0.8; }
+        .brand-sub { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
+
+        .nav-category { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); font-weight: 700; margin: 1.2rem 0 0.4rem 0.8rem; }
+        .sidebar-nav .nav-link {
+            color: var(--text-muted); font-weight: 600; font-size: 0.9rem; padding: 10px 14px;
+            border-radius: 12px; display: flex; align-items: center; gap: 12px; margin-bottom: 4px; text-decoration: none;
+            transition: all 0.15s ease;
+        }
+        .sidebar-nav .nav-link:hover { background: var(--bg-ivory); color: var(--text-dark); }
+        .sidebar-nav .nav-link.active { background: var(--text-dark); color: var(--bg-offwhite); box-shadow: 0 4px 12px rgba(42, 38, 33, 0.12); }
+
+        .main-wrapper { margin-left: var(--sidebar-width); padding: 2rem 2.5rem; }
+        .card-custom { background: var(--bg-offwhite); border: 1px solid var(--color-nude); border-radius: 20px; box-shadow: 0 4px 15px rgba(42,38,33,0.03); }
+        .stat-card { background: #fff; border-radius: 16px; padding: 1.2rem 1.5rem; border: 1px solid var(--color-nude); }
+        .avatar-circle {
+            width: 40px; height: 40px; border-radius: 50%; background: var(--bg-ivory);
+            color: var(--text-dark); font-weight: 700; display: flex; align-items: center; justify-content: center;
+            border: 1px solid var(--color-nude);
+        }
+        .pin-badge {
+            min-width: 65px;
+            display: inline-block;
+            text-align: center;
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+    <div class="sidebar-scrollable">
+        <div class="brand-header">
+            <div class="brand-avatar"><i class="fa-solid fa-concierge-bell"></i></div>
+            <div>
+                <h2 class="brand-title">SazónTrack</h2>
+                <span class="brand-sub">Panel de Control</span>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-category">Principal</div>
+            <a href="index.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+            <a href="caja.html" class="nav-link"><i class="fa-solid fa-cash-register"></i> Caja POS</a>
+            <a href="turno.html" class="nav-link"><i class="fa-solid fa-vault"></i> Turnos y Cortes</a>
+            <a href="mesas.html" class="nav-link"><i class="fa-solid fa-utensils"></i> Mapa Mesas</a>
+            
+            <div class="nav-category">Recursos Humanos</div>
+            <a href="asistencia.html" class="nav-link"><i class="fa-solid fa-clock"></i> Reloj Checador</a>
+            <a href="empleados.html" class="nav-link active"><i class="fa-solid fa-users"></i> Empleados</a>
+
+            <div class="nav-category">Administración</div>
+            <a href="productos.html" class="nav-link"><i class="fa-solid fa-book-open"></i> Catálogo Menú</a>
+            <a href="inventario.html" class="nav-link"><i class="fa-solid fa-boxes-stacked"></i> Inventario</a>
+        </nav>
+    </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="main-wrapper">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold m-0 text-dark">Directorio de Empleados</h3>
+            <p class="text-muted small m-0">Gestión de personal, envío automático de QR por WhatsApp y control de PIN de acceso.</p>
+        </div>
+        <button class="btn btn-dark rounded-pill px-4 fw-bold shadow-sm" onclick="abrirModalNuevo()">
+            <i class="fa-solid fa-user-plus me-2"></i> Nuevo Empleado
+        </button>
+    </div>
+
+    <!-- TARJETAS DE RESUMEN -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="stat-card d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small fw-bold text-uppercase">Total Personal Activo</span>
+                    <h3 class="fw-800 m-0 mt-1" id="statTotal">0</h3>
+                </div>
+                <div class="fs-2 text-dark opacity-50"><i class="fa-solid fa-users"></i></div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small fw-bold text-uppercase">Operación (Meseros/Cocina)</span>
+                    <h3 class="fw-800 m-0 mt-1 text-primary" id="statOperacion">0</h3>
+                </div>
+                <div class="fs-2 text-primary opacity-50"><i class="fa-solid fa-utensils"></i></div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small fw-bold text-uppercase">Administración / Caja</span>
+                    <h3 class="fw-800 m-0 mt-1 text-success" id="statAdmin">0</h3>
+                </div>
+                <div class="fs-2 text-success opacity-50"><i class="fa-solid fa-user-shield"></i></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TABLA DE EMPLEADOS -->
+    <div class="card-custom p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold m-0"><i class="fa-solid fa-id-badge me-2 text-muted"></i>Plantilla Actual</h5>
+            <div class="input-group" style="max-width: 300px;">
+                <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-search text-muted"></i></span>
+                <input type="text" id="buscarEmpleado" class="form-control border-start-0" placeholder="Buscar por nombre o puesto..." oninput="filtrarEmpleados()">
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light text-muted small text-uppercase">
+                    <tr>
+                        <th>ID</th>
+                        <th>Empleado</th>
+                        <th>Puesto / Rol</th>
+                        <th>Teléfono</th>
+                        <th>Código QR</th>
+                        <th>PIN POS</th>
+                        <th>Salario / Hr</th>
+                        <th class="text-end">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaEmpleados">
+                    <tr>
+                        <td colspan="8" class="text-center py-4 text-muted">
+                            <i class="fa-solid fa-spinner fa-spin me-2"></i>Cargando empleados...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+
+<!-- MODAL: CREAR / EDITAR EMPLEADO -->
+<div class="modal fade" id="modalEmpleado" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold" id="tituloModalEmpleado">
+                    <i class="fa-solid fa-user-plus me-2"></i>Nuevo Empleado
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formEmpleado" onsubmit="guardarEmpleado(event)">
+                    <input type="hidden" id="id_empleado" value="">
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Nombre(s) *</label>
+                            <input type="text" id="nombre" class="form-control" placeholder="Ej. Carlos" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Apellidos *</label>
+                            <input type="text" id="apellido" class="form-control" placeholder="Ej. Mendoza" required>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Puesto / Rol en Sistema *</label>
+                            <select id="puesto" class="form-select" required>
+                                <option value="Mesero">Mesero</option>
+                                <option value="Cajero">Cajero</option>
+                                <option value="Cocina">Cocina (KDS)</option>
+                                <option value="Barra">Barra (KDS)</option>
+                                <option value="Administrador">Administrador</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Teléfono (WhatsApp) *</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-success text-white border-0"><i class="fa-brands fa-whatsapp"></i></span>
+                                <input type="text" id="telefono" class="form-control" placeholder="10 dígitos (Ej. 3481265883)" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">PIN de Acceso (4 dígitos) *</label>
+                            <div class="input-group">
+                                <input type="password" id="pin_acceso" class="form-control fw-bold text-center font-monospace" maxlength="6" value="1234" required>
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePinModal()" title="Mostrar / Ocultar PIN">
+                                    <i class="fa-solid fa-eye" id="iconoOjoModal"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Salario por Hora ($)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" step="0.01" id="salario_por_hora" class="form-control" value="50.00">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="chkEnviarWa" checked>
+                        <label class="form-check-label small text-muted" for="chkEnviarWa">
+                            Enviar gafete QR y PIN automáticamente por <strong>WhatsApp</strong> al guardar
+                        </label>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" id="btnGuardarEmp" class="btn btn-dark rounded-pill px-4 fw-bold">
+                            <i class="fa-solid fa-floppy-disk me-2"></i>Guardar Empleado
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: VER CÓDIGO QR -->
+<div class="modal fade" id="modalQr" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow text-center p-3">
+            <div class="modal-header border-0 pb-0">
+                <h6 class="modal-title fw-bold w-100" id="qrNombreEmpleado">Gafete QR</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <img id="qrImagen" src="" alt="QR Empleado" class="img-fluid border rounded-3 p-2 mb-2" style="width: 180px; height: 180px;">
+                <p class="fw-800 fs-5 m-0 text-dark" id="qrCodigoTexto">EMP-0</p>
+                <small class="text-muted d-block mb-3">Escanea este código en el Reloj Checador</small>
+                <button type="button" class="btn btn-success btn-sm rounded-pill w-100 fw-bold" id="btnReenviarQrWa">
+                    <i class="fa-brands fa-whatsapp me-1"></i> Enviar QR por WhatsApp
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    let listaEmpleados = [];
+
+    document.addEventListener("DOMContentLoaded", () => {
+        cargarEmpleados();
+    });
+
+    function togglePinModal() {
+        const inputPin = document.getElementById('pin_acceso');
+        const icono = document.getElementById('iconoOjoModal');
+        if (inputPin.type === 'password') {
+            inputPin.type = 'text';
+            icono.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+            inputPin.type = 'password';
+            icono.classList.replace('fa-eye-slash', 'fa-eye');
+        }
+    }
+
+    function togglePinTabla(id, pinReal) {
+        const span = document.getElementById(`pin-span-${id}`);
+        const icon = document.getElementById(`pin-icon-${id}`);
+        if (span.dataset.visible === 'false') {
+            span.innerText = pinReal;
+            span.dataset.visible = 'true';
+            icon.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+            span.innerText = '••••';
+            span.dataset.visible = 'false';
+            icon.classList.replace('fa-eye-slash', 'fa-eye');
+        }
+    }
+
+    async function cargarEmpleados() {
+        try {
+            const response = await fetch('api/empleados/index.php');
+            const res = await response.json();
+            listaEmpleados = Array.isArray(res) ? res : (res.data || []);
+            actualizarEstadisticas();
+            renderizarTabla(listaEmpleados);
+        } catch (error) {
+            console.error("Error al cargar empleados:", error);
+            document.getElementById('tablaEmpleados').innerHTML = `
+                <tr><td colspan="8" class="text-center text-danger py-4">Error al conectar con el servidor.</td></tr>
+            `;
+        }
+    }
+
+    function actualizarEstadisticas() {
+        document.getElementById('statTotal').innerText = listaEmpleados.length;
+        const admin = listaEmpleados.filter(e => ['administrador', 'cajero'].includes((e.puesto || '').toLowerCase())).length;
+        document.getElementById('statAdmin').innerText = admin;
+        document.getElementById('statOperacion').innerText = listaEmpleados.length - admin;
+    }
+
+    function renderizarTabla(datos) {
+        const tbody = document.getElementById('tablaEmpleados');
+        tbody.innerHTML = '';
+
+        if (datos.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-muted">No hay empleados registrados.</td></tr>`;
+            return;
+        }
+
+        datos.forEach(emp => {
+            const iniciales = ((emp.nombre ? emp.nombre[0] : '') + (emp.apellido && emp.apellido !== '-' ? emp.apellido[0] : '')).toUpperCase();
+            const nombreCompleto = `${emp.nombre} ${emp.apellido !== '-' ? emp.apellido : ''}`.trim();
+            const qr = (emp.codigo_qr && emp.codigo_qr !== 'undefined') ? emp.codigo_qr : `EMP-${emp.id_empleado}`;
+            const pin = emp.pin_acceso || '1234';
+
+            let colorBadge = 'bg-secondary';
+            const puestoLow = (emp.puesto || '').toLowerCase();
+            if (puestoLow.includes('admin')) colorBadge = 'bg-dark';
+            else if (puestoLow.includes('caj')) colorBadge = 'bg-success';
+            else if (puestoLow.includes('mes')) colorBadge = 'bg-primary';
+            else if (puestoLow.includes('coc') || puestoLow.includes('bar')) colorBadge = 'bg-warning text-dark';
+
+            tbody.insertAdjacentHTML('beforeend', `
+                <tr>
+                    <td class="fw-bold">#${emp.id_empleado}</td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="avatar-circle">${iniciales}</div>
+                            <div>
+                                <div class="fw-bold text-dark">${nombreCompleto}</div>
+                                <small class="text-muted">Alta: ${emp.fecha_registro || 'Reciente'}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="badge ${colorBadge} rounded-pill px-3">${emp.puesto}</span></td>
+                    <td>${emp.telefono || '<span class="text-muted">-</span>'}</td>
+                    <td>
+                        <button class="btn btn-sm btn-light border fw-bold" onclick="mostrarQr('${nombreCompleto}', '${qr}', '${emp.telefono || ''}', '${emp.puesto}', '${pin}', ${emp.id_empleado})">
+                            <i class="fa-solid fa-qrcode me-1"></i> ${qr}
+                        </button>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center gap-1">
+                            <span id="pin-span-${emp.id_empleado}" data-visible="false" class="badge bg-light text-dark border font-monospace pin-badge">••••</span>
+                            <button class="btn btn-sm btn-link text-muted p-0 ms-1" onclick="togglePinTabla(${emp.id_empleado}, '${pin}')" title="Mostrar/Ocultar PIN">
+                                <i id="pin-icon-${emp.id_empleado}" class="fa-solid fa-eye"></i>
+                            </button>
+                        </div>
+                    </td>
+                    <td class="fw-bold text-success">$${parseFloat(emp.salario_por_hora || 0).toFixed(2)}</td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-outline-success rounded-3 me-1" onclick="enviarQrPorId(${emp.id_empleado})" title="Enviar QR por WhatsApp">
+                            <i class="fa-brands fa-whatsapp"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-dark rounded-3 me-1" onclick="editarEmpleado(${emp.id_empleado})" title="Editar">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger rounded-3" onclick="eliminarEmpleado(${emp.id_empleado}, '${nombreCompleto}')" title="Dar de baja">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `);
+        });
+    }
+
+    // Buscar empleado por ID directo en memoria para evitar parámetros undefined
+    function enviarQrPorId(id) {
+        const emp = listaEmpleados.find(e => e.id_empleado == id);
+        if (!emp) return;
+        const nombreCompleto = `${emp.nombre} ${emp.apellido !== '-' ? emp.apellido : ''}`.trim();
+        const qr = (emp.codigo_qr && emp.codigo_qr !== 'undefined') ? emp.codigo_qr : `EMP-${emp.id_empleado}`;
+        const pin = emp.pin_acceso || '1234';
+        enviarQrWhatsAppFrontend(emp.telefono || '', nombreCompleto, emp.puesto, qr, pin, emp.id_empleado);
+    }
+
+    async function enviarQrWhatsAppFrontend(telefono, nombre, puesto, qr, pin, idFallback = '') {
+        const telLimpio = (telefono || '').replace(/\D/g, '');
+        if (!telLimpio) {
+            alert("El empleado no tiene un número de teléfono válido registrado.");
+            return;
+        }
+
+        // Blindaje absoluto contra undefined
+        let qrSeguro = (qr && qr !== 'undefined' && qr !== 'null') ? String(qr).trim() : '';
+        if (!qrSeguro && idFallback) {
+            qrSeguro = `EMP-${idFallback}`;
+        }
+        if (!qrSeguro) {
+            const encontrado = listaEmpleados.find(e => `${e.nombre} ${e.apellido !== '-' ? e.apellido : ''}`.trim() === nombre);
+            qrSeguro = encontrado ? (encontrado.codigo_qr || `EMP-${encontrado.id_empleado}`) : 'EMP-1';
+        }
+
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrSeguro)}`;
+        const mensaje = `¡Hola *${nombre}*! Bienvenido(a) a *SazónTrack*.\n\n- *Puesto:* ${puesto}\n- *PIN de Acceso:* ${pin}\n- *Código QR Checador:* ${qrSeguro}\n\nDescarga tu código QR de asistencia aquí:\n${qrUrl}`;
+
+        try {
+            const resp = await fetch('api/whatsapp/enviar.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    telefono: telLimpio,
+                    numero: telLimpio,
+                    nombre: nombre,
+                    codigo_qr: qrSeguro,
+                    qrUrl: qrUrl,
+                    mensaje: mensaje
+                })
+            });
+            const data = await resp.json();
+            if (data.status === 'success' || data.success) {
+                console.log("QR enviado automáticamente por WhatsApp API.");
+                return;
+            }
+        } catch (e) {
+            console.warn("Servicio local WhatsApp no disponible, abriendo enlace directo Wa.me");
+        }
+
+        const prefijo = telLimpio.length === 10 ? '521' + telLimpio : telLimpio;
+        window.open(`https://wa.me/${prefijo}?text=${encodeURIComponent(mensaje)}`, '_blank');
+    }
+
+    function filtrarEmpleados() {
+        const q = document.getElementById('buscarEmpleado').value.toLowerCase();
+        const filtrados = listaEmpleados.filter(e => 
+            `${e.nombre} ${e.apellido}`.toLowerCase().includes(q) ||
+            (e.puesto || '').toLowerCase().includes(q) ||
+            (e.codigo_qr || '').toLowerCase().includes(q)
+        );
+        renderizarTabla(filtrados);
+    }
+
+    function abrirModalNuevo() {
+        document.getElementById('formEmpleado').reset();
+        document.getElementById('id_empleado').value = '';
+        document.getElementById('pin_acceso').type = 'password';
+        document.getElementById('iconoOjoModal').className = 'fa-solid fa-eye';
+        document.getElementById('chkEnviarWa').checked = true;
+        document.getElementById('tituloModalEmpleado').innerHTML = '<i class="fa-solid fa-user-plus me-2"></i>Nuevo Empleado';
+        new bootstrap.Modal(document.getElementById('modalEmpleado')).show();
+    }
+
+    function editarEmpleado(id) {
+        const emp = listaEmpleados.find(e => e.id_empleado == id);
+        if (!emp) return;
+
+        document.getElementById('id_empleado').value = emp.id_empleado;
+        document.getElementById('nombre').value = emp.nombre;
+        document.getElementById('apellido').value = emp.apellido !== '-' ? emp.apellido : '';
+        document.getElementById('puesto').value = emp.puesto;
+        document.getElementById('telefono').value = emp.telefono || '';
+        document.getElementById('pin_acceso').value = emp.pin_acceso || '1234';
+        document.getElementById('pin_acceso').type = 'password';
+        document.getElementById('iconoOjoModal').className = 'fa-solid fa-eye';
+        document.getElementById('salario_por_hora').value = parseFloat(emp.salario_por_hora || 0).toFixed(2);
+
+        document.getElementById('tituloModalEmpleado').innerHTML = '<i class="fa-solid fa-user-pen me-2"></i>Editar Empleado #' + emp.id_empleado;
+        new bootstrap.Modal(document.getElementById('modalEmpleado')).show();
+    }
+
+    async function guardarEmpleado(e) {
+        e.preventDefault();
+        const btn = document.getElementById('btnGuardarEmp');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Guardando...';
+
+        const payload = {
+            id_empleado: document.getElementById('id_empleado').value,
+            nombre: document.getElementById('nombre').value,
+            apellido: document.getElementById('apellido').value,
+            puesto: document.getElementById('puesto').value,
+            telefono: document.getElementById('telefono').value,
+            pin_acceso: document.getElementById('pin_acceso').value,
+            salario_por_hora: document.getElementById('salario_por_hora').value
+        };
+
+        const enviarWa = document.getElementById('chkEnviarWa').checked;
+
+        try {
+            const response = await fetch('api/empleados/index.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const res = await response.json();
+
+            if (res.status === 'success') {
+                bootstrap.Modal.getInstance(document.getElementById('modalEmpleado')).hide();
+                await cargarEmpleados();
+
+                if (enviarWa && payload.telefono && !res.wa_enviado) {
+                    const nombreCompleto = `${payload.nombre} ${payload.apellido}`.trim();
+                    const nuevoId = res.id_empleado || res.id || payload.id_empleado || (listaEmpleados[0] ? listaEmpleados[0].id_empleado : '');
+                    const qrNuevo = res.codigo_qr || (res.data && res.data.codigo_qr) || (nuevoId ? `EMP-${nuevoId}` : '');
+                    enviarQrWhatsAppFrontend(payload.telefono, nombreCompleto, payload.puesto, qrNuevo, payload.pin_acceso, nuevoId);
+                }
+
+                alert(res.message);
+            } else {
+                alert("Error: " + (res.message || "No se pudo guardar el empleado."));
+            }
+        } catch (err) {
+            alert("Error de conexión con el servidor.");
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-floppy-disk me-2"></i>Guardar Empleado';
+        }
+    }
+
+    async function eliminarEmpleado(id, nombre) {
+        if (!confirm(`¿Estás seguro de dar de baja a ${nombre}?`)) return;
+
+        try {
+            const response = await fetch('api/empleados/index.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ accion: 'eliminar', id_empleado: id })
+            });
+            const res = await response.json();
+            if (res.status === 'success') {
+                cargarEmpleados();
+            } else {
+                alert("Error: " + res.message);
+            }
+        } catch (err) {
+            alert("Error al intentar dar de baja al empleado.");
+        }
+    }
+
+    function mostrarQr(nombre, codigo, telefono, puesto, pin, idFallback = '') {
+        document.getElementById('qrNombreEmpleado').innerText = nombre;
+        document.getElementById('qrCodigoTexto').innerText = codigo;
+        document.getElementById('qrImagen').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(codigo)}`;
+        
+        const btnWa = document.getElementById('btnReenviarQrWa');
+        btnWa.onclick = () => enviarQrWhatsAppFrontend(telefono, nombre, puesto, codigo, pin, idFallback);
+
+        new bootstrap.Modal(document.getElementById('modalQr')).show();
+    }
+</script>
+</body>
+</html>
