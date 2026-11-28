@@ -350,32 +350,37 @@
         <div class="sidebar-scrollable">
             <div class="brand-header">
                 <div class="brand-avatar">
-                    <i class="fa-solid fa-cash-register"></i>
+                    <i class="fa-solid fa-concierge-bell"></i>
                 </div>
                 <div>
                     <h2 class="brand-title">SazónTrack</h2>
-                    <span class="brand-sub">Caja</span>
+                    <span class="brand-sub">Panel de Control</span>
                 </div>
             </div>
 
             <nav class="sidebar-nav">
                 <div class="nav-category">Principal</div>
                 <a href="index.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
-                <a href="caja.html" class="nav-link active"><i class="fa-solid fa-cash-register"></i> Caja POS</a>
-                <a href="turno.html" class="nav-link"><i class="fa-solid fa-vault"></i> Turnos y Cortes</a>
+                <a href="caja.html" class="nav-link"><i class="fa-solid fa-cash-register"></i> Caja POS</a>
                 <a href="mesas.html" class="nav-link"><i class="fa-solid fa-utensils"></i> Mapa Mesas</a>
-                <a href="kds_cocina.html" class="nav-link"><i class="fa-solid fa-fire"></i> KDS Cocina</a>
-                <a href="kds_barra.html" class="nav-link"><i class="fa-solid fa-wine-glass"></i> KDS Barra</a>
+                <a href="reservas.html" class="nav-link"><i class="fa-solid fa-calendar-check"></i> Reservaciones</a>
+                <a href="kds_cocina.html" class="nav-link"><i class="fa-solid fa-fire-burner"></i> KDS Cocina</a>
+                <a href="kds_barra.html" class="nav-link"><i class="fa-solid fa-martini-glass-citrus"></i> KDS Barra</a>
 
                 <div class="nav-category">Recursos Humanos</div>
-                <a href="asistencia.html" target="_blank" class="nav-link"><i class="fa-solid fa-clock"></i> Reloj Checador</a>
-                <a href="empleados.html" class="nav-link"><i class="fa-solid fa-users"></i> Empleados</a>
+                <a href="asistencia.html" target="_blank" class="nav-link">
+                    <i class="fa-solid fa-clock"></i> Reloj Checador <i class="fa-solid fa-arrow-up-right-from-square ms-auto opacity-50" style="font-size: 0.7rem;"></i>
+                </a>
+                <a href="reporte_asistencia.html" class="nav-link"><i class="fa-solid fa-clipboard-user"></i> Control de Nómina</a>
 
-                <div class="nav-category">Administración</div>
-                <a href="productos.html" class="nav-link"><i class="fa-solid fa-book-open"></i> Catálogo Menú</a>
-                <a href="inventario.html" class="nav-link"><i class="fa-solid fa-boxes-stacked"></i> Inventario</a>
+                <div class="nav-category">Administración (CRUDs)</div>
+                <a href="empleados.html" class="nav-link"><i class="fa-solid fa-users"></i> Empleados</a>
+                <a href="productos.html" class="nav-link"><i class="fa-solid fa-burger"></i> Menú</a>
+                <a href="recetas.html" class="nav-link"><i class="fa-solid fa-file-invoice-dollar"></i> Recetas</a>
+                <a href="inventario.html" class="nav-link"><i class="fa-solid fa-boxes-stacked"></i> Insumos e Inventario</a>
                 <a href="modificadores.html" class="nav-link"><i class="fa-solid fa-code-branch"></i> Modificadores</a>
                 <a href="historial_comandas.html" class="nav-link"><i class="fa-solid fa-receipt"></i> Histórico Comandas</a>
+                <a href="turno.html" class="nav-link"><i class="fa-solid fa-vault"></i> Turnos y Cortes</a>
                 <a href="reporte_ventas.html" class="nav-link"><i class="fa-solid fa-chart-line"></i> Reporte de Ventas</a>
             </nav>
         </div>
@@ -395,7 +400,7 @@
             </div>
         </div>
     </aside>
-
+    
     <!-- CONTENIDO PRINCIPAL -->
     <main class="main-content">
         <div class="row g-4">
@@ -1262,6 +1267,7 @@
                 Swal.fire('Error', 'Error de conexión con procesar_pago.php', 'error');
             }
         }
+    </script>
     </script>
 </body>
 </html>

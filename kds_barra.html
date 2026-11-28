@@ -14,15 +14,38 @@
             --color-nude: #E3DBCC;
             --text-dark: #2A2621;
             --text-muted: #736B60;
-            --sidebar-width: 240px;
+            --sidebar-width: 250px;
         }
         body { background-color: var(--bg-ivory); color: var(--text-dark); font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; }
-        .sidebar { width: var(--sidebar-width); background: var(--bg-offwhite); border-right: 1px solid var(--color-nude); height: 100vh; position: fixed; top: 0; left: 0; display: flex; flex-direction: column; justify-content: space-between; padding: 1.4rem 1rem; }
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg-offwhite);
+            border-right: 1px solid var(--color-nude);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            padding: 1.4rem 1rem;
+            overflow: hidden;
+            z-index: 1000;
+        }
+        .sidebar-scrollable {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-right: 4px;
+        }
+        .sidebar-scrollable::-webkit-scrollbar { width: 5px; }
+        .sidebar-scrollable::-webkit-scrollbar-track { background: transparent; }
+        .sidebar-scrollable::-webkit-scrollbar-thumb { background: rgba(42, 38, 33, 0.2); border-radius: 10px; }
         .brand-header { display: flex; align-items: center; gap: 12px; padding-bottom: 1.2rem; border-bottom: 1px solid var(--color-nude); margin-bottom: 1rem; }
-        .brand-avatar { width: 42px; height: 42px; background: #2563EB; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+        .brand-avatar { width: 42px; height: 42px; background: #2563EB; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
         .brand-title { font-family: 'Italianno', cursive; font-size: 2.1rem; margin: 0; line-height: 0.8; }
         .brand-sub { font-size: 0.72rem; color: var(--text-muted); font-weight: 600; }
-        .nav-link { color: var(--text-muted); font-weight: 600; font-size: 0.88rem; padding: 10px 14px; border-radius: 12px; display: flex; align-items: center; gap: 10px; margin-bottom: 6px; text-decoration: none; }
+        .nav-category { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin: 1.1rem 0 0.45rem 0.6rem; }
+        .nav-link { color: var(--text-muted); font-weight: 600; font-size: 0.88rem; padding: 10px 14px; border-radius: 12px; display: flex; align-items: center; gap: 10px; margin-bottom: 4px; text-decoration: none; transition: 0.15s; }
         .nav-link:hover { background: var(--bg-ivory); color: var(--text-dark); }
         .nav-link.active { background: var(--text-dark); color: var(--bg-offwhite); }
         .main-wrapper { margin-left: var(--sidebar-width); padding: 2rem; }
@@ -38,23 +61,57 @@
 <body>
 
 <aside class="sidebar">
-    <div>
+    <div class="sidebar-scrollable">
         <div class="brand-header">
-            <div class="brand-avatar"><i class="fa-solid fa-martini-glass"></i></div>
+            <div class="brand-avatar">
+                <i class="fa-solid fa-concierge-bell"></i>
+            </div>
             <div>
                 <h2 class="brand-title">SazónTrack</h2>
-                <span class="brand-sub">KDS Barra Pro</span>
+                <span class="brand-sub">Panel de Control</span>
             </div>
         </div>
-        <nav>
+
+        <nav class="sidebar-nav">
+            <div class="nav-category">Principal</div>
             <a href="index.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+            <a href="caja.html" class="nav-link"><i class="fa-solid fa-cash-register"></i> Caja POS</a>
             <a href="mesas.html" class="nav-link"><i class="fa-solid fa-utensils"></i> Mapa Mesas</a>
+            <a href="reservas.html" class="nav-link"><i class="fa-solid fa-calendar-check"></i> Reservaciones</a>
             <a href="kds_cocina.html" class="nav-link"><i class="fa-solid fa-fire-burner"></i> KDS Cocina</a>
-            <a href="kds_barra.html" class="nav-link active"><i class="fa-solid fa-martini-glass"></i> KDS Barra</a>
+            <a href="kds_barra.html" class="nav-link active"><i class="fa-solid fa-martini-glass-citrus"></i> KDS Barra</a>
+
+            <div class="nav-category">Recursos Humanos</div>
+            <a href="asistencia.html" target="_blank" class="nav-link">
+                <i class="fa-solid fa-clock"></i> Reloj Checador <i class="fa-solid fa-arrow-up-right-from-square ms-auto opacity-50" style="font-size: 0.7rem;"></i>
+            </a>
+            <a href="reporte_asistencia.html" class="nav-link"><i class="fa-solid fa-clipboard-user"></i> Control de Nómina</a>
+
+            <div class="nav-category">Administración (CRUDs)</div>
+            <a href="empleados.html" class="nav-link"><i class="fa-solid fa-users"></i> Empleados</a>
+            <a href="productos.html" class="nav-link"><i class="fa-solid fa-burger"></i> Menú</a>
+            <a href="recetas.html" class="nav-link"><i class="fa-solid fa-file-invoice-dollar"></i> Recetas</a>
+            <a href="inventario.html" class="nav-link"><i class="fa-solid fa-boxes-stacked"></i> Insumos e Inventario</a>
+            <a href="modificadores.html" class="nav-link"><i class="fa-solid fa-code-branch"></i> Modificadores</a>
+            <a href="historial_comandas.html" class="nav-link"><i class="fa-solid fa-receipt"></i> Histórico Comandas</a>
+            <a href="turno.html" class="nav-link"><i class="fa-solid fa-vault"></i> Turnos y Cortes</a>
+            <a href="reporte_ventas.html" class="nav-link"><i class="fa-solid fa-chart-line"></i> Reporte de Ventas</a>
         </nav>
     </div>
-    <div class="pt-3 border-top">
-        <small class="text-muted fw-bold d-block" id="wsStatus"><i class="fa-solid fa-circle text-warning me-1"></i> Conectando WS...</small>
+
+    <div class="pt-3 border-top border-secondary-subtle">
+        <div class="d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-2">
+                <i class="fa-solid fa-user-circle fa-2x text-secondary"></i>
+                <div class="lh-1">
+                    <div id="sessionUserName" class="fw-bold small">Cargando...</div>
+                    <small id="sessionUserRole" class="text-muted" style="font-size: 0.75rem;"></small>
+                </div>
+            </div>
+            <button onclick="cerrarSesion()" class="btn btn-sm text-danger" title="Cerrar Sesión">
+                <i class="fa-solid fa-right-from-bracket"></i>
+            </button>
+        </div>
     </div>
 </aside>
 
@@ -66,7 +123,7 @@
         </div>
         <div class="d-flex align-items-center gap-2">
             <button class="btn btn-outline-dark rounded-pill fw-bold btn-sm px-3" onclick="cargarBarra()"><i class="fa-solid fa-rotate me-1"></i> Actualizar</button>
-            <span class="badge bg-primary text-white rounded-pill px-3 py-2 fw-bold"><i class="fa-solid fa-bolt me-1"></i> Live WS</span>
+            <span id="wsStatus" class="badge bg-primary text-white rounded-pill px-3 py-2 fw-bold"><i class="fa-solid fa-bolt me-1"></i> Live WS</span>
         </div>
     </div>
 
@@ -89,6 +146,39 @@
 <script>
     const ESTACION = 'barra';
     let filtroActual = 'TODOS';
+
+    function inicializarSesionYMenu() {
+        let session = {};
+        try {
+            session = JSON.parse(localStorage.getItem('sazontrack_session') || '{}');
+        } catch (e) {}
+
+        const rolRaw = (session.rol || session.nombre_rol || (session.usuario && (session.usuario.rol || session.usuario.nombre_rol)) || 'ADMINISTRADOR').toString().trim().toUpperCase();
+        const nombre = session.nombre || session.nombre_completo || (session.usuario && session.usuario.nombre) || 'Administrador';
+
+        const elName = document.getElementById('sessionUserName');
+        const elRole = document.getElementById('sessionUserRole');
+        if (elName) elName.textContent = nombre;
+        if (elRole) elRole.textContent = rolRaw;
+
+        if (rolRaw !== 'ADMINISTRADOR' && rolRaw !== 'ADMIN') {
+            const permitidos = ['kds_barra.html', 'asistencia.html'];
+            document.querySelectorAll('.sidebar-nav a.nav-link').forEach(link => {
+                const href = link.getAttribute('href');
+                if (!permitidos.includes(href)) link.remove();
+            });
+            document.querySelectorAll('.sidebar-nav .nav-category').forEach(cat => {
+                const next = cat.nextElementSibling;
+                if (!next || next.classList.contains('nav-category')) cat.remove();
+            });
+        }
+    }
+
+    function cerrarSesion() {
+        localStorage.removeItem('sazontrack_session');
+        window.location.href = 'login.html';
+    }
+
     const WS_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
         ? 'http://localhost:3000'
         : 'http://179.66.132.102:3000';
@@ -98,17 +188,20 @@
     scriptWs.onload = () => {
         const socket = io(WS_URL);
         socket.on('connect', () => {
-            document.getElementById('wsStatus').innerHTML = '<i class="fa-solid fa-circle text-success me-1"></i> WebSocket Activo';
+            const wsEl = document.getElementById('wsStatus');
+            if (wsEl) wsEl.innerHTML = '<i class="fa-solid fa-circle text-success me-1"></i> WebSocket Activo';
         });
         socket.on('renderizar_kds', () => cargarBarra());
         window.socketKds = socket;
     };
     scriptWs.onerror = () => {
-        document.getElementById('wsStatus').innerHTML = '<i class="fa-solid fa-circle text-secondary me-1"></i> Modo Polling (5s)';
+        const wsEl = document.getElementById('wsStatus');
+        if (wsEl) wsEl.innerHTML = '<i class="fa-solid fa-circle text-secondary me-1"></i> Modo Polling (5s)';
     };
     document.body.appendChild(scriptWs);
 
     document.addEventListener('DOMContentLoaded', () => {
+        inicializarSesionYMenu();
         cargarBarra();
         setInterval(cargarBarra, 5000);
     });

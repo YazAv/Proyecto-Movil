@@ -38,9 +38,19 @@
             top: 0; left: 0;
             display: flex; flex-direction: column;
             padding: 1.5rem 1rem;
+            overflow: hidden;
             z-index: 100;
         }
-        .sidebar-scrollable { overflow-y: auto; flex-grow: 1; padding-right: 5px; }
+        .sidebar-scrollable {
+            overflow-y: auto;
+            overflow-x: hidden;
+            flex-grow: 1;
+            padding-right: 4px;
+        }
+        .sidebar-scrollable::-webkit-scrollbar { width: 5px; }
+        .sidebar-scrollable::-webkit-scrollbar-track { background: transparent; }
+        .sidebar-scrollable::-webkit-scrollbar-thumb { background: rgba(42, 38, 33, 0.2); border-radius: 10px; }
+
         .brand-header {
             display: flex; align-items: center; gap: 12px;
             padding-bottom: 1.2rem; border-bottom: 1px solid var(--color-nude); margin-bottom: 1rem;
@@ -48,6 +58,7 @@
         .brand-avatar {
             width: 44px; height: 44px; background: var(--text-dark); color: var(--bg-offwhite);
             border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+            flex-shrink: 0;
         }
         .brand-title { font-family: 'Italianno', cursive; font-size: 2.2rem; margin: 0; line-height: 0.8; }
         .brand-sub { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
@@ -83,27 +94,55 @@
 <aside class="sidebar">
     <div class="sidebar-scrollable">
         <div class="brand-header">
-            <div class="brand-avatar"><i class="fa-solid fa-concierge-bell"></i></div>
+            <div class="brand-avatar">
+                <i class="fa-solid fa-concierge-bell"></i>
+            </div>
             <div>
                 <h2 class="brand-title">SazónTrack</h2>
                 <span class="brand-sub">Panel de Control</span>
             </div>
         </div>
+
         <nav class="sidebar-nav">
             <div class="nav-category">Principal</div>
             <a href="index.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
             <a href="caja.html" class="nav-link"><i class="fa-solid fa-cash-register"></i> Caja POS</a>
-            <a href="turno.html" class="nav-link"><i class="fa-solid fa-vault"></i> Turnos y Cortes</a>
             <a href="mesas.html" class="nav-link"><i class="fa-solid fa-utensils"></i> Mapa Mesas</a>
-            
-            <div class="nav-category">Recursos Humanos</div>
-            <a href="asistencia.html" class="nav-link"><i class="fa-solid fa-clock"></i> Reloj Checador</a>
-            <a href="empleados.html" class="nav-link active"><i class="fa-solid fa-users"></i> Empleados</a>
+            <a href="reservas.html" class="nav-link"><i class="fa-solid fa-calendar-check"></i> Reservaciones</a>
+            <a href="kds_cocina.html" class="nav-link"><i class="fa-solid fa-fire-burner"></i> KDS Cocina</a>
+            <a href="kds_barra.html" class="nav-link"><i class="fa-solid fa-martini-glass-citrus"></i> KDS Barra</a>
 
-            <div class="nav-category">Administración</div>
-            <a href="productos.html" class="nav-link"><i class="fa-solid fa-book-open"></i> Catálogo Menú</a>
-            <a href="inventario.html" class="nav-link"><i class="fa-solid fa-boxes-stacked"></i> Inventario</a>
+            <div class="nav-category">Recursos Humanos</div>
+            <a href="asistencia.html" target="_blank" class="nav-link">
+                <i class="fa-solid fa-clock"></i> Reloj Checador <i class="fa-solid fa-arrow-up-right-from-square ms-auto opacity-50" style="font-size: 0.7rem;"></i>
+            </a>
+            <a href="reporte_asistencia.html" class="nav-link"><i class="fa-solid fa-clipboard-user"></i> Control de Nómina</a>
+
+            <div class="nav-category">Administración (CRUDs)</div>
+            <a href="empleados.html" class="nav-link active"><i class="fa-solid fa-users"></i> Empleados</a>
+            <a href="productos.html" class="nav-link"><i class="fa-solid fa-burger"></i> Menú</a>
+            <a href="recetas.html" class="nav-link"><i class="fa-solid fa-file-invoice-dollar"></i> Recetas</a>
+            <a href="inventario.html" class="nav-link"><i class="fa-solid fa-boxes-stacked"></i> Insumos e Inventario</a>
+            <a href="modificadores.html" class="nav-link"><i class="fa-solid fa-code-branch"></i> Modificadores</a>
+            <a href="historial_comandas.html" class="nav-link"><i class="fa-solid fa-receipt"></i> Histórico Comandas</a>
+            <a href="turno.html" class="nav-link"><i class="fa-solid fa-vault"></i> Turnos y Cortes</a>
+            <a href="reporte_ventas.html" class="nav-link"><i class="fa-solid fa-chart-line"></i> Reporte de Ventas</a>
         </nav>
+    </div>
+
+    <div class="pt-3 border-top border-secondary-subtle">
+        <div class="d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-2">
+                <i class="fa-solid fa-user-circle fa-2x text-secondary"></i>
+                <div class="lh-1">
+                    <div id="sessionUserName" class="fw-bold small">Cargando...</div>
+                    <small id="sessionUserRole" class="text-muted" style="font-size: 0.75rem;"></small>
+                </div>
+            </div>
+            <button onclick="cerrarSesion()" class="btn btn-sm text-danger" title="Cerrar Sesión">
+                <i class="fa-solid fa-right-from-bracket"></i>
+            </button>
+        </div>
     </div>
 </aside>
 
@@ -232,7 +271,6 @@
                     </div>
 
                     <div class="row g-3 mb-3">
-                        <!-- CAMPO PIN OCULTO COMO CONTRASEÑA CON BOTÓN DE MOSTRAR -->
                         <div class="col-md-6">
                             <label class="form-label small fw-bold">PIN de Acceso (4 dígitos) *</label>
                             <div class="input-group">
@@ -294,11 +332,31 @@
 <script>
     let listaEmpleados = [];
 
+    function inicializarSesionYMenu() {
+        let session = {};
+        try {
+            session = JSON.parse(localStorage.getItem('sazontrack_session') || '{}');
+        } catch (e) {}
+
+        const rolRaw = (session.rol || session.nombre_rol || (session.usuario && (session.usuario.rol || session.usuario.nombre_rol)) || 'ADMINISTRADOR').toString().trim().toUpperCase();
+        const nombre = session.nombre || session.nombre_completo || (session.usuario && session.usuario.nombre) || 'Administrador';
+
+        const elName = document.getElementById('sessionUserName');
+        const elRole = document.getElementById('sessionUserRole');
+        if (elName) elName.textContent = nombre;
+        if (elRole) elRole.textContent = rolRaw;
+    }
+
+    function cerrarSesion() {
+        localStorage.removeItem('sazontrack_session');
+        window.location.href = 'login.html';
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
+        inicializarSesionYMenu();
         cargarEmpleados();
     });
 
-    // Función para mostrar/ocultar el PIN en el formulario Modal
     function togglePinModal() {
         const inputPin = document.getElementById('pin_acceso');
         const icono = document.getElementById('iconoOjoModal');
@@ -311,7 +369,6 @@
         }
     }
 
-    // Función para mostrar/ocultar el PIN de un empleado específico en la tabla
     function togglePinTabla(id, pinReal) {
         const span = document.getElementById(`pin-span-${id}`);
         const icon = document.getElementById(`pin-icon-${id}`);
@@ -414,7 +471,6 @@
         });
     }
 
-    // Envío automático apoyándose en api/whatsapp/enviar.php o servidor Baileys local
     async function enviarQrWhatsAppFrontend(telefono, nombre, puesto, qr, pin) {
         const telLimpio = (telefono || '').replace(/\D/g, '');
         if (!telLimpio) {
@@ -447,7 +503,6 @@
             console.warn("Servicio local WhatsApp no disponible, abriendo enlace directo Wa.me");
         }
 
-        // Respaldo automático por si el bot Node.js no está corriendo
         const prefijo = telLimpio.length === 10 ? '521' + telLimpio : telLimpio;
         window.open(`https://wa.me/${prefijo}?text=${encodeURIComponent(mensaje)}`, '_blank');
     }
@@ -520,7 +575,6 @@
                 bootstrap.Modal.getInstance(document.getElementById('modalEmpleado')).hide();
                 await cargarEmpleados();
 
-                // Si el backend aún no lo envió por Baileys y está marcada la casilla, lo enviamos por api/whatsapp/enviar.php
                 if (enviarWa && payload.telefono && !res.wa_enviado) {
                     const nombreCompleto = `${payload.nombre} ${payload.apellido}`.trim();
                     enviarQrWhatsAppFrontend(payload.telefono, nombreCompleto, payload.puesto, res.codigo_qr, payload.pin_acceso);

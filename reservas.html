@@ -46,21 +46,25 @@
 </head>
 <body>
 
-    <aside class="sidebar">
+    <!-- SIDEBAR -->
+<aside class="sidebar">
         <div class="sidebar-scrollable">
             <div class="brand-header">
-                <div class="brand-avatar"><i class="fa-solid fa-concierge-bell"></i></div>
+                <div class="brand-avatar">
+                    <i class="fa-solid fa-concierge-bell"></i>
+                </div>
                 <div>
                     <h2 class="brand-title">SazónTrack</h2>
                     <span class="brand-sub">Panel de Control</span>
                 </div>
             </div>
+
             <nav class="sidebar-nav">
                 <div class="nav-category">Principal</div>
                 <a href="index.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
                 <a href="caja.html" class="nav-link"><i class="fa-solid fa-cash-register"></i> Caja POS</a>
                 <a href="mesas.html" class="nav-link"><i class="fa-solid fa-utensils"></i> Mapa Mesas</a>
-                <a href="reservas.html" class="nav-link active"><i class="fa-solid fa-calendar-check"></i> Reservaciones</a>
+                <a href="reservas.html" class="nav-link"><i class="fa-solid fa-calendar-check"></i> Reservaciones</a>
                 <a href="kds_cocina.html" class="nav-link"><i class="fa-solid fa-fire-burner"></i> KDS Cocina</a>
                 <a href="kds_barra.html" class="nav-link"><i class="fa-solid fa-martini-glass-citrus"></i> KDS Barra</a>
 
@@ -81,11 +85,23 @@
                 <a href="reporte_ventas.html" class="nav-link"><i class="fa-solid fa-chart-line"></i> Reporte de Ventas</a>
             </nav>
         </div>
-        <div class="pt-3 border-top">
-            <a href="index.html" class="btn btn-sm btn-outline-dark w-100 rounded-pill"><i class="fa-solid fa-arrow-left me-1"></i> Volver al Dashboard</a>
+
+        <div class="pt-3 border-top border-secondary-subtle">
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-user-circle fa-2x text-secondary"></i>
+                    <div class="lh-1">
+                        <div id="sessionUserName" class="fw-bold small">Cargando...</div>
+                        <small id="sessionUserRole" class="text-muted" style="font-size: 0.75rem;"></small>
+                    </div>
+                </div>
+                <button onclick="cerrarSesion()" class="btn btn-sm text-danger" title="Cerrar Sesión">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </button>
+            </div>
         </div>
     </aside>
-
+    
     <main class="main-content">
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
             <div>
@@ -346,6 +362,7 @@
             });
             cargarReservas();
         }
+    </script>
     </script>
 </body>
 </html>

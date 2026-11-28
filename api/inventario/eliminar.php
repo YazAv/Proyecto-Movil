@@ -1,47 +1,41 @@
 <?php
-ob_start();
-ini_set('display_errors', 0);
-error_reporting(E_ALL);
-
+header('Access-Control-Allow-Origin: *');
 header('Content-Type: application/json; charset=utf-8');
+ini_set('display_errors', 0);
+
+$rutas = [
+    __DIR__ . '/../../config/conexion.php',
+    __DIR__ . '/../config/conexion.php',
+    __DIR__ . '/../../config/db.php',
+    __DIR__ . '/../conexion.php'
+];
+foreach ($rutas as $r) {
+    if (file_exists($r)) {
+        require_once $r;
+        break;
+    }
+}
+if (!isset($conn) && isset($pdo)) $conn = $pdo;
+if (!isset($conn) && class_exists('Database')) $conn = (new Database())->getConnection();
 
 try {
-    $path_db = dirname(__FILE__) . '/../../config/conexion.php';
+    $raw = file_get_contents('php://input');
+    $json = json_decode($raw, true);
+    $datos = is_array($json) && !empty($json) ? $json : $_POST;
 
-    if (!file_exists($path_db)) {
-        $path_db = $_SERVER['DOCUMENT_ROOT'] . '/restaurante_app/config/conexion.php';
-    }
-
-    if (!file_exists($path_db)) {
-        throw new Exception("No se encontró conexion.php");
-    }
-
-    require_once $path_db;
-
-    $pdo = isset($db) ? $db : (isset($conn) ? $conn : (isset($conexion) ? $conexion : null));
-
-    if (!$pdo) {
-        throw new Exception("No se detectó una variable de conexión válida en conexion.php");
-    }
-
-    $data = json_decode(file_get_contents("php://input"), true);
-
-    if (empty($data['id_insumo'])) {
-        ob_end_clean();
+    $id = intval($datos['id_insumo'] ?? ($datos['id'] ?? 0));
+    if ($id <= 0) {
         http_response_code(400);
-        echo json_encode(['status' => 'error', 'message' => 'Falta id_insumo']);
+        echo json_encode(['status' => 'error', 'message' => 'ID de insumo no válido.']);
         exit;
     }
 
-    $stmt = $pdo->prepare("DELETE FROM insumos WHERE id_insumo = :id_insumo");
-    $stmt->execute([':id_insumo' => intval($data['id_insumo'])]);
+    $stmt = $conn->prepare("DELETE FROM public.insumos WHERE id_insumo = ?");
+    $stmt->execute([$id]);
 
-    ob_end_clean();
-    echo json_encode(['status' => 'success', 'message' => 'Insumo eliminado']);
-
-} catch (Exception $e) {
-    ob_end_clean();
-    http_response_code(500);
-    echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+    echo json_encode(['status' => 'success', 'message' => 'Insumo eliminado correctamente.']);
+} catch (Throwable $e) {
+    http_response_code(400);
+    echo json_encode(['status' => 'error', 'message' => 'No se pudo eliminar (puede estar en uso en una receta): ' . $e->getMessage()]);
 }
 ?>

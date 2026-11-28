@@ -3,453 +3,712 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SazónTrack POS - Control de Inventario & Mermas</title>
-         
-    <!-- Bootstrap CSS Local -->
-    <link href="assets/css/bootstrap.min.css" rel="stylesheet">
-         
-    <!-- FontAwesome CSS Local -->
-    <link href="assets/css/all.min.css" rel="stylesheet">
-         
-    <!-- Tipografías de Google Fonts -->
+    <title>SazónTrack - Insumos e Inventario</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Italianno&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
             --bg-offwhite: #FDFCF8;
             --bg-ivory: #F3F0E9;
             --color-nude: #E3DBCC;
+            --color-nude-hover: #D5C7B3;
             --text-dark: #2A2621;
             --text-muted: #736B60;
+            --card-shadow: rgba(42, 38, 33, 0.05);
+            --sidebar-width: 260px;
         }
+
         body {
             background-color: var(--bg-ivory);
             color: var(--text-dark);
-            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
         }
+
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--color-nude-hover); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
         .sidebar {
-            width: 260px;
+            width: var(--sidebar-width);
             background: var(--bg-offwhite);
             border-right: 1px solid var(--color-nude);
             height: 100vh;
             position: fixed;
             top: 0;
             left: 0;
-            padding: 1.5rem 1rem;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            padding: 1.5rem 1rem;
+            z-index: 100;
+        }
+        .sidebar-scrollable { overflow-y: auto; flex-grow: 1; padding-right: 5px; }
+
+        .brand-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 1.2rem;
+            border-bottom: 1px solid var(--color-nude);
+            margin-bottom: 1rem;
+        }
+        .brand-avatar {
+            width: 44px;
+            height: 44px;
+            background: var(--text-dark);
+            color: var(--bg-offwhite);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
         }
         .brand-title {
-            font-family: 'Italianno', cursive;
-            font-size: 2.5rem;
-            margin: 0;
+            font-family: 'Italianno', cursive, serif;
+            font-size: 2.2rem;
             color: var(--text-dark);
-            line-height: 1;
+            line-height: 0.8;
+            margin: 0;
+        }
+        .brand-sub { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
+
+        .nav-category {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin: 1.2rem 0 0.4rem 0.8rem;
         }
         .sidebar-nav .nav-link {
             color: var(--text-muted);
             font-weight: 600;
-            padding: 12px 16px;
+            font-size: 0.9rem;
+            padding: 10px 14px;
             border-radius: 12px;
             display: flex;
             align-items: center;
             gap: 12px;
+            margin-bottom: 4px;
             text-decoration: none;
-            margin-bottom: 6px;
-            transition: all 0.2s ease;
+            transition: all 0.15s ease;
         }
-        .sidebar-nav .nav-link.active, 
-        .sidebar-nav .nav-link:hover {
+        .sidebar-nav .nav-link:hover { background: var(--bg-ivory); color: var(--text-dark); }
+        .sidebar-nav .nav-link.active {
             background: var(--text-dark);
             color: var(--bg-offwhite);
+            box-shadow: 0 4px 12px rgba(42, 38, 33, 0.12);
         }
+
         .main-wrapper {
-            margin-left: 260px;
-            padding: 2rem;
+            margin-left: var(--sidebar-width);
+            padding: 2rem 2.5rem;
         }
+
         .card-custom {
             background: var(--bg-offwhite);
             border: 1px solid var(--color-nude);
+            border-radius: 20px;
+            box-shadow: 0 4px 15px var(--card-shadow);
+        }
+
+        .kpi-card {
+            background: var(--bg-offwhite);
+            border: 1px solid var(--color-nude);
             border-radius: 18px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+            padding: 1.2rem 1.4rem;
+            box-shadow: 0 4px 12px var(--card-shadow);
         }
-        .table thead th {
-            border-bottom: 2px solid var(--color-nude);
+
+        .table th {
+            background-color: var(--bg-ivory);
             color: var(--text-muted);
-            font-size: 0.85rem;
+            font-weight: 700;
+            font-size: 0.78rem;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.4px;
+            border-bottom: 2px solid var(--color-nude);
+            padding: 0.9rem 1rem;
         }
-        .badge-optimo { background: #D1FAE5; color: #065F46; font-weight: 600; padding: 6px 12px; border-radius: 20px; }
-        .badge-critico { background: #FEF3C7; color: #92400E; font-weight: 600; padding: 6px 12px; border-radius: 20px; }
-        .badge-agotado { background: #FEE2E2; color: #991B1B; font-weight: 600; padding: 6px 12px; border-radius: 20px; }
-        .btn-dark-custom {
-            background-color: var(--text-dark);
-            color: var(--bg-offwhite);
+        .table td {
+            vertical-align: middle;
+            border-bottom: 1px solid var(--color-nude);
+            padding: 0.85rem 1rem;
+            font-weight: 500;
+        }
+
+        .badge-ok { background-color: #DCFCE7; color: #15803D; font-weight: 700; }
+        .badge-critico { background-color: #FEE2E2; color: #DC2626; font-weight: 700; }
+
+        .btn-action {
+            width: 34px;
+            height: 34px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             border-radius: 10px;
-            font-weight: 600;
-            padding: 10px 20px;
-            border: none;
+            border: 1px solid var(--color-nude);
+            background: #fff;
+            color: var(--text-dark);
+            transition: all 0.18s;
         }
-        .btn-dark-custom:hover {
-            background-color: #423c34;
-            color: var(--bg-offwhite);
-        }
+        .btn-action:hover { background: var(--color-nude-hover); }
+        .btn-action.entrada:hover { background: #DCFCE7; color: #15803D; border-color: #86EFAC; }
+        .btn-action.merma:hover { background: #FEF3C7; color: #B45309; border-color: #FCD34D; }
+        .btn-action.delete:hover { background: #FEE2E2; color: #DC2626; border-color: #FCA5A5; }
+
         .modal-content {
             background-color: var(--bg-offwhite);
-            border-radius: 18px;
             border: 1px solid var(--color-nude);
+            border-radius: 20px;
+        }
+        .form-control, .form-select {
+            background-color: #fff;
+            border: 1px solid var(--color-nude);
+            border-radius: 10px;
+            padding: 0.6rem 0.95rem;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--text-dark);
+            box-shadow: none;
+        }
+
+        @media (max-width: 991px) {
+            .sidebar { position: static; width: 100%; height: auto; }
+            .main-wrapper { margin-left: 0; padding: 1.25rem; }
         }
     </style>
 </head>
 <body>
 
-<!-- MENÚ LATERAL (SIDEBAR) -->
-<aside class="sidebar">
-    <div>
-        <div class="mb-4">
-            <h2 class="brand-title">SazónTrack</h2>
-            <span class="text-muted small fw-bold text-uppercase">Control de Inventarios</span>
-        </div>
-        <nav class="sidebar-nav">
-            <a href="index.html" class="nav-link"><i class="fa-solid fa-chart-pie me-1"></i> Dashboard</a>
-            <a href="caja.html" class="nav-link"><i class="fa-solid fa-cash-register me-1"></i> Caja POS</a>
-            <a href="mesas.html" class="nav-link"><i class="fa-solid fa-utensils me-1"></i> Mapa Mesas</a>
-            <a href="inventario.html" class="nav-link active"><i class="fa-solid fa-boxes-stacked me-1"></i> Insumos / Stock</a>
-            <a href="recetas.html" class="nav-link"><i class="fa-solid fa-file-invoice-dollar me-1"></i> Escandallos POS</a>
-        </nav>
-    </div>
-    <div class="border-top pt-3" style="border-color: var(--color-nude) !important;">
-        <span class="small text-muted d-block"><i class="fa-solid fa-circle-user me-1"></i> Usuario Activo</span>
-        <strong class="small" id="sessionUserName">Administrador</strong>
-    </div>
-</aside>
-
-<!-- ÁREA PRINCIPAL DE TRABAJO -->
-<main class="main-wrapper">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h3 class="fw-bold m-0"><i class="fa-solid fa-boxes-stacked me-2"></i>Gestión de Insumos</h3>
-            <p class="text-muted small m-0">Monitoreo de existencias, mermas e insumos de cocina</p>
-        </div>
-        <div class="d-flex gap-2">
-            <!-- Botón para Registrar Merma Operativa -->
-            <button class="btn btn-outline-danger fw-bold" onclick="abrirModalMerma()" style="border-radius: 10px;">
-                <i class="fa-solid fa-dumpster me-1"></i> Registrar Merma
-            </button>
-            <!-- Botón para Crear Nuevo Insumo -->
-            <button class="btn btn-dark-custom" onclick="abrirModalCrear()">
-                <i class="fa-solid fa-plus me-2"></i>Registrar Insumo
-            </button>
-        </div>
-    </div>
-
-    <!-- TABLA DE INSUMOS DE ALMACÉN -->
-    <div class="card-custom">
-        <div class="table-responsive">
-            <table class="table align-middle mb-0">
-                <thead>
-                    <tr>
-                        <th>Nombre Insumo</th>
-                        <th>Stock Actual</th>
-                        <th>Stock Mínimo</th>
-                        <th>Costo Unitario</th>
-                        <th>Estado</th>
-                        <th class="text-end">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody id="tablaInsumos">
-                    <tr>
-                        <td colspan="6" class="text-center py-4 text-muted">
-                            <i class="fa-solid fa-spinner fa-spin me-2"></i> Cargando insumos...
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</main>
-
-<!-- MODAL 1: REGISTRAR / EDITAR INSUMO -->
-<div class="modal fade" id="modalInsumo" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header border-bottom-0">
-                <h5 class="modal-title fw-bold" id="modalTitulo"><i class="fa-solid fa-box me-2"></i>Nuevo Insumo</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <aside class="sidebar">
+        <div class="sidebar-scrollable">
+            <div class="brand-header">
+                <div class="brand-avatar">
+                    <i class="fa-solid fa-concierge-bell"></i>
+                </div>
+                <div>
+                    <h2 class="brand-title">SazónTrack</h2>
+                    <span class="brand-sub">Panel de Control</span>
+                </div>
             </div>
-            <div class="modal-body">
-                <form id="formInsumo">
-                    <input type="hidden" id="id_insumo">
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold small">Nombre del Insumo</label>
-                        <input type="text" class="form-control" id="nombre" placeholder="Ej: Queso Mozzarella" required>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-semibold small">Unidad de Medida</label>
-                            <select class="form-select" id="unidad_medida" required>
-                                <option value="kg">Kilogramos (kg)</option>
-                                <option value="gr">Gramos (gr)</option>
-                                <option value="lt">Litros (lt)</option>
-                                <option value="ml">Mililitros (ml)</option>
-                                <option value="pz">Piezas (pz)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-semibold small">Costo Unitario ($)</label>
-                            <input type="number" step="0.01" class="form-control" id="costo_unitario" placeholder="0.00" required>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-semibold small">Stock Actual</label>
-                            <input type="number" step="0.001" class="form-control" id="stock_actual" placeholder="0.000" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-semibold small">Stock Mínimo (Alerta)</label>
-                            <input type="number" step="0.001" class="form-control" id="stock_minimo" placeholder="0.000" required>
-                        </div>
-                    </div>
-                    <div class="text-end mt-3">
-                        <button type="button" class="btn btn-outline-secondary me-2" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-dark-custom">Guardar Insumo</button>
-                    </div>
-                </form>
+
+            <nav class="sidebar-nav">
+                <div class="nav-category">Principal</div>
+                <a href="index.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+                <a href="caja.html" class="nav-link"><i class="fa-solid fa-cash-register"></i> Caja POS</a>
+                <a href="mesas.html" class="nav-link"><i class="fa-solid fa-utensils"></i> Mapa Mesas</a>
+                <a href="reservas.html" class="nav-link"><i class="fa-solid fa-calendar-check"></i> Reservaciones</a>
+                <a href="kds_cocina.html" class="nav-link"><i class="fa-solid fa-fire-burner"></i> KDS Cocina</a>
+                <a href="kds_barra.html" class="nav-link"><i class="fa-solid fa-martini-glass-citrus"></i> KDS Barra</a>
+
+                <div class="nav-category">Recursos Humanos</div>
+                <a href="asistencia.html" target="_blank" class="nav-link">
+                    <i class="fa-solid fa-clock"></i> Reloj Checador <i class="fa-solid fa-arrow-up-right-from-square ms-auto opacity-50" style="font-size: 0.7rem;"></i>
+                </a>
+                <a href="reporte_asistencia.html" class="nav-link"><i class="fa-solid fa-clipboard-user"></i> Control de Nómina</a>
+
+                <div class="nav-category">Administración (CRUDs)</div>
+                <a href="empleados.html" class="nav-link"><i class="fa-solid fa-users"></i> Empleados</a>
+                <a href="productos.html" class="nav-link"><i class="fa-solid fa-burger"></i> Menú</a>
+                <a href="recetas.html" class="nav-link"><i class="fa-solid fa-file-invoice-dollar"></i> Recetas</a>
+                <a href="inventario.html" class="nav-link active"><i class="fa-solid fa-boxes-stacked"></i> Insumos e Inventario</a>
+                <a href="modificadores.html" class="nav-link"><i class="fa-solid fa-code-branch"></i> Modificadores</a>
+                <a href="historial_comandas.html" class="nav-link"><i class="fa-solid fa-receipt"></i> Histórico Comandas</a>
+                <a href="turno.html" class="nav-link"><i class="fa-solid fa-vault"></i> Turnos y Cortes</a>
+                <a href="reporte_ventas.html" class="nav-link"><i class="fa-solid fa-chart-line"></i> Reporte de Ventas</a>
+            </nav>
+        </div>
+    </aside>
+
+    <main class="main-wrapper">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+            <div>
+                <h3 class="fw-bold m-0">Control de Insumos e Inventario</h3>
+                <p class="text-muted small m-0">Existencias de materia prima, entradas de almacén, mermas y alertas de stock mínimo.</p>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                <button type="button" class="btn btn-outline-dark rounded-3 fw-bold px-3 py-2" onclick="abrirModalMovimiento('merma')">
+                    <i class="fa-solid fa-triangle-exclamation me-1 text-warning"></i> Registrar Merma
+                </button>
+                <button type="button" class="btn btn-outline-success rounded-3 fw-bold px-3 py-2" onclick="abrirModalMovimiento('entrada')">
+                    <i class="fa-solid fa-truck-ramp-box me-1"></i> Entrada Almacén
+                </button>
+                <button type="button" class="btn btn-dark rounded-3 fw-bold px-3 py-2" onclick="abrirModalInsumoNuevo()">
+                    <i class="fa-solid fa-plus me-1"></i> Nuevo Insumo
+                </button>
             </div>
         </div>
-    </div>
-</div>
 
-<!-- MODAL 2: REGISTRAR MERMA OPERATIVA -->
-<div class="modal fade" id="modalMerma" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="border-radius: 18px; border: none;">
-            <div class="modal-header bg-danger text-white" style="border-radius: 18px 18px 0 0;">
-                <h5 class="modal-title fw-bold"><i class="fa-solid fa-dumpster me-2"></i>Registrar Merma Operativa</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        <!-- RESUMEN KPI DE ALMACÉN -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="kpi-card">
+                    <span class="text-muted small fw-bold text-uppercase">Total Insumos Activos</span>
+                    <h3 class="fw-extrabold m-0 mt-1" id="kpiTotalInsumos">0</h3>
+                </div>
             </div>
-            <div class="modal-body p-4">
-                <form id="formMerma" onsubmit="guardarMermaBD(event)">
-                    <!-- Seleccionar Insumo -->
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">Insumo Afectado *</label>
-                        <select id="selectInsumoMerma" class="form-select" required></select>
-                    </div>
+            <div class="col-md-4">
+                <div class="kpi-card">
+                    <span class="text-muted small fw-bold text-uppercase">Valor Total en Almacén</span>
+                    <h3 class="fw-extrabold text-success m-0 mt-1" id="kpiValorAlmacen">$0.00</h3>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="kpi-card">
+                    <span class="text-muted small fw-bold text-uppercase">Insumos en Stock Crítico</span>
+                    <h3 class="fw-extrabold text-danger m-0 mt-1" id="kpiCriticos">0</h3>
+                </div>
+            </div>
+        </div>
 
-                    <div class="row g-2 mb-3">
-                        <!-- Cantidad -->
-                        <div class="col-6">
-                            <label class="form-label small fw-bold">Cantidad a Mermar *</label>
-                            <input type="number" step="0.001" id="cantMerma" class="form-control" placeholder="0.000" required>
-                        </div>
-                        <!-- Motivo -->
-                        <div class="col-6">
-                            <label class="form-label small fw-bold">Motivo *</label>
-                            <select id="motivoMerma" class="form-select" required>
-                                <option value="Caducidad">Caducidad</option>
-                                <option value="Error de Preparacion">Error de Preparación</option>
-                                <option value="Accidente/Caida">Accidente / Caída</option>
-                                <option value="Mal Estado">Mal Estado de Origen</option>
-                            </select>
-                        </div>
+        <!-- FILTROS -->
+        <div class="card-custom p-3 mb-4">
+            <div class="row g-2 align-items-center">
+                <div class="col-md-5">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                        <input type="text" id="buscarInsumo" class="form-control border-start-0" placeholder="Buscar materia prima (ej. Aguacate, Arrachera)..." oninput="filtrarInsumos()">
                     </div>
-
-                    <!-- Notas -->
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">Notas Adicionales</label>
-                        <textarea id="notasMerma" class="form-control" rows="2" placeholder="Detalles de la pérdida..."></textarea>
-                    </div>
-
-                    <button type="submit" class="btn btn-danger w-100 fw-bold py-2">
-                        <i class="fa-solid fa-check-circle me-1"></i> Descontar Merma
+                </div>
+                <div class="col-md-4">
+                    <select id="filtroEstadoStock" class="form-select fw-semibold text-muted" onchange="filtrarInsumos()">
+                        <option value="todos">Todos los niveles de stock</option>
+                        <option value="critico">Solo stock crítico (por resurtir)</option>
+                        <option value="optimo">Stock óptimo</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="button" class="btn btn-outline-dark w-100 rounded-3 fw-semibold" onclick="limpiarFiltros()">
+                        <i class="fa-solid fa-rotate-left me-1"></i> Limpiar filtros
                     </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TABLA DE INSUMOS -->
+        <div class="card-custom overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th class="ps-4"># ID</th>
+                            <th>Insumo / Materia Prima</th>
+                            <th>Unidad</th>
+                            <th>Costo Unitario</th>
+                            <th>Stock Actual</th>
+                            <th>Stock Mínimo</th>
+                            <th>Valor Inventario</th>
+                            <th>Estado</th>
+                            <th class="text-center pe-4">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaInsumos"></tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- MODAL CREAR / EDITAR INSUMO -->
+    <div class="modal fade" id="modalInsumo" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-bottom border-secondary-subtle">
+                    <h5 class="modal-title fw-bold" id="tituloModalInsumo"><i class="fa-solid fa-boxes-stacked me-2"></i>Nuevo Insumo</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <form id="formInsumo" onsubmit="guardarInsumo(event)">
+                    <div class="modal-body p-4">
+                        <input type="hidden" id="insumoId">
+
+                        <div class="mb-3">
+                            <label for="insumoNombre" class="form-label fw-bold small text-muted">Nombre del Insumo</label>
+                            <input type="text" class="form-control" id="insumoNombre" placeholder="Ej. Arrachera Marinada" required>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-sm-6">
+                                <label for="insumoUnidad" class="form-label fw-bold small text-muted">Unidad de Medida</label>
+                                <select class="form-select" id="insumoUnidad" required>
+                                    <option value="kg">Kilogramos (kg)</option>
+                                    <option value="L">Litros (L)</option>
+                                    <option value="pza">Piezas (pza)</option>
+                                    <option value="gr">Gramos (gr)</option>
+                                    <option value="ml">Mililitros (ml)</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-6">
+                                <label for="insumoCosto" class="form-label fw-bold small text-muted">Costo Unitario ($ MXN)</label>
+                                <input type="number" step="0.01" min="0" class="form-control" id="insumoCosto" placeholder="0.00" required>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-sm-6">
+                                <label for="insumoStock" class="form-label fw-bold small text-muted">Stock Actual</label>
+                                <input type="number" step="0.001" min="0" class="form-control" id="insumoStock" placeholder="0.000" required>
+                            </div>
+                            <div class="col-sm-6">
+                                <label for="insumoMinimo" class="form-label fw-bold small text-muted">Stock Mínimo (Alerta)</label>
+                                <input type="number" step="0.001" min="0" class="form-control" id="insumoMinimo" placeholder="0.000" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer border-top-0 pt-0 px-4 pb-4">
+                        <button type="button" class="btn btn-light border fw-bold rounded-3" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-dark fw-bold rounded-3 px-4" id="btnGuardarInsumo">Guardar Insumo</button>
+                    </div>
                 </form>
             </div>
         </div>
     </div>
-</div>
 
-<script src="assets/js/bootstrap.bundle.min.js"></script>
-<script>
-    let listaInsumosGlobal = [];
-    let modalInsumoBS;
-    let modalMermaBS;
+    <!-- MODAL ENTRADA DE ALMACÉN / MERMA -->
+    <div class="modal fade" id="modalMovimiento" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-bottom border-secondary-subtle">
+                    <h5 class="modal-title fw-bold" id="tituloModalMovimiento">Movimiento de Almacén</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <form id="formMovimiento" onsubmit="guardarMovimiento(event)">
+                    <div class="modal-body p-4">
+                        <input type="hidden" id="movTipo" value="entrada">
 
-    // Al cargar la página
-    document.addEventListener("DOMContentLoaded", () => {
-        modalInsumoBS = new bootstrap.Modal(document.getElementById('modalInsumo'));
-        modalMermaBS = new bootstrap.Modal(document.getElementById('modalMerma'));
-        
-        // Cargar nombre del usuario de la sesión activa
-        const sessionData = localStorage.getItem("sazontrack_session");
-        if (sessionData) {
-            const session = JSON.parse(sessionData);
-            document.getElementById("sessionUserName").innerText = session.nombre_empleado || session.username;
-        }
+                        <div class="mb-3">
+                            <label for="movInsumoId" class="form-label fw-bold small text-muted">Seleccionar Insumo</label>
+                            <select class="form-select" id="movInsumoId" required></select>
+                        </div>
 
-        cargarInsumos();
-    });
+                        <div class="row g-3 mb-3">
+                            <div class="col-sm-6">
+                                <label for="movCantidad" class="form-label fw-bold small text-muted">Cantidad</label>
+                                <input type="number" step="0.001" min="0.001" class="form-control" id="movCantidad" placeholder="0.000" required>
+                            </div>
+                            <div class="col-sm-6" id="grupoCostoEntrada">
+                                <label for="movCostoNuevo" class="form-label fw-bold small text-muted">Costo Unitario Compra ($)</label>
+                                <input type="number" step="0.01" min="0" class="form-control" id="movCostoNuevo" placeholder="Opcional">
+                            </div>
+                        </div>
 
-    // 1. Obtener la lista de insumos del servidor
-    async function cargarInsumos() {
-        const tbody = document.getElementById("tablaInsumos");
-        try {
-            const resp = await fetch('api/inventario/listar_stock.php');
-            const data = await resp.json();
-            tbody.innerHTML = "";
-            if (data.status === 'success' && data.data.length > 0) {
-                listaInsumosGlobal = data.data;
-                data.data.forEach(item => {
-                    let badgeClass = 'badge-optimo';
-                    if (item.estado_stock === 'critico') badgeClass = 'badge-critico';
-                    if (item.estado_stock === 'agotado') badgeClass = 'badge-agotado';
-                    
-                    tbody.innerHTML += `
-                        <tr>
-                            <td class="fw-bold">${item.nombre}</td>
-                            <td class="fw-bold">${parseFloat(item.stock_actual).toFixed(3)} ${item.unidad_medida}</td>
-                            <td>${parseFloat(item.stock_minimo).toFixed(3)} ${item.unidad_medida}</td>
-                            <td>$${parseFloat(item.costo_unitario).toFixed(2)}</td>
-                            <td><span class="badge ${badgeClass} text-capitalize">${item.estado_stock}</span></td>
-                            <td class="text-end">
-                                <button class="btn btn-sm btn-outline-dark me-1" onclick="editarInsumo(${item.id_insumo})">
-                                    <i class="fa-solid fa-pen"></i>
-                                </button>
-                                <button class="btn btn-sm btn-outline-danger" onclick="eliminarInsumo(${item.id_insumo})">
-                                    <i class="fa-solid fa-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                });
-            } else {
-                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">No hay insumos registrados.</td></tr>`;
-            }
-        } catch (err) {
-            console.error("Error:", err);
-            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-danger">Error al cargar datos del servidor.</td></tr>`;
-        }
-    }
+                        <div class="mb-2">
+                            <label for="movNotas" class="form-label fw-bold small text-muted">Motivo / Nota</label>
+                            <input type="text" class="form-control" id="movNotas" placeholder="Ej. Compra semanal proveedor o merma por cocción" required>
+                        </div>
+                    </div>
 
-    // 2. Abrir modal para crear insumo
-    function abrirModalCrear() {
-        document.getElementById("formInsumo").reset();
-        document.getElementById("id_insumo").value = "";
-        document.getElementById("modalTitulo").innerHTML = `<i class="fa-solid fa-box me-2"></i>Nuevo Insumo`;
-        modalInsumoBS.show();
-    }
+                    <div class="modal-footer border-top-0 pt-0 px-4 pb-4">
+                        <button type="button" class="btn btn-light border fw-bold rounded-3" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-dark fw-bold rounded-3 px-4" id="btnGuardarMovimiento">Aplicar Movimiento</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
-    // 3. Abrir modal para editar insumo
-    function editarInsumo(id) {
-        const item = listaInsumosGlobal.find(i => i.id_insumo == id);
-        if (!item) return;
-        document.getElementById("id_insumo").value = item.id_insumo;
-        document.getElementById("nombre").value = item.nombre;
-        document.getElementById("unidad_medida").value = item.unidad_medida;
-        document.getElementById("costo_unitario").value = item.costo_unitario;
-        document.getElementById("stock_actual").value = item.stock_actual;
-        document.getElementById("stock_minimo").value = item.stock_minimo;
-        document.getElementById("modalTitulo").innerHTML = `<i class="fa-solid fa-pen me-2"></i>Editar Insumo`;
-        modalInsumoBS.show();
-    }
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+   <script>
+        let listaInsumos = [];
+        let modalInsumoInst = null;
+        let modalMovInst = null;
 
-    // 4. Guardar insumo (Crear o Actualizar)
-    document.getElementById("formInsumo").addEventListener("submit", async function(e) {
-        e.preventDefault();
-        const id_insumo = document.getElementById("id_insumo").value;
-        const esEdicion = id_insumo !== "";
-        const payload = {
-            id_insumo: id_insumo ? parseInt(id_insumo) : null,
-            nombre: document.getElementById("nombre").value,
-            unidad_medida: document.getElementById("unidad_medida").value,
-            costo_unitario: parseFloat(document.getElementById("costo_unitario").value),
-            stock_actual: parseFloat(document.getElementById("stock_actual").value),
-            stock_minimo: parseFloat(document.getElementById("stock_minimo").value)
-        };
-        
-        const url = esEdicion ? 'api/inventario/actualizar.php' : 'api/inventario/crear.php';
-        try {
-            const resp = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            const res = await resp.json();
-            if (res.status === 'success') {
-                modalInsumoBS.hide();
-                cargarInsumos();
-            } else {
-                alert("Error: " + res.message);
-            }
-        } catch (error) {
-            console.error("Error al guardar:", error);
-        }
-    });
-
-    // 5. Eliminar insumo
-    async function eliminarInsumo(id) {
-        if (!confirm("¿Deseas eliminar este insumo del inventario?")) return;
-        try {
-            const resp = await fetch('api/inventario/eliminar.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id_insumo: id })
-            });
-            const res = await resp.json();
-            if (res.status === 'success') {
-                cargarInsumos();
-            } else {
-                alert("No se pudo eliminar: " + res.message);
-            }
-        } catch (error) {
-            console.error("Error al eliminar:", error);
-        }
-    }
-
-    // 6. Abrir modal para registrar merma
-    function abrirModalMerma() {
-        document.getElementById("formMerma").reset();
-        const select = document.getElementById("selectInsumoMerma");
-        select.innerHTML = '<option value="">-- Seleccionar Insumo --</option>';
-        
-        listaInsumosGlobal.forEach(ins => {
-            select.innerHTML += `<option value="${ins.id_insumo}">${ins.nombre} (Stock: ${parseFloat(ins.stock_actual).toFixed(3)} ${ins.unidad_medida})</option>`;
+        document.addEventListener('DOMContentLoaded', () => {
+            modalInsumoInst = new bootstrap.Modal(document.getElementById('modalInsumo'));
+            modalMovInst = new bootstrap.Modal(document.getElementById('modalMovimiento'));
+            cargarInsumos();
         });
-        
-        modalMermaBS.show();
-    }
 
-    // 7. Enviar registro de merma a la API
-    async function guardarMermaBD(e) {
-        e.preventDefault();
-        const payload = {
-            id_insumo: parseInt(document.getElementById("selectInsumoMerma").value),
-            cantidad: parseFloat(document.getElementById("cantMerma").value),
-            motivo: document.getElementById("motivoMerma").value,
-            notas: document.getElementById("notasMerma").value
-        };
+        async function cargarInsumos() {
+            const tbody = document.getElementById('tablaInsumos');
+            tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-muted"><i class="fa-solid fa-spinner fa-spin me-2"></i> Cargando inventario...</td></tr>`;
 
-        try {
-            const resp = await fetch('api/inventario/registrar_merma.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            const res = await resp.json();
-            if (res.status === 'success') {
-                alert("¡Merma registrada y stock actualizado!");
-                modalMermaBS.hide();
-                cargarInsumos();
-            } else {
-                alert("Error: " + res.message);
+            try {
+                const resp = await fetch('api/inventario/listar_stock.php');
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                const data = await resp.json();
+
+                const raw = Array.isArray(data) ? data : (data.data || []);
+                listaInsumos = raw.map(item => ({
+                    id: Number(item.id_insumo ?? item.id),
+                    nombre: item.nombre || '',
+                    unidad: item.unidad_medida || 'kg',
+                    costo: parseFloat(item.costo_unitario ?? 0),
+                    stock: parseFloat(item.stock_actual ?? 0),
+                    minimo: parseFloat(item.stock_minimo ?? 0),
+                    estado_stock: item.estado_stock || ''
+                }));
+
+                actualizarKPIs();
+                llenarSelectMovimiento();
+                filtrarInsumos();
+            } catch (error) {
+                console.error('Error cargando insumos:', error);
+                tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-danger fw-bold"><i class="fa-solid fa-triangle-exclamation me-2"></i> Error al cargar los insumos desde la base de datos.</td></tr>`;
             }
-        } catch (error) {
-            console.error("Error al registrar merma:", error);
-            alert("Error al conectar con el servidor.");
         }
-    }
-</script>
+
+        function actualizarKPIs() {
+            const total = listaInsumos.length;
+            const valor = listaInsumos.reduce((acc, i) => acc + (i.stock * i.costo), 0);
+            const criticos = listaInsumos.filter(i => i.stock <= i.minimo).length;
+
+            document.getElementById('kpiTotalInsumos').textContent = total.toLocaleString('es-MX');
+            document.getElementById('kpiValorAlmacen').textContent = '$' + valor.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            document.getElementById('kpiCriticos').textContent = criticos.toLocaleString('es-MX');
+        }
+
+        function llenarSelectMovimiento() {
+            const select = document.getElementById('movInsumoId');
+            select.innerHTML = '<option value="">Selecciona un insumo...</option>';
+            listaInsumos.forEach(i => {
+                select.innerHTML += `<option value="${i.id}">${escapeHtml(i.nombre)} (Stock: ${i.stock.toFixed(3)} ${escapeHtml(i.unidad)})</option>`;
+            });
+        }
+
+        function filtrarInsumos() {
+            const texto = (document.getElementById('buscarInsumo').value || '').trim().toLowerCase();
+            const estado = document.getElementById('filtroEstadoStock').value;
+
+            const filtrados = listaInsumos.filter(i => {
+                const coincideTexto = !texto || i.nombre.toLowerCase().includes(texto) || i.unidad.toLowerCase().includes(texto);
+                const esCritico = i.stock <= i.minimo;
+                const coincideEstado = estado === 'todos'
+                    || (estado === 'critico' && esCritico)
+                    || (estado === 'optimo' && !esCritico);
+                return coincideTexto && coincideEstado;
+            });
+
+            renderizarTabla(filtrados);
+        }
+
+        function renderizarTabla(lista) {
+            const tbody = document.getElementById('tablaInsumos');
+            tbody.innerHTML = '';
+
+            if (!lista.length) {
+                tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-muted">No se encontraron insumos con los filtros aplicados.</td></tr>`;
+                return;
+            }
+
+            lista.forEach(i => {
+                const esCritico = i.stock <= i.minimo;
+                const valorTotal = i.stock * i.costo;
+                const badge = esCritico
+                    ? '<span class="badge badge-critico px-2 py-1 rounded-pill"><i class="fa-solid fa-circle-exclamation me-1"></i>Crítico</span>'
+                    : '<span class="badge badge-ok px-2 py-1 rounded-pill"><i class="fa-solid fa-check me-1"></i>Óptimo</span>';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="ps-4 fw-bold text-muted">${i.id}</td>
+                    <td class="fw-bold">${escapeHtml(i.nombre)}</td>
+                    <td><span class="badge bg-light text-dark border">${escapeHtml(i.unidad)}</span></td>
+                    <td>$${i.costo.toFixed(2)}</td>
+                    <td class="fw-bold ${esCritico ? 'text-danger' : 'text-dark'}">${i.stock.toFixed(3)}</td>
+                    <td class="text-muted">${i.minimo.toFixed(3)}</td>
+                    <td class="fw-bold text-success">$${valorTotal.toFixed(2)}</td>
+                    <td>${badge}</td>
+                    <td class="text-center pe-4">
+                        <div class="d-inline-flex gap-1">
+                            <button type="button" class="btn-action entrada" title="Entrada de almacén" onclick="abrirModalMovimiento('entrada', ${i.id})">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+                            <button type="button" class="btn-action merma" title="Registrar merma" onclick="abrirModalMovimiento('merma', ${i.id})">
+                                <i class="fa-solid fa-minus"></i>
+                            </button>
+                            <button type="button" class="btn-action" title="Editar insumo" onclick="editarInsumo(${i.id})">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button type="button" class="btn-action delete" title="Eliminar insumo" onclick="eliminarInsumo(${i.id})">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function abrirModalInsumoNuevo() {
+            document.getElementById('formInsumo').reset();
+            document.getElementById('insumoId').value = '';
+            document.getElementById('tituloModalInsumo').innerHTML = '<i class="fa-solid fa-boxes-stacked me-2"></i>Nuevo Insumo';
+            modalInsumoInst.show();
+        }
+
+        function editarInsumo(id) {
+            const ins = listaInsumos.find(x => x.id === Number(id));
+            if (!ins) return;
+
+            document.getElementById('insumoId').value = ins.id;
+            document.getElementById('insumoNombre').value = ins.nombre;
+            document.getElementById('insumoUnidad').value = ins.unidad;
+            document.getElementById('insumoCosto').value = ins.costo.toFixed(2);
+            document.getElementById('insumoStock').value = ins.stock.toFixed(3);
+            document.getElementById('insumoMinimo').value = ins.minimo.toFixed(3);
+            document.getElementById('tituloModalInsumo').innerHTML = '<i class="fa-solid fa-pen me-2"></i>Editar Insumo';
+            modalInsumoInst.show();
+        }
+
+        async function guardarInsumo(event) {
+            event.preventDefault();
+            const btn = document.getElementById('btnGuardarInsumo');
+            const textoPrevio = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Guardando...';
+
+            const id = document.getElementById('insumoId').value.trim();
+            const esEdicion = id !== '';
+
+            const formData = new FormData();
+            if (esEdicion) {
+                formData.append('id', id);
+                formData.append('id_insumo', id);
+            }
+            formData.append('nombre', document.getElementById('insumoNombre').value.trim());
+            formData.append('unidad_medida', document.getElementById('insumoUnidad').value);
+            formData.append('costo_unitario', document.getElementById('insumoCosto').value);
+            formData.append('stock_actual', document.getElementById('insumoStock').value);
+            formData.append('stock_minimo', document.getElementById('insumoMinimo').value);
+
+            const url = esEdicion ? 'api/inventario/actualizar.php' : 'api/inventario/crear.php';
+
+            try {
+                const resp = await fetch(url, { method: 'POST', body: formData });
+                const res = await resp.json();
+                if (res.status === 'error' || res.success === false) {
+                    alert(res.message || 'No se pudo guardar el insumo.');
+                } else {
+                    modalInsumoInst.hide();
+                    await cargarInsumos();
+                }
+            } catch (error) {
+                console.error('Error guardando insumo:', error);
+                alert('Error de conexión al guardar el insumo.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = textoPrevio;
+            }
+        }
+
+        function abrirModalMovimiento(tipo, idInsumo = '') {
+            document.getElementById('formMovimiento').reset();
+            document.getElementById('movTipo').value = tipo;
+            if (idInsumo) document.getElementById('movInsumoId').value = idInsumo;
+
+            const esEntrada = tipo === 'entrada';
+            document.getElementById('grupoCostoEntrada').style.display = esEntrada ? 'block' : 'none';
+            document.getElementById('tituloModalMovimiento').innerHTML = esEntrada
+                ? '<i class="fa-solid fa-truck-ramp-box text-success me-2"></i>Entrada de Almacén'
+                : '<i class="fa-solid fa-triangle-exclamation text-warning me-2"></i>Registrar Merma / Salida';
+            modalMovInst.show();
+        }
+
+        async function guardarMovimiento(event) {
+            event.preventDefault();
+            const btn = document.getElementById('btnGuardarMovimiento');
+            const textoPrevio = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Procesando...';
+
+            const tipo = document.getElementById('movTipo').value;
+            const idInsumo = Number(document.getElementById('movInsumoId').value);
+            const cantidad = parseFloat(document.getElementById('movCantidad').value || 0);
+            const costoNuevo = document.getElementById('movCostoNuevo').value;
+            const notas = document.getElementById('movNotas').value.trim();
+
+            try {
+                if (tipo === 'merma') {
+                    const formData = new FormData();
+                    formData.append('id_insumo', idInsumo);
+                    formData.append('cantidad', cantidad);
+                    formData.append('notas', notas);
+                    formData.append('motivo', notas);
+
+                    const resp = await fetch('api/inventario/registrar_merma.php', { method: 'POST', body: formData });
+                    const res = await resp.json();
+                    if (res.status === 'error' || res.success === false) {
+                        alert(res.message || 'No se pudo registrar la merma.');
+                    } else {
+                        modalMovInst.hide();
+                        await cargarInsumos();
+                    }
+                } else {
+                    const ins = listaInsumos.find(x => x.id === idInsumo);
+                    if (!ins) throw new Error('Insumo no encontrado.');
+
+                    const formData = new FormData();
+                    formData.append('id', ins.id);
+                    formData.append('id_insumo', ins.id);
+                    formData.append('nombre', ins.nombre);
+                    formData.append('unidad_medida', ins.unidad);
+                    formData.append('costo_unitario', (costoNuevo !== '' && parseFloat(costoNuevo) > 0) ? costoNuevo : ins.costo);
+                    formData.append('stock_actual', (ins.stock + cantidad).toFixed(3));
+                    formData.append('stock_minimo', ins.minimo.toFixed(3));
+
+                    const resp = await fetch('api/inventario/actualizar.php', { method: 'POST', body: formData });
+                    const res = await resp.json();
+                    if (res.status === 'error' || res.success === false) {
+                        alert(res.message || 'No se pudo registrar la entrada.');
+                    } else {
+                        modalMovInst.hide();
+                        await cargarInsumos();
+                    }
+                }
+            } catch (error) {
+                console.error('Error en movimiento:', error);
+                alert('Error al procesar el movimiento.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = textoPrevio;
+            }
+        }
+
+        async function eliminarInsumo(id) {
+            if (!confirm('¿Estás seguro de eliminar este insumo del almacén?')) return;
+
+            const formData = new FormData();
+            formData.append('id', id);
+            formData.append('id_insumo', id);
+
+            try {
+                const resp = await fetch('api/inventario/eliminar.php', { method: 'POST', body: formData });
+                const res = await resp.json();
+                if (res.status === 'error' || res.success === false) {
+                    alert(res.message || 'No se pudo eliminar el insumo.');
+                } else {
+                    await cargarInsumos();
+                }
+            } catch (error) {
+                console.error('Error eliminando insumo:', error);
+                alert('Error de conexión al eliminar.');
+            }
+        }
+
+        function limpiarFiltros() {
+            document.getElementById('buscarInsumo').value = '';
+            document.getElementById('filtroEstadoStock').value = 'todos';
+            filtrarInsumos();
+        }
+
+        function escapeHtml(str) {
+            return String(str ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+    </script>
+    </script>
+   
 </body>
 </html>

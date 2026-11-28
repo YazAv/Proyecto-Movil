@@ -1,69 +1,48 @@
 <?php
-ob_start();
-ini_set('display_errors', 0);
-error_reporting(E_ALL);
-
+header('Access-Control-Allow-Origin: *');
 header('Content-Type: application/json; charset=utf-8');
+ini_set('display_errors', 0);
+
+$rutas = [
+    __DIR__ . '/../../config/conexion.php',
+    __DIR__ . '/../config/conexion.php',
+    __DIR__ . '/../../config/db.php',
+    __DIR__ . '/../conexion.php'
+];
+foreach ($rutas as $r) {
+    if (file_exists($r)) {
+        require_once $r;
+        break;
+    }
+}
+if (!isset($conn) && isset($pdo)) $conn = $pdo;
+if (!isset($conn) && class_exists('Database')) $conn = (new Database())->getConnection();
 
 try {
-    // Buscar conexion.php en la carpeta config
-    $path_db = dirname(__FILE__) . '/../../config/conexion.php';
+    $raw = file_get_contents('php://input');
+    $json = json_decode($raw, true);
+    $datos = is_array($json) && !empty($json) ? $json : $_POST;
 
-    if (!file_exists($path_db)) {
-        $path_db = $_SERVER['DOCUMENT_ROOT'] . '/restaurante_app/config/conexion.php';
-    }
+    $nombre = trim($datos['nombre'] ?? '');
+    $unidad = trim($datos['unidad_medida'] ?? ($datos['unidad'] ?? 'kg'));
+    $costo  = floatval($datos['costo_unitario'] ?? ($datos['costo'] ?? 0));
+    $stock  = floatval($datos['stock_actual'] ?? ($datos['stock'] ?? 0));
+    $minimo = floatval($datos['stock_minimo'] ?? ($datos['minimo'] ?? 0));
 
-    if (!file_exists($path_db)) {
-        throw new Exception("No se encontró el archivo config/conexion.php");
-    }
-
-    require_once $path_db;
-
-    // Asignar PDO dinámicamente según el nombre de variable en tu conexion.php
-    $pdo = isset($db) ? $db : (isset($conn) ? $conn : (isset($conexion) ? $conexion : null));
-
-    if (!$pdo) {
-        throw new Exception("No se detectó una variable de conexión válida (\$db o \$conn) en conexion.php");
-    }
-
-    $input = file_get_contents("php://input");
-    $data = json_decode($input, true);
-
-    if (!$data || empty($data['nombre']) || empty($data['unidad_medida'])) {
-        ob_end_clean();
+    if ($nombre === '' || $unidad === '') {
         http_response_code(400);
-        echo json_encode(['status' => 'error', 'message' => 'Campos obligatorios incompletos']);
+        echo json_encode(['status' => 'error', 'message' => 'Nombre y unidad de medida son obligatorios.']);
         exit;
     }
 
-    $nombre         = trim($data['nombre']);
-    $unidad_medida  = trim($data['unidad_medida']);
-    $stock_actual   = floatval($data['stock_actual'] ?? 0);
-    $stock_minimo   = floatval($data['stock_minimo'] ?? 0);
-    $costo_unitario = floatval($data['costo_unitario'] ?? 0);
-
-    $stmt = $pdo->prepare("
-        INSERT INTO insumos (nombre, unidad_medida, stock_actual, stock_minimo, costo_unitario, ultimo_costo)
-        VALUES (:nombre, :unidad_medida, :stock_actual, :stock_minimo, :costo_unitario, :costo_unitario)
+    $stmt = $conn->prepare("
+        INSERT INTO public.insumos (nombre, unidad_medida, costo_unitario, stock_actual, stock_minimo)
+        VALUES (?, ?, ?, ?, ?)
     ");
+    $stmt->execute([$nombre, $unidad, $costo, $stock, $minimo]);
 
-    $stmt->execute([
-        ':nombre'         => $nombre,
-        ':unidad_medida'  => $unidad_medida,
-        ':stock_actual'   => $stock_actual,
-        ':stock_minimo'   => $stock_minimo,
-        ':costo_unitario' => $costo_unitario
-    ]);
-
-    ob_end_clean();
-    echo json_encode(['status' => 'success', 'message' => 'Insumo guardado correctamente']);
-
-} catch (PDOException $e) {
-    ob_end_clean();
-    http_response_code(500);
-    echo json_encode(['status' => 'error', 'message' => 'Error de BD: ' . $e->getMessage()]);
-} catch (Exception $e) {
-    ob_end_clean();
+    echo json_encode(['status' => 'success', 'message' => 'Insumo registrado correctamente.']);
+} catch (Throwable $e) {
     http_response_code(500);
     echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
 }

@@ -3,15 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SazónTrack - Catálogo de Menú</title>
-    <!-- Google Fonts -->
+    <title>SazónTrack - Menú y Productos</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Italianno&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- CSS Dependencies -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
     <style>
         :root {
             --bg-offwhite: #FDFCF8;
@@ -20,7 +17,7 @@
             --color-nude-hover: #D5C7B3;
             --text-dark: #2A2621;
             --text-muted: #736B60;
-            --card-shadow: rgba(42, 38, 33, 0.08);
+            --card-shadow: rgba(42, 38, 33, 0.05);
             --sidebar-width: 260px;
         }
 
@@ -33,12 +30,12 @@
             overflow-x: hidden;
         }
 
-        /* Scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: var(--color-nude-hover); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
-        /* ==================== SIDEBAR ==================== */
+        /* ==================== SIDEBAR OFICIAL ==================== */
         .sidebar {
             width: var(--sidebar-width);
             background: var(--bg-offwhite);
@@ -49,11 +46,12 @@
             left: 0;
             display: flex;
             flex-direction: column;
+            justify-content: space-between;
             padding: 1.5rem 1rem;
             z-index: 100;
         }
         .sidebar-scrollable { overflow-y: auto; flex-grow: 1; padding-right: 5px; }
-        
+
         .brand-header {
             display: flex;
             align-items: center;
@@ -72,6 +70,7 @@
             align-items: center;
             justify-content: center;
             font-size: 1.2rem;
+            flex-shrink: 0;
         }
         .brand-title {
             font-family: 'Italianno', cursive, serif;
@@ -100,8 +99,8 @@
             align-items: center;
             gap: 12px;
             margin-bottom: 4px;
-            transition: all 0.15s ease;
             text-decoration: none;
+            transition: all 0.15s ease;
         }
         .sidebar-nav .nav-link:hover { background: var(--bg-ivory); color: var(--text-dark); }
         .sidebar-nav .nav-link.active {
@@ -110,7 +109,7 @@
             box-shadow: 0 4px 12px rgba(42, 38, 33, 0.12);
         }
 
-        /* ==================== MAIN CONTENT ==================== */
+        /* ==================== CONTENIDO PRINCIPAL ==================== */
         .main-wrapper {
             margin-left: var(--sidebar-width);
             padding: 2rem 2.5rem;
@@ -120,456 +119,508 @@
             background: var(--bg-offwhite);
             border: 1px solid var(--color-nude);
             border-radius: 20px;
-            box-shadow: 0 4px 15px rgba(42, 38, 33, 0.03);
+            box-shadow: 0 4px 15px var(--card-shadow);
         }
 
-        /* ==================== CATALOG CARDS ==================== */
-        .catalog-card {
+        .prod-card {
             background: var(--bg-offwhite);
             border: 1px solid var(--color-nude);
-            border-radius: 24px;
-            padding: 1.5rem;
-            position: relative;
-            transition: all 0.2s ease;
+            border-radius: 18px;
+            padding: 1.15rem;
             height: 100%;
             display: flex;
             flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 4px 12px var(--card-shadow);
+            transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
         }
-        .catalog-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 24px var(--card-shadow);
-            border-color: var(--text-muted);
-        }
-
-        .card-actions {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            display: flex;
-            gap: 6px;
-            opacity: 0;
-            transition: opacity 0.2s ease;
-        }
-        .catalog-card:hover .card-actions {
-            opacity: 1;
+        .prod-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 22px rgba(42, 38, 33, 0.09);
+            border-color: var(--text-dark);
         }
 
-        .btn-action-sm {
-            width: 32px;
-            height: 32px;
-            border-radius: 10px;
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(255, 255, 255, 0.9);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        .badge-cat {
+            background-color: var(--bg-ivory);
             color: var(--text-dark);
-            transition: background 0.1s;
-        }
-        .btn-action-sm:hover { background: var(--color-nude); }
-        .btn-action-sm.delete:hover { background: #FEE2E2; color: #DC2626; }
-
-        .product-price {
-            font-size: 1.4rem;
-            font-weight: 800;
-            color: #10B981; 
-        }
-        
-        .kds-badge {
-            font-size: 0.75rem;
+            border: 1px solid var(--color-nude);
             font-weight: 700;
-            padding: 4px 10px;
-            border-radius: 20px;
-            background: var(--bg-ivory);
-            color: var(--text-muted);
+            font-size: 0.74rem;
+            padding: 5px 10px;
+            border-radius: 999px;
+        }
+
+        .price-tag {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #15803D;
+        }
+
+        .btn-action {
+            width: 34px;
+            height: 34px;
             display: inline-flex;
             align-items: center;
-            gap: 5px;
+            justify-content: center;
+            border-radius: 10px;
+            border: 1px solid var(--color-nude);
+            background: #fff;
+            color: var(--text-dark);
+            transition: all 0.18s;
+        }
+        .btn-action:hover { background: var(--color-nude-hover); }
+        .btn-action.delete:hover { background: #FEE2E2; color: #DC2626; border-color: #FCA5A5; }
+
+        .modal-content {
+            background-color: var(--bg-offwhite);
+            border: 1px solid var(--color-nude);
+            border-radius: 20px;
+        }
+        .form-control, .form-select {
+            background-color: #fff;
+            border: 1px solid var(--color-nude);
+            border-radius: 10px;
+            padding: 0.6rem 0.95rem;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--text-dark);
+            box-shadow: none;
+        }
+
+        @media (max-width: 991px) {
+            .sidebar { position: static; width: 100%; height: auto; }
+            .main-wrapper { margin-left: 0; padding: 1.25rem; }
         }
     </style>
 </head>
 <body>
 
-<!-- SIDEBAR -->
-<aside class="sidebar">
-    <div class="sidebar-scrollable">
-        <div class="brand-header">
-            <div class="brand-avatar"><i class="fa-solid fa-concierge-bell"></i></div>
+    <!-- SIDEBAR OFICIAL SAZÓNTRACK -->
+    <aside class="sidebar">
+        <div class="sidebar-scrollable">
+            <div class="brand-header">
+                <div class="brand-avatar">
+                    <i class="fa-solid fa-concierge-bell"></i>
+                </div>
+                <div>
+                    <h2 class="brand-title">SazónTrack</h2>
+                    <span class="brand-sub">Panel de Control</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-category">Principal</div>
+                <a href="index.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+                <a href="caja.html" class="nav-link"><i class="fa-solid fa-cash-register"></i> Caja POS</a>
+                <a href="mesas.html" class="nav-link"><i class="fa-solid fa-utensils"></i> Mapa Mesas</a>
+                <a href="reservas.html" class="nav-link"><i class="fa-solid fa-calendar-check"></i> Reservaciones</a>
+                <a href="kds_cocina.html" class="nav-link"><i class="fa-solid fa-fire-burner"></i> KDS Cocina</a>
+                <a href="kds_barra.html" class="nav-link"><i class="fa-solid fa-martini-glass-citrus"></i> KDS Barra</a>
+
+                <div class="nav-category">Recursos Humanos</div>
+                <a href="asistencia.html" target="_blank" class="nav-link">
+                    <i class="fa-solid fa-clock"></i> Reloj Checador <i class="fa-solid fa-arrow-up-right-from-square ms-auto opacity-50" style="font-size: 0.7rem;"></i>
+                </a>
+                <a href="reporte_asistencia.html" class="nav-link"><i class="fa-solid fa-clipboard-user"></i> Control de Nómina</a>
+
+                <div class="nav-category">Administración (CRUDs)</div>
+                <a href="empleados.html" class="nav-link"><i class="fa-solid fa-users"></i> Empleados</a>
+                <a href="productos.html" class="nav-link active"><i class="fa-solid fa-burger"></i> Menú</a>
+                <a href="recetas.html" class="nav-link"><i class="fa-solid fa-file-invoice-dollar"></i> Recetas</a>
+                <a href="inventario.html" class="nav-link"><i class="fa-solid fa-boxes-stacked"></i> Insumos e Inventario</a>
+                <a href="modificadores.html" class="nav-link"><i class="fa-solid fa-code-branch"></i> Modificadores</a>
+                <a href="historial_comandas.html" class="nav-link"><i class="fa-solid fa-receipt"></i> Histórico Comandas</a>
+                <a href="turno.html" class="nav-link"><i class="fa-solid fa-vault"></i> Turnos y Cortes</a>
+                <a href="reporte_ventas.html" class="nav-link"><i class="fa-solid fa-chart-line"></i> Reporte de Ventas</a>
+            </nav>
+        </div>
+    </aside>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="main-wrapper">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
             <div>
-                <h2 class="brand-title">SazónTrack</h2>
-                <span class="brand-sub">Panel de Control</span>
+                <h3 class="fw-bold m-0">Gestión de Menú y Productos</h3>
+                <p class="text-muted small m-0">Catálogo oficial de platillos y bebidas del restaurante.</p>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-dark px-3 py-2 rounded-pill" id="contadorProductos">0 productos</span>
+                <button type="button" class="btn btn-dark rounded-3 fw-bold px-3 py-2" onclick="abrirModalNuevo()">
+                    <i class="fa-solid fa-plus me-2"></i> Nuevo Producto
+                </button>
             </div>
         </div>
 
-        <nav class="sidebar-nav">
-            <div class="nav-category">Principal</div>
-            <a href="index.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
-            <a href="caja.html" class="nav-link"><i class="fa-solid fa-cash-register"></i> Caja POS</a>
-            <a href="mesas.html" class="nav-link"><i class="fa-solid fa-utensils"></i> Mapa Mesas</a>
-            
-            <div class="nav-category">Recursos Humanos</div>
-            <a href="asistencia.html" target="_blank" class="nav-link"><i class="fa-solid fa-clock"></i> Reloj Checador</a>
-            <a href="empleados.html" class="nav-link"><i class="fa-solid fa-users"></i> Empleados</a>
-
-            <div class="nav-category">Administración</div>
-            <a href="productos.html" class="nav-link"><i class="fa-solid fa-burger"></i>  Menú</a>
-            <a href="inventario.html" class="nav-link"><i class="fa-solid fa-boxes-stacked"></i> Inventario</a>
-        </nav>
-    </div>
-</aside>
-
-<!-- MAIN CONTENT -->
-<main class="main-wrapper">
-    
-    <!-- HEADER -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h3 class="fw-bold m-0">Catálogo de Menú</h3>
-            <p class="text-muted small m-0">Visualiza y administra tus platillos estilo vitrina.</p>
-        </div>
-        <div class="d-flex gap-2">
-            <a href="index.html" class="btn btn-outline-dark rounded-3 fw-bold">
-                <i class="fa-solid fa-arrow-left me-2"></i> Dashboard
-            </a>
-            <button class="btn btn-dark rounded-3 fw-bold" onclick="abrirModalCrear()">
-                <i class="fa-solid fa-plus me-2"></i> Nuevo Producto
-            </button>
-        </div>
-    </div>
-
-    <!-- FILTROS -->
-    <div class="card-custom p-3 mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
-        <div class="input-group" style="max-width: 400px;">
-            <span class="input-group-text bg-white border-end-0 border-secondary-subtle"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-            <input type="text" id="inputBuscar" class="form-control border-start-0 border-secondary-subtle" placeholder="Buscar producto...">
-        </div>
-        <select id="filtroCategoria" class="form-select border-secondary-subtle w-auto fw-semibold text-muted">
-            <option value="todos">Todas las Categorías</option>
-        </select>
-    </div>
-
-    <!-- GRID DE PRODUCTOS (CATÁLOGO) -->
-    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-4 g-4" id="catalogoProductos">
-        <!-- Tarjetas inyectadas por JS -->
-    </div>
-
-</main>
-
-<!-- MODAL: AGREGAR / EDITAR PRODUCTO -->
-<div class="modal fade" id="modalProducto" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="background-color: var(--bg-offwhite); border-radius: 20px;">
-            <div class="modal-header border-bottom border-secondary-subtle">
-                <h5 class="modal-title fw-bold" id="modalProductoTitle"><i class="fa-solid fa-utensils me-2"></i>Registrar Nuevo Producto</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <!-- FILTROS Y BÚSQUEDA -->
+        <div class="card-custom p-3 mb-4">
+            <div class="row g-2 align-items-center">
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                        <input type="text" id="buscarProducto" class="form-control border-start-0" placeholder="Buscar platillo, bebida o #ID..." oninput="reiniciarYPintar()">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select id="filtroCategoria" class="form-select fw-semibold text-muted" onchange="reiniciarYPintar()">
+                        <option value="">Todas las Categorías</option>
+                        <option value="2">Entradas</option>
+                        <option value="9">Sopas y Ensaladas</option>
+                        <option value="11">Tacos y Antojitos</option>
+                        <option value="10">Carnes y Parrilla</option>
+                        <option value="3">Platos Fuertes</option>
+                        <option value="4">Postres</option>
+                        <option value="5">Bebidas y Cocteles</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select id="ordenProductos" class="form-select fw-semibold text-muted" onchange="reiniciarYPintar()">
+                        <option value="reciente">Más recientes primero</option>
+                        <option value="antiguo">Más antiguos primero</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-outline-dark w-100 rounded-3 fw-semibold" onclick="limpiarFiltros()">
+                        <i class="fa-solid fa-rotate-left me-1"></i> Limpiar
+                    </button>
+                </div>
             </div>
-            <div class="modal-body p-4">
+        </div>
+
+        <!-- CATÁLOGO EN CUADRÍCULA -->
+        <div id="gridProductos" class="row g-3"></div>
+
+        <!-- PAGINACIÓN -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-4" id="barraPaginacion">
+            <span class="small text-muted fw-semibold" id="infoPaginacion">Mostrando 0 de 0</span>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-dark btn-sm rounded-3 px-3" id="btnPrevPagina" onclick="cambiarPagina(-1)">Anterior</button>
+                <button type="button" class="btn btn-dark btn-sm rounded-3 px-3" id="btnNextPagina" onclick="cambiarPagina(1)">Siguiente</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- MODAL CREAR / EDITAR PRODUCTO (SIN LOTES) -->
+    <div class="modal fade" id="modalProducto" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-bottom border-secondary-subtle">
+                    <h5 class="modal-title fw-bold" id="tituloModalProducto"><i class="fa-solid fa-utensils me-2"></i>Nuevo Producto</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
                 <form id="formProducto" onsubmit="guardarProducto(event)">
-                    <input type="hidden" id="prodId">
+                    <div class="modal-body p-4">
+                        <input type="hidden" id="prodId">
 
-                    <div class="mb-3">
-                        <label class="form-label fw-bold small text-muted">Nombre del Platillo / Bebida</label>
-                        <input type="text" id="prodNombre" class="form-control rounded-3" placeholder="" required>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label fw-bold small text-muted">Descripción (Opcional)</label>
-                        <textarea id="prodDescripcion" class="form-control rounded-3" rows="2" placeholder="Breve descripción..."></textarea>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-6">
-                            <label class="form-label fw-bold small text-muted">Categoría</label>
-                        <select id="prodCategoria" class="form-select rounded-3" required>
-                            <option value="">Selecciona...</option>
-                            <option value="3">Platos Fuertes</option>
-                            <option value="2">Entradas</option>
-                            <option value="1">Bebidas</option>
-                            <option value="5">Bebidas y Cocteles</option>
-                            <option value="4">Postres</option>
-                        </select>
+                        <div class="mb-3">
+                            <label for="prodNombre" class="form-label fw-bold small text-muted">Nombre del Platillo / Bebida</label>
+                            <input type="text" class="form-control" id="prodNombre" placeholder="Ej. Tacos al Pastor" required>
                         </div>
-                        <div class="col-6">
-                            <label class="form-label fw-bold small text-muted">Precio (MXN)</label>
-                            <input type="text" id="prodPrecio" class="form-control rounded-3" placeholder="0.00" required>
-                        </div>
-                    </div>
 
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <label class="form-label fw-bold small text-muted">Destino de Comanda (Estación KDS)</label>
-                            <select id="prodEstacion" class="form-select rounded-3" required>
-                                <option value="1">Cocina Principal</option>
-                                <option value="2">Barra de Bebidas</option>
-                            </select>
+                        <div class="row g-3 mb-3">
+                            <div class="col-sm-7">
+                                <label for="prodCategoria" class="form-label fw-bold small text-muted">Categoría</label>
+                                <select class="form-select" id="prodCategoria" required>
+                                    <option value="">Selecciona...</option>
+                                    <option value="2">Entradas</option>
+                                    <option value="9">Sopas y Ensaladas</option>
+                                    <option value="11">Tacos y Antojitos</option>
+                                    <option value="10">Carnes y Parrilla</option>
+                                    <option value="3">Platos Fuertes</option>
+                                    <option value="4">Postres</option>
+                                    <option value="5">Bebidas y Cocteles</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-5">
+                                <label for="prodPrecio" class="form-label fw-bold small text-muted">Precio (MXN)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-secondary-subtle">$</span>
+                                    <input type="number" step="0.01" min="0.01" class="form-control" id="prodPrecio" placeholder="0.00" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-2">
+                            <label for="prodDescripcion" class="form-label fw-bold small text-muted">Descripción</label>
+                            <textarea class="form-control" id="prodDescripcion" rows="2" placeholder="Ingredientes principales o presentación..."></textarea>
                         </div>
                     </div>
 
-                    <div class="d-flex justify-content-end gap-2 mt-2">
+                    <div class="modal-footer border-top-0 pt-0 px-4 pb-4">
                         <button type="button" class="btn btn-light border fw-bold rounded-3" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-dark fw-bold rounded-3 px-4" id="btnGuardar">Guardar Producto</button>
+                        <button type="submit" class="btn btn-dark fw-bold rounded-3 px-4" id="btnGuardarProducto">Guardar Producto</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
-</div>
 
-<!-- BOOTSTRAP JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    let productosData = [];
-    let categoriasGlobal = [];
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const CATEGORIAS_MAP = {
+            2: 'Entradas',
+            9: 'Sopas y Ensaladas',
+            11: 'Tacos y Antojitos',
+            10: 'Carnes y Parrilla',
+            3: 'Platos Fuertes',
+            4: 'Postres',
+            5: 'Bebidas y Cocteles'
+        };
 
-    document.addEventListener("DOMContentLoaded", () => {
-        cargarCategorias().then(() => {
-            cargarCatalogo();
+        const POR_PAGINA = 24;
+        let paginaActual = 1;
+        let catalogoProductos = [];
+        let productosFiltrados = [];
+        let modalProductoInst = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            modalProductoInst = new bootstrap.Modal(document.getElementById('modalProducto'));
+            cargarProductos();
         });
 
-        document.getElementById('inputBuscar').addEventListener('input', filtrarCatalogo);
-        document.getElementById('filtroCategoria').addEventListener('change', filtrarCatalogo);
-    });
-
-    // ================== CARGAR CATEGORÍAS ÚNICAS DESDE BD ==================
-    async function cargarCategorias() {
-        try {
-            const response = await fetch('api/categorias/listar.php');
-            if(!response.ok) {
-                categoriasGlobal = [
-                    { id_categoria: 1, nombre: 'Bebidas' },
-                    { id_categoria: 2, nombre: 'Entradas' },
-                    { id_categoria: 3, nombre: 'Platos Fuertes' },
-                    { id_categoria: 4, nombre: 'Postres' },
-                    { id_categoria: 5, nombre: 'Bebidas y Cocteles' },
-                    { id_categoria: 8, nombre: 'Comida' }
-                ];
-            } else {
-                const data = await response.json();
-                categoriasGlobal = Array.isArray(data) ? data : (data.data || []);
+        async function fetchConFallback(urls, opciones = {}) {
+            let ultimoError = null;
+            for (const url of urls) {
+                try {
+                    const resp = await fetch(url, opciones);
+                    if (resp.ok) return await resp.json();
+                    ultimoError = new Error(`HTTP ${resp.status} en ${url}`);
+                } catch (err) {
+                    ultimoError = err;
+                }
             }
-        } catch (e) {
-            categoriasGlobal = [
-                { id_categoria: 1, nombre: 'Bebidas' },
-                { id_categoria: 2, nombre: 'Entradas' },
-                { id_categoria: 3, nombre: 'Platos Fuertes' },
-                { id_categoria: 4, nombre: 'Postres' },
-                { id_categoria: 5, nombre: 'Bebidas y Cocteles' },
-                { id_categoria: 8, nombre: 'Comida' }
-            ];
+            throw ultimoError || new Error('No se pudo conectar con el servidor.');
         }
 
-        // Filtro para asegurar que no se repitan nombres de categorías en el selector
-        const categoriasUnicas = [];
-        const nombresVistos = new Set();
-        
-        categoriasGlobal.forEach(cat => {
-            const nombreCat = cat.nombre.trim();
-            if (!nombresVistos.has(nombreCat)) {
-                nombresVistos.add(nombreCat);
-                categoriasUnicas.push(cat);
+        async function cargarProductos() {
+            const grid = document.getElementById('gridProductos');
+            grid.innerHTML = `<div class="col-12 text-center py-5 text-muted"><i class="fa-solid fa-spinner fa-spin me-2"></i> Cargando catálogo...</div>`;
+
+            try {
+                const data = await fetchConFallback([
+                    'api/platillos/listar_platillos.php',
+                    'api/productos/listar.php'
+                ]);
+
+                const lista = Array.isArray(data) ? data : (data.data || data.productos || []);
+                catalogoProductos = lista.map(item => {
+                    const id = item.id_producto ?? item.id;
+                    const catId = Number(item.id_categoria ?? item.categoria_id ?? '');
+                    const catNombre = item.categoria || item.categoria_nombre || CATEGORIAS_MAP[catId] || 'Sin categoría';
+                    return {
+                        id,
+                        nombre: item.nombre || '',
+                        descripcion: item.descripcion || '',
+                        precio: parseFloat(item.precio || 0),
+                        categoria_id: catId || '',
+                        categoria_nombre: catNombre
+                    };
+                });
+
+                reiniciarYPintar();
+            } catch (error) {
+                console.error('Error al cargar productos:', error);
+                grid.innerHTML = `<div class="col-12 text-center py-5 text-danger fw-bold"><i class="fa-solid fa-triangle-exclamation me-2"></i> Error al cargar los productos desde la base de datos.</div>`;
             }
-        });
-
-        // Poblar select del modal y filtro superior
-        const selectModal = document.getElementById('prodCategoria');
-        const selectFiltro = document.getElementById('filtroCategoria');
-        
-        selectModal.innerHTML = '<option value="">Selecciona...</option>';
-        selectFiltro.innerHTML = '<option value="todos">Todas las Categorías</option>';
-
-        categoriasUnicas.forEach(cat => {
-            const idCat = cat.id_categoria || cat.id;
-            selectModal.insertAdjacentHTML('beforeend', `<option value="${idCat}">${cat.nombre}</option>`);
-            selectFiltro.insertAdjacentHTML('beforeend', `<option value="${cat.nombre}">${cat.nombre}</option>`);
-        });
-    }
-
-    // ================== LEER: CARGAR CATÁLOGO ==================
-    async function cargarCatalogo() {
-        const grid = document.getElementById('catalogoProductos');
-        grid.innerHTML = '<div class="col-12 text-center py-5"><i class="fa-solid fa-spinner fa-spin fa-2x text-muted mb-3"></i><p class="fw-bold text-muted">Cargando catálogo...</p></div>';
-
-        try {
-            const response = await fetch('api/platillos/listar_platillos.php');
-            if (!response.ok) throw new Error("Error en servidor");
-            
-            const data = await response.json();
-            productosData = Array.isArray(data) ? data : (data.data || []);
-            
-            renderizarTarjetas(productosData);
-        } catch (error) {
-            console.error(error);
-            grid.innerHTML = '<div class="col-12 text-center py-5 text-danger"><i class="fa-solid fa-triangle-exclamation fa-2x mb-2"></i><p class="fw-bold">Error al cargar el menú.</p></div>';
-        }
-    }
-
-    // ================== PINTAR TARJETAS EN EL DOM ==================
-    function renderizarTarjetas(lista) {
-        const grid = document.getElementById('catalogoProductos');
-        grid.innerHTML = '';
-
-        if (lista.length === 0) {
-            grid.innerHTML = '<div class="col-12 text-center py-5"><p class="text-muted fw-bold">No se encontraron productos.</p></div>';
-            return;
         }
 
-        lista.forEach(prod => {
-            let kdsNombre = prod.estacion_kds || 'Cocina Principal';
-            let kdsIcono = kdsNombre.toLowerCase().includes('barra') ? 'fa-martini-glass-citrus text-info' : 'fa-fire-burner text-danger';
+        function reiniciarYPintar() {
+            paginaActual = 1;
+            aplicarFiltros();
+        }
 
-            const cardHTML = `
-                <div class="col">
-                    <div class="catalog-card">
-                        <div class="card-actions">
-                            <button type="button" class="btn-action-sm" onclick="editarProducto(${prod.id})" title="Editar"><i class="fa-solid fa-pen"></i></button>
-                            <button type="button" class="btn-action-sm delete" onclick="eliminarProducto(${prod.id})" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                        <div class="text-center flex-grow-1 pt-4">
-                            <span class="badge bg-dark text-white rounded-pill mb-2" style="font-size: 0.65rem;">${prod.categoria || 'General'}</span>
-                            <h6 class="fw-bold mb-1" style="font-size: 1.05rem; line-height: 1.2;">${prod.nombre}</h6>
-                            <p class="text-muted small mb-3" style="font-size: 0.8rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-                                ${prod.descripcion || 'Sin descripción detallada.'}
-                            </p>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-end mt-3 pt-3 border-top border-secondary-subtle">
-                            <div>
-                                <div class="text-muted" style="font-size: 0.7rem; font-weight: 700;">PRECIO</div>
-                                <div class="product-price">$${parseFloat(prod.precio).toFixed(2)}</div>
+        function aplicarFiltros() {
+            const texto = (document.getElementById('buscarProducto').value || '').trim().toLowerCase();
+            const catFiltro = document.getElementById('filtroCategoria').value;
+            const orden = document.getElementById('ordenProductos').value;
+
+            productosFiltrados = catalogoProductos.filter(prod => {
+                const coincideTexto = !texto
+                    || prod.nombre.toLowerCase().includes(texto)
+                    || prod.descripcion.toLowerCase().includes(texto)
+                    || prod.categoria_nombre.toLowerCase().includes(texto)
+                    || String(prod.id).includes(texto);
+                const coincideCat = !catFiltro || String(prod.categoria_id) === String(catFiltro);
+                return coincideTexto && coincideCat;
+            });
+
+            productosFiltrados.sort((a, b) => {
+                const idA = Number(a.id) || 0;
+                const idB = Number(b.id) || 0;
+                return orden === 'antiguo' ? idA - idB : idB - idA;
+            });
+
+            document.getElementById('contadorProductos').textContent =
+                `${productosFiltrados.length.toLocaleString('es-MX')} productos`;
+
+            renderizarPagina();
+        }
+
+        function renderizarPagina() {
+            const grid = document.getElementById('gridProductos');
+            grid.innerHTML = '';
+
+            if (!productosFiltrados.length) {
+                grid.innerHTML = `<div class="col-12 text-center py-5 text-muted">No hay productos que coincidan con la búsqueda.</div>`;
+                document.getElementById('infoPaginacion').textContent = 'Mostrando 0 de 0';
+                document.getElementById('btnPrevPagina').disabled = true;
+                document.getElementById('btnNextPagina').disabled = true;
+                return;
+            }
+
+            const totalPaginas = Math.ceil(productosFiltrados.length / POR_PAGINA);
+            if (paginaActual > totalPaginas) paginaActual = totalPaginas;
+
+            const inicio = (paginaActual - 1) * POR_PAGINA;
+            const fin = Math.min(inicio + POR_PAGINA, productosFiltrados.length);
+            const slice = productosFiltrados.slice(inicio, fin);
+
+            slice.forEach(prod => {
+                const esBebida = Number(prod.categoria_id) === 5 || prod.categoria_nombre.toLowerCase().includes('bebida');
+                const icono = esBebida ? 'fa-martini-glass-citrus text-info' : 'fa-utensils text-warning';
+
+                const col = document.createElement('div');
+                col.className = 'col-sm-6 col-lg-4 col-xl-3';
+                col.innerHTML = `
+                    <div class="prod-card">
+                        <div>
+                            <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                                <span class="badge-cat"><i class="fa-solid ${icono} me-1"></i>${escapeHtml(prod.categoria_nombre)}</span>
+                                <span class="price-tag">$${prod.precio.toFixed(2)}</span>
                             </div>
-                            <div class="kds-badge" title="Destino de Comanda">
-                                <i class="fa-solid ${kdsIcono}"></i> ${kdsNombre}
+                            <h6 class="fw-bold mb-1">${escapeHtml(prod.nombre)}</h6>
+                            <p class="text-muted small mb-3">${escapeHtml(prod.descripcion || 'Platillo preparado al momento.')}</p>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                            <span class="small text-muted fw-semibold">#${prod.id}</span>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn-action" title="Editar" onclick="editarProducto(${prod.id})">
+                                    <i class="fa-solid fa-pen"></i>
+                                </button>
+                                <button type="button" class="btn-action delete" title="Eliminar" onclick="eliminarProducto(${prod.id})">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
                             </div>
                         </div>
                     </div>
-                </div>
-            `;
-            grid.insertAdjacentHTML('beforeend', cardHTML);
-        });
-    }
-
-    // ================== FILTRAR CATÁLOGO ==================
-    function filtrarCatalogo() {
-        const texto = document.getElementById('inputBuscar').value.toLowerCase();
-        const categoriaFiltro = document.getElementById('filtroCategoria').value;
-
-        const filtrados = productosData.filter(prod => {
-            const coincideTexto = prod.nombre.toLowerCase().includes(texto) || (prod.descripcion && prod.descripcion.toLowerCase().includes(texto));
-            const coincideCat = (categoriaFiltro === 'todos') || (prod.categoria === categoriaFiltro);
-            return coincideTexto && coincideCat;
-        });
-
-        renderizarTarjetas(filtrados);
-    }
-
-    // ================== ABRIR MODAL CREAR ==================
-    function abrirModalCrear() {
-        document.getElementById('formProducto').reset(); 
-        document.getElementById('prodId').value = "";    
-        document.getElementById('modalProductoTitle').innerHTML = '<i class="fa-solid fa-utensils me-2"></i>Registrar Nuevo Producto';
-        
-        const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('modalProducto'));
-        modal.show();
-    }
-
-    // ================== ABRIR MODAL EDITAR ==================
-    function editarProducto(id) {
-        const prod = productosData.find(p => p.id == id);
-        if(!prod) return;
-
-        document.getElementById('prodId').value = prod.id;
-        document.getElementById('prodNombre').value = prod.nombre;
-        document.getElementById('prodDescripcion').value = prod.descripcion || '';
-        document.getElementById('prodPrecio').value = prod.precio;
-        
-        document.getElementById('prodCategoria').value = prod.categoria_id || "";
-        document.getElementById('prodEstacion').value = prod.estacion_kds_id || "1";
-
-        document.getElementById('modalProductoTitle').innerHTML = '<i class="fa-solid fa-pen me-2"></i>Editar Producto';
-        const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('modalProducto'));
-        modal.show();
-    }
-
-    // ================== GUARDAR (CREAR Y ACTUALIZAR) ==================
-    async function guardarProducto(event) {
-        event.preventDefault(); 
-
-        const btnGuardar = document.getElementById('btnGuardar');
-        const textoOriginal = btnGuardar.innerHTML;
-        btnGuardar.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Guardando...';
-        btnGuardar.disabled = true;
-
-        const prodId = document.getElementById('prodId').value;
-        const formData = new FormData();
-        
-        if(prodId) {
-            formData.append('id', prodId);
-        }
-        
-        formData.append('nombre', document.getElementById('prodNombre').value);
-        formData.append('descripcion', document.getElementById('prodDescripcion').value);
-        formData.append('categoria_id', document.getElementById('prodCategoria').value);
-        
-        let precioVal = document.getElementById('prodPrecio').value.replace(',', '.');
-        formData.append('precio', precioVal);
-        
-        formData.append('estacion_kds_id', document.getElementById('prodEstacion').value);
-        formData.append('disponible', 1); 
-
-        const urlEndpoint = prodId ? 'api/platillos/actualizar.php' : 'api/platillos/registrar.php';
-
-        try {
-            const response = await fetch(urlEndpoint, {
-                method: 'POST', 
-                body: formData
+                `;
+                grid.appendChild(col);
             });
 
-            const data = await response.json();
+            document.getElementById('infoPaginacion').textContent =
+                `Mostrando ${inicio + 1} - ${fin} de ${productosFiltrados.length.toLocaleString('es-MX')} (Página ${paginaActual} de ${totalPaginas})`;
+            document.getElementById('btnPrevPagina').disabled = paginaActual <= 1;
+            document.getElementById('btnNextPagina').disabled = paginaActual >= totalPaginas;
+        }
 
-            if (response.ok || data.status === 'success') {
-                const modalElement = document.getElementById('modalProducto');
-                const modalInstance = bootstrap.Modal.getInstance(modalElement);
-                if (modalInstance) {
-                    modalInstance.hide();
+        function cambiarPagina(delta) {
+            paginaActual += delta;
+            renderizarPagina();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function abrirModalNuevo() {
+            document.getElementById('formProducto').reset();
+            document.getElementById('prodId').value = '';
+            document.getElementById('tituloModalProducto').innerHTML = '<i class="fa-solid fa-utensils me-2"></i>Nuevo Producto';
+            modalProductoInst.show();
+        }
+
+        function editarProducto(id) {
+            const prod = catalogoProductos.find(p => Number(p.id) === Number(id));
+            if (!prod) return;
+
+            document.getElementById('prodId').value = prod.id;
+            document.getElementById('prodNombre').value = prod.nombre;
+            document.getElementById('prodCategoria').value = prod.categoria_id || '';
+            document.getElementById('prodPrecio').value = prod.precio.toFixed(2);
+            document.getElementById('prodDescripcion').value = prod.descripcion;
+            document.getElementById('tituloModalProducto').innerHTML = '<i class="fa-solid fa-pen me-2"></i>Editar Producto';
+            modalProductoInst.show();
+        }
+
+        async function guardarProducto(event) {
+            event.preventDefault();
+
+            const btn = document.getElementById('btnGuardarProducto');
+            const textoPrevio = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Guardando...';
+
+            const id = document.getElementById('prodId').value.trim();
+            const esEdicion = id !== '';
+
+            const formData = new FormData();
+            if (esEdicion) {
+                formData.append('id', id);
+                formData.append('id_producto', id);
+            }
+            formData.append('nombre', document.getElementById('prodNombre').value.trim());
+            formData.append('categoria_id', document.getElementById('prodCategoria').value);
+            formData.append('id_categoria', document.getElementById('prodCategoria').value);
+            formData.append('precio', document.getElementById('prodPrecio').value);
+            formData.append('descripcion', document.getElementById('prodDescripcion').value.trim());
+            formData.append('disponible', 1);
+
+            const endpoints = esEdicion
+                ? ['api/platillos/actualizar.php', 'api/productos/actualizar.php']
+                : ['api/platillos/registrar.php', 'api/productos/crear.php'];
+
+            try {
+                const res = await fetchConFallback(endpoints, { method: 'POST', body: formData });
+                if (res.status === 'error' || res.success === false) {
+                    alert(res.message || 'No se pudo guardar el producto.');
+                } else {
+                    modalProductoInst.hide();
+                    await cargarProductos();
                 }
-                document.getElementById('formProducto').reset();
-                document.getElementById('prodId').value = ""; 
-                cargarCatalogo(); 
-            } else {
-                alert("Error al guardar: " + (data.message || "Revisa los datos"));
+            } catch (error) {
+                console.error('Error al guardar producto:', error);
+                alert('Error de conexión al guardar.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = textoPrevio;
             }
-        } catch (error) {
-            console.error("Error:", error);
-            alert("Error de conexión al servidor.");
-        } finally {
-            btnGuardar.innerHTML = textoOriginal;
-            btnGuardar.disabled = false;
         }
-    }
 
-    // ================== ELIMINAR ==================
-    async function eliminarProducto(id) {
-        if (!confirm("¿Estás seguro de eliminar este platillo del menú?")) return;
+        async function eliminarProducto(id) {
+            if (!confirm('¿Estás seguro de eliminar este producto del catálogo?')) return;
 
-        const formData = new FormData();
-        formData.append('id', id);
+            const formData = new FormData();
+            formData.append('id', id);
+            formData.append('id_producto', id);
 
-        try {
-            const response = await fetch('api/platillos/eliminar.php', {
-                method: 'POST',
-                body: formData
-            });
-            const data = await response.json();
-
-            if (response.ok || data.status === 'success') {
-                cargarCatalogo(); 
-            } else {
-                alert("No se pudo eliminar: " + (data.message || "Error desconocido"));
+            try {
+                const res = await fetchConFallback(
+                    ['api/platillos/eliminar.php', 'api/productos/eliminar.php'],
+                    { method: 'POST', body: formData }
+                );
+                if (res.status === 'error' || res.success === false) {
+                    alert(res.message || 'No se pudo eliminar el producto.');
+                } else {
+                    await cargarProductos();
+                }
+            } catch (error) {
+                console.error('Error al eliminar producto:', error);
+                alert('Error de conexión al eliminar.');
             }
-        } catch (error) {
-            alert("Hubo un problema al conectar con el servidor.");
         }
-    }
-</script>
+
+        function limpiarFiltros() {
+            document.getElementById('buscarProducto').value = '';
+            document.getElementById('filtroCategoria').value = '';
+            document.getElementById('ordenProductos').value = 'reciente';
+            reiniciarYPintar();
+        }
+
+        function escapeHtml(str) {
+            return String(str ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+    </script>
+
 </body>
 </html>

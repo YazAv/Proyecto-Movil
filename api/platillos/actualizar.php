@@ -1,72 +1,69 @@
 <?php
 header('Access-Control-Allow-Origin: *');
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=utf-8');
+ini_set('display_errors', 0);
 
-require_once '../../config/conexion.php'; 
-
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(["status" => "error", "message" => "Método no permitido"]);
-    exit();
+$rutas = [
+    __DIR__ . '/../../config/conexion.php',
+    __DIR__ . '/../config/conexion.php',
+    __DIR__ . '/../../config/db.php',
+    __DIR__ . '/../conexion.php'
+];
+foreach ($rutas as $r) {
+    if (file_exists($r)) {
+        require_once $r;
+        break;
+    }
 }
+if (!isset($conn) && isset($pdo)) $conn = $pdo;
+if (!isset($conn) && class_exists('Database')) $conn = (new Database())->getConnection();
 
 try {
-    $db = new Database();
-    $conn = $db->getConnection();
+    $raw = file_get_contents('php://input');
+    $json = json_decode($raw, true);
+    $datos = is_array($json) && !empty($json) ? $json : $_POST;
 
-    $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
-    $nombre = isset($_POST['nombre']) ? trim($_POST['nombre']) : '';
-    $descripcion = isset($_POST['descripcion']) ? trim($_POST['descripcion']) : null;
-    $categoria_id = isset($_POST['categoria_id']) ? intval($_POST['categoria_id']) : 0;
-    
-    // Sanitiza el precio reemplazando comas por puntos por si el navegador envía formato regional
-    $precio_raw = isset($_POST['precio']) ? str_replace(',', '.', trim($_POST['precio'])) : '0';
-    $precio = floatval($precio_raw);
-    
-    $estacion_kds_id = isset($_POST['estacion_kds_id']) ? intval($_POST['estacion_kds_id']) : 0;
+    $id           = intval($datos['id_producto'] ?? ($datos['id'] ?? 0));
+    $nombre       = trim($datos['nombre'] ?? '');
+    $descripcion  = trim($datos['descripcion'] ?? '');
+    $categoria_id = intval($datos['categoria_id'] ?? ($datos['id_categoria'] ?? 0));
+    $precio       = floatval($datos['precio'] ?? 0);
+    $estacion_kds = intval($datos['estacion_kds_id'] ?? ($categoria_id === 5 ? 2 : 1));
 
-    // Validación flexible
-    if ($id === 0 || $nombre === '' || $categoria_id === 0 || $precio <= 0) {
+    if ($id <= 0 || $nombre === '' || $categoria_id <= 0 || $precio <= 0) {
         http_response_code(400);
-        echo json_encode([
-            "status" => "error", 
-            "message" => "Faltan datos obligatorios para actualizar.",
-            "debug" => ["id" => $id, "nombre" => $nombre, "cat" => $categoria_id, "precio" => $precio]
-        ]);
-        exit();
+        echo json_encode(['status' => 'error', 'message' => 'Faltan datos obligatorios para actualizar.']);
+        exit;
     }
 
-    if ($estacion_kds_id === 0) {
-        $estacion_kds_id = 1; // Estación por defecto (Cocina Principal)
+    $colsStmt = $conn->query("SELECT column_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'productos'");
+    $cols = $colsStmt->fetchAll(PDO::FETCH_COLUMN);
+    $colId = in_array('id_producto', $cols) ? 'id_producto' : 'id';
+
+    $sets = ['nombre = ?', 'descripcion = ?', 'precio = ?'];
+    $valores = [$nombre, $descripcion, $precio];
+
+    if (in_array('id_categoria', $cols)) {
+        $sets[] = 'id_categoria = ?';
+        $valores[] = $categoria_id;
+    }
+    if (in_array('categoria_id', $cols)) {
+        $sets[] = 'categoria_id = ?';
+        $valores[] = $categoria_id;
+    }
+    if (in_array('estacion_kds_id', $cols)) {
+        $sets[] = 'estacion_kds_id = ?';
+        $valores[] = $estacion_kds;
     }
 
-    // Actualizamos ambas columnas simultáneamente para no romper los triggers de la BD
-    $query = "UPDATE productos 
-              SET nombre = :nombre, 
-                  descripcion = :descripcion, 
-                  precio = :precio, 
-                  id_categoria = :categoria_id,
-                  categoria_id = :categoria_id, 
-                  estacion_kds_id = :estacion_kds_id
-              WHERE id_producto = :id OR id = :id";
-    
-    $stmt = $conn->prepare($query);
-    $stmt->bindParam(':id', $id, PDO::PARAM_INT);
-    $stmt->bindParam(':nombre', $nombre);
-    $stmt->bindParam(':descripcion', $descripcion);
-    $stmt->bindParam(':precio', $precio);
-    $stmt->bindParam(':categoria_id', $categoria_id, PDO::PARAM_INT);
-    $stmt->bindParam(':estacion_kds_id', $estacion_kds_id, PDO::PARAM_INT);
+    $valores[] = $id;
+    $sql = "UPDATE public.productos SET " . implode(', ', $sets) . " WHERE $colId = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->execute($valores);
 
-    if ($stmt->execute()) {
-        echo json_encode(["status" => "success", "message" => "Producto actualizado con éxito"]);
-    } else {
-        http_response_code(500);
-        echo json_encode(["status" => "error", "message" => "Error al ejecutar la actualización en la BD."]);
-    }
-
-} catch (PDOException $e) {
+    echo json_encode(['status' => 'success', 'message' => 'Producto actualizado correctamente.']);
+} catch (Throwable $e) {
     http_response_code(500);
-    echo json_encode(["status" => "error", "message" => "Error de BD: " . $e->getMessage()]);
+    echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
 }
 ?>

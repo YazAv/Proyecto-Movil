@@ -1,42 +1,54 @@
 <?php
 header('Access-Control-Allow-Origin: *');
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=utf-8');
+ini_set('display_errors', 0);
 
-require_once '../../config/conexion.php'; 
-
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(["status" => "error", "message" => "Método no permitido"]);
-    exit();
+$rutas = [
+    __DIR__ . '/../../config/conexion.php',
+    __DIR__ . '/../config/conexion.php',
+    __DIR__ . '/../../config/db.php',
+    __DIR__ . '/../conexion.php'
+];
+foreach ($rutas as $r) {
+    if (file_exists($r)) {
+        require_once $r;
+        break;
+    }
 }
+if (!isset($conn) && isset($pdo)) $conn = $pdo;
+if (!isset($conn) && class_exists('Database')) $conn = (new Database())->getConnection();
 
 try {
-    $db = new Database();
-    $conn = $db->getConnection();
+    $raw = file_get_contents('php://input');
+    $json = json_decode($raw, true);
+    $datos = is_array($json) && !empty($json) ? $json : $_POST;
 
-    $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
-
-    if ($id === 0) {
+    $id = intval($datos['id_producto'] ?? ($datos['id'] ?? 0));
+    if ($id <= 0) {
         http_response_code(400);
-        echo json_encode(["status" => "error", "message" => "ID de producto inválido."]);
-        exit();
+        echo json_encode(['status' => 'error', 'message' => 'ID de producto inválido.']);
+        exit;
     }
 
-    // Borrado lógico seguro utilizando tanto id_producto como id
-    $query = "UPDATE productos SET disponible = 0, activo = false WHERE id_producto = :id OR id = :id";
+    $colsStmt = $conn->query("SELECT column_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'productos'");
+    $cols = $colsStmt->fetchAll(PDO::FETCH_COLUMN);
+    $colId = in_array('id_producto', $cols) ? 'id_producto' : 'id';
 
-    $stmt = $conn->prepare($query);
-    $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+    $updates = [];
+    if (in_array('disponible', $cols)) $updates[] = 'disponible = 0';
+    if (in_array('activo', $cols)) $updates[] = 'activo = false';
 
-    if ($stmt->execute()) {
-        echo json_encode(["status" => "success", "message" => "Producto eliminado correctamente"]);
+    if (!empty($updates)) {
+        $stmt = $conn->prepare("UPDATE public.productos SET " . implode(', ', $updates) . " WHERE $colId = ?");
+        $stmt->execute([$id]);
     } else {
-        http_response_code(500);
-        echo json_encode(["status" => "error", "message" => "No se pudo eliminar el registro en la base de datos."]);
+        $stmt = $conn->prepare("DELETE FROM public.productos WHERE $colId = ?");
+        $stmt->execute([$id]);
     }
 
-} catch (PDOException $e) {
+    echo json_encode(['status' => 'success', 'message' => 'Producto eliminado del catálogo.']);
+} catch (Throwable $e) {
     http_response_code(500);
-    echo json_encode(["status" => "error", "message" => "Error de BD: " . $e->getMessage()]);
+    echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
 }
 ?>

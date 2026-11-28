@@ -1,49 +1,85 @@
 <?php
-ob_start();
-ini_set('display_errors', 0);
-error_reporting(E_ALL);
-
+header('Access-Control-Allow-Origin: *');
 header('Content-Type: application/json; charset=utf-8');
+ini_set('display_errors', 0);
+
+$rutas = [
+    __DIR__ . '/../../config/conexion.php',
+    __DIR__ . '/../config/conexion.php',
+    __DIR__ . '/../../config/db.php',
+    __DIR__ . '/../conexion.php'
+];
+foreach ($rutas as $r) {
+    if (file_exists($r)) {
+        require_once $r;
+        break;
+    }
+}
+if (!isset($conn) && isset($pdo)) $conn = $pdo;
+if (!isset($conn) && class_exists('Database')) $conn = (new Database())->getConnection();
 
 try {
-    $path_db = dirname(__FILE__) . '/../../config/conexion.php';
-    if (!file_exists($path_db)) {
-        $path_db = $_SERVER['DOCUMENT_ROOT'] . '/restaurante_app/config/conexion.php';
-    }
-    require_once $path_db;
+    $id_producto = intval($_GET['id_producto'] ?? 0);
+    $todas       = intval($_GET['todas'] ?? 0);
 
-    $pdo = isset($db) ? $db : (isset($conn) ? $conn : null);
-    if (!$pdo) throw new Exception("Error de conexión a la base de datos");
+    $colsStmt = $conn->query("SELECT column_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'recetas'");
+    $cols = $colsStmt->fetchAll(PDO::FETCH_COLUMN);
 
-    // Consultar productos activos
-    $stmtProd = $pdo->prepare("
-        SELECT p.id_producto, p.nombre, p.precio, COALESCE(c.nombre, 'General') AS categoria
-        FROM productos p
-        LEFT JOIN categorias c ON p.id_categoria = c.id_categoria
-        WHERE p.activo = TRUE
-        ORDER BY p.nombre ASC
-    ");
-    $stmtProd->execute();
-    $productos = $stmtProd->fetchAll(PDO::FETCH_ASSOC);
+    $colId   = in_array('id_receta', $cols) ? 'id_receta' : 'id';
+    $colCant = in_array('cantidad_necesaria', $cols) ? 'cantidad_necesaria' : 'cantidad';
 
-    // Obtener los insumos configurados en la receta de cada producto
-    foreach ($productos as &$prod) {
-        $stmtRec = $pdo->prepare("
-            SELECT r.id_receta, r.id_insumo, i.nombre AS nombre_insumo, i.unidad_medida, r.cantidad, i.costo_unitario
-            FROM recetas r
-            INNER JOIN insumos i ON r.id_insumo = i.id_insumo
-            WHERE r.id_producto = :id_producto
-            ORDER BY i.nombre ASC
+    $prodColsStmt = $conn->query("SELECT column_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'productos'");
+    $prodCols = $prodColsStmt->fetchAll(PDO::FETCH_COLUMN);
+    $prodIdCol = in_array('id_producto', $prodCols) ? 'id_producto' : 'id';
+
+    if ($id_producto > 0) {
+        $stmt = $conn->prepare("
+            SELECT
+                r.$colId AS id_receta,
+                r.id_producto,
+                r.id_insumo,
+                r.$colCant AS cantidad,
+                i.nombre AS nombre_insumo,
+                COALESCE(i.unidad_medida, 'kg') AS unidad_medida,
+                COALESCE(i.costo_unitario, 0) AS costo_unitario,
+                (r.$colCant * COALESCE(i.costo_unitario, 0)) AS subtotal_costo
+            FROM public.recetas r
+            JOIN public.insumos i ON r.id_insumo = i.id_insumo
+            WHERE r.id_producto = ?
+            ORDER BY r.$colId ASC
         ");
-        $stmtRec->execute([':id_producto' => $prod['id_producto']]);
-        $prod['ingredientes'] = $stmtRec->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->execute([$id_producto]);
+        echo json_encode(['status' => 'success', 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)], JSON_UNESCAPED_UNICODE);
+    } elseif ($todas === 1) {
+        $stmt = $conn->query("
+            SELECT
+                r.id_producto,
+                p.nombre AS nombre_producto,
+                COALESCE(p.precio, 0) AS precio_venta,
+                i.nombre AS nombre_insumo,
+                r.$colCant AS cantidad,
+                COALESCE(i.unidad_medida, 'kg') AS unidad_medida,
+                COALESCE(i.costo_unitario, 0) AS costo_unitario,
+                (r.$colCant * COALESCE(i.costo_unitario, 0)) AS subtotal_costo
+            FROM public.recetas r
+            JOIN public.productos p ON r.id_producto = p.$prodIdCol
+            JOIN public.insumos i ON r.id_insumo = i.id_insumo
+            ORDER BY p.nombre ASC, r.$colId ASC
+        ");
+        echo json_encode(['status' => 'success', 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)], JSON_UNESCAPED_UNICODE);
+    } else {
+        $stmt = $conn->query("
+            SELECT
+                r.id_producto,
+                COUNT(r.$colId) AS total_insumos,
+                COALESCE(SUM(r.$colCant * COALESCE(i.costo_unitario, 0)), 0) AS costo_total
+            FROM public.recetas r
+            JOIN public.insumos i ON r.id_insumo = i.id_insumo
+            GROUP BY r.id_producto
+        ");
+        echo json_encode(['status' => 'success', 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)], JSON_UNESCAPED_UNICODE);
     }
-
-    ob_end_clean();
-    echo json_encode(['status' => 'success', 'data' => $productos]);
-
-} catch (Exception $e) {
-    ob_end_clean();
+} catch (Throwable $e) {
     http_response_code(500);
     echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
 }
